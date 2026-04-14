@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Agent / Task Files
+RULES*
+TASKS*
+TASK1*
+TASK2*
+OTHER SKILLS*
+.agents/
+.claude/
+.trae/
+.windsurf/
+.zencoder/
