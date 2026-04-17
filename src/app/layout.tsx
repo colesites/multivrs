@@ -58,7 +58,7 @@ const clashDisplay = localFont({
 const SITE_URL = "https://multivrs.dev";
 const SITE_NAME = "MULTIVRS";
 const SITE_DESCRIPTION =
-  "MULTIVRS builds premium digital experiences that push boundaries. We craft next-generation software, immersive interfaces, and scalable platforms for ambitious brands.";
+  "MULTIVRS is a modern software ecosystem: cloud deployment, developer tooling, AI workflows, and premium product experiences.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -67,15 +67,17 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: SITE_URL,
+  },
   keywords: [
-    "software agency",
-    "web development",
-    "digital experiences",
-    "premium software",
+    "multivrs",
+    "deployment platform",
+    "developer tools",
+    "cloud hosting",
+    "preview deployments",
     "Next.js",
-    "React",
-    "3D web",
-    "immersive design",
+    "SaaS infrastructure",
   ],
   authors: [{ name: SITE_NAME }],
   creator: SITE_NAME,
@@ -86,11 +88,20 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: `${SITE_NAME} — Build Beyond Limits`,
     description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} — Build Beyond Limits`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${SITE_NAME} — Build Beyond Limits`,
     description: SITE_DESCRIPTION,
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
@@ -110,6 +121,19 @@ export default function RootLayout({
     name: SITE_NAME,
     url: SITE_URL,
     description: SITE_DESCRIPTION,
+    sameAs: ["https://github.com/multivrs"],
+  };
+
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: SITE_URL,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${SITE_URL}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
   };
 
   return (
@@ -123,9 +147,15 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
       </head>
-      <body className="min-h-full flex flex-col font-inter">
-        {children}
+      <body className="min-h-full flex flex-col font-inter bg-background text-foreground selection:bg-white/10 selection:text-white">
+        <main className="flex-1">
+          {children}
+        </main>
       </body>
     </html>
   );

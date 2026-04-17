@@ -47,12 +47,10 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --color-hero-purple: var(--hero-purple);
-  --color-hero-pink: var(--hero-pink);
   --color-hero-glow: var(--hero-glow);
 }
 
-:root {
+.dark {
   --background: #030303;
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -85,17 +83,20 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-  --hero-purple: #a78bfa;
-  --hero-pink: #f472b6;
-  --hero-glow: #7c3aed;
+  --hero-glow: #2563eb;
 }
 
 @layer base {
-  body {
-    @apply bg-background text-foreground;
+  :root {
+    background-color: #030303;
   }
   html {
+    background-color: #030303;
     @apply font-sans;
+  }
+  body {
+    background-color: #030303;
+    @apply bg-background text-foreground;
   }
 }
 
@@ -142,4 +143,107 @@
 /* Will-change hints for animated elements */
 .will-animate {
   will-change: transform, opacity;
+}
+
+/* Custom Colorful Scrollbar */
+.dashboard-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #3b82f6, #818cf8, #a855f7, #ec4899);
+  border-radius: 20px;
+  border: 3px solid #030303;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #2563eb, #6366f1, #9333ea, #db2777);
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ─── Star Card System ─── */
+
+/* Glow pulse — subtle breathing border glow */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* Scanline sweep — horizontal data stream accent */
+@keyframes scanline {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Shimmer gradient for loading/accent states */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Ambient floating orb */
+@keyframes float-orb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(8px, -6px) scale(1.05); }
+  66% { transform: translate(-4px, 4px) scale(0.97); }
+}
+
+/* Star card base glow overlay */
+.star-glow {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+/* Scanline sweep accent */
+.scanline-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 45%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 55%,
+    transparent 100%
+  );
+  animation: scanline 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Ambient orb for cards */
+.ambient-orb {
+  animation: float-orb 12s ease-in-out infinite;
+}
+
+/* Micro-grain texture overlay for card depth */
+.card-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 128 128' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.015'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Inner glow border effect */
+.inner-glow {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 20px 0 rgba(255, 255, 255, 0.02),
+    0 0 40px -10px var(--glow-color, rgba(59, 130, 246, 0.15));
 }

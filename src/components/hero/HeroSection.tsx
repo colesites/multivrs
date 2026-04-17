@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { HeroContent } from "@/components/hero/HeroContent";
 import { HeroOverlays } from "@/components/hero/HeroOverlays";
-import { Navbar } from "@/components/Navbar";
 
 const HeroBackground = dynamic(
   () =>
@@ -35,12 +34,7 @@ const HeroForeground = dynamic(
  */
 export function HeroSection() {
   return (
-    <section
-      id="hero"
-      className="relative min-h-svh w-full overflow-hidden"
-    >
-      <Navbar />
-
+    <section id="hero" className="relative min-h-svh w-full overflow-hidden">
       {/* Z-0: 3D background (stars, asteroids, web) */}
       <HeroBackground />
 

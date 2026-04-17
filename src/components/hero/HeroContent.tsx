@@ -56,9 +56,9 @@ export function HeroContent() {
       <div ref={ctaRef} className="will-animate flex flex-col gap-4 sm:flex-row sm:gap-5">
         <Button
           size="lg"
-          className="group relative overflow-hidden rounded-full bg-white px-8 py-3 text-sm font-semibold text-background transition-all hover:shadow-[0_0_30px_rgba(124,58,237,0.3)] hover:scale-[1.02] active:scale-[0.98]"
+          className="group relative overflow-hidden rounded-full bg-white px-8 py-3 text-sm font-semibold text-background transition-all hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] hover:scale-[1.02] active:scale-[0.98]"
         >
-          Start a Project
+          Start for free
           <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
         </Button>
 
@@ -68,7 +68,7 @@ export function HeroContent() {
           className="rounded-full border-white/10 bg-white/3 px-8 py-3 text-sm font-medium text-white/80 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/6 hover:text-white"
         >
           <Play className="mr-2 size-3.5 fill-current" />
-          Explore Our Work
+          View live demo
         </Button>
       </div>
     </div>

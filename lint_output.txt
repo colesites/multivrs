@@ -1,0 +1,200 @@
+
+/Users/admin/Documents/programming/projects/multivrs/convex/_generated/api.js
+  1:1  warning  Unused eslint-disable directive (no problems were reported)
+
+/Users/admin/Documents/programming/projects/multivrs/convex/_generated/server.d.ts
+  1:1  warning  Unused eslint-disable directive (no problems were reported)
+
+/Users/admin/Documents/programming/projects/multivrs/convex/_generated/server.js
+  1:1  warning  Unused eslint-disable directive (no problems were reported)
+
+/Users/admin/Documents/programming/projects/multivrs/src/app/(dashboard)/dashboard/page.tsx
+  5:44  warning  'mockProjects' is defined but never used  @typescript-eslint/no-unused-vars
+  8:66  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/admin/Documents/programming/projects/multivrs/src/app/(dashboard)/dashboard/settings/page.tsx
+  32:18  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/Navbar.tsx
+  232:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/dashboard/Header.tsx
+  52:13  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/hero/HeroSection.tsx
+  6:10  warning  'Navbar' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/hero/Planet.tsx
+  1:1  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/purity')
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/hero/SpaceBackground.tsx
+  1:1  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/purity')
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/hero/SpaceForeground.tsx
+  1:1  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/purity')
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/PremiumProductShowcase.tsx
+   3:18  warning  'useEffect' is defined but never used       @typescript-eslint/no-unused-vars
+   5:10  warning  'Float' is defined but never used           @typescript-eslint/no-unused-vars
+   5:17  warning  'Text' is defined but never used            @typescript-eslint/no-unused-vars
+   5:36  warning  'Stars' is defined but never used           @typescript-eslint/no-unused-vars
+   5:63  warning  'ContactShadows' is defined but never used  @typescript-eslint/no-unused-vars
+  40:20  warning  'delta' is defined but never used           @typescript-eslint/no-unused-vars
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpObstacles.tsx
+  30:12  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpObstacles.tsx:30:12
+  28 |       arr.push({
+  29 |         position: new THREE.Vector3(
+> 30 |           (Math.random() - 0.5) * 30,
+     |            ^^^^^^^^^^^^^ Cannot call impure function
+  31 |           (Math.random() - 0.5) * 20,
+  32 |           Math.random() * -150
+  33 |         ),                            react-hooks/purity
+  31:12  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpObstacles.tsx:31:12
+  29 |         position: new THREE.Vector3(
+  30 |           (Math.random() - 0.5) * 30,
+> 31 |           (Math.random() - 0.5) * 20,
+     |            ^^^^^^^^^^^^^ Cannot call impure function
+  32 |           Math.random() * -150
+  33 |         ),
+  34 |         rotation: new THREE.Vector3(        react-hooks/purity
+  32:11  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpObstacles.tsx:32:11
+  30 |           (Math.random() - 0.5) * 30,
+  31 |           (Math.random() - 0.5) * 20,
+> 32 |           Math.random() * -150
+     |           ^^^^^^^^^^^^^ Cannot call impure function
+  33 |         ),
+  34 |         rotation: new THREE.Vector3(
+  35 |           Math.random() * Math.PI,           react-hooks/purity
+  35:11  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpObstacles.tsx:35:11
+  33 |         ),
+  34 |         rotation: new THREE.Vector3(
+> 35 |           Math.random() * Math.PI,
+     |           ^^^^^^^^^^^^^ Cannot call impure function
+  36 |           Math.random() * Math.PI,
+  37 |           Math.random() * Math.PI
+  38 |         ),                                      react-hooks/purity
+  36:11  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpObstacles.tsx:36:11
+  34 |         rotation: new THREE.Vector3(
+  35 |           Math.random() * Math.PI,
+> 36 |           Math.random() * Math.PI,
+     |           ^^^^^^^^^^^^^ Cannot call impure function
+  37 |           Math.random() * Math.PI
+  38 |         ),
+  39 |         scale: Math.random() * 0.4 + 0.1,       react-hooks/purity
+  37:11  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpObstacles.tsx:37:11
+  35 |           Math.random() * Math.PI,
+  36 |           Math.random() * Math.PI,
+> 37 |           Math.random() * Math.PI
+     |           ^^^^^^^^^^^^^ Cannot call impure function
+  38 |         ),
+  39 |         scale: Math.random() * 0.4 + 0.1,
+  40 |         speed: Math.random() * 0.5 + 0.2,  react-hooks/purity
+  39:16  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpObstacles.tsx:39:16
+  37 |           Math.random() * Math.PI
+  38 |         ),
+> 39 |         scale: Math.random() * 0.4 + 0.1,
+     |                ^^^^^^^^^^^^^ Cannot call impure function
+  40 |         speed: Math.random() * 0.5 + 0.2,
+  41 |       });
+  42 |     }                                                   react-hooks/purity
+  40:16  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpObstacles.tsx:40:16
+  38 |         ),
+  39 |         scale: Math.random() * 0.4 + 0.1,
+> 40 |         speed: Math.random() * 0.5 + 0.2,
+     |                ^^^^^^^^^^^^^ Cannot call impure function
+  41 |       });
+  42 |     }
+  43 |     return { dummy: dummyObj, obstacles: arr };                                     react-hooks/purity
+  46:13  warning  'state' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  46:20  warning  'delta' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpStars.tsx
+   6:8   warning  'gsap' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  29:22  warning  'randoms' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  34:21  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpStars.tsx:34:21
+  32 |
+  33 |     for (let i = 0; i < STAR_COUNT; i++) {
+> 34 |       pos[i * 3] = (Math.random() - 0.5) * 40;     // X
+     |                     ^^^^^^^^^^^^^ Cannot call impure function
+  35 |       pos[i * 3 + 1] = (Math.random() - 0.5) * 40; // Y
+  36 |       pos[i * 3 + 2] = Math.random() * -100;       // Z (distance)
+  37 |       ran[i] = Math.random();             react-hooks/purity
+  35:25  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpStars.tsx:35:25
+  33 |     for (let i = 0; i < STAR_COUNT; i++) {
+  34 |       pos[i * 3] = (Math.random() - 0.5) * 40;     // X
+> 35 |       pos[i * 3 + 1] = (Math.random() - 0.5) * 40; // Y
+     |                         ^^^^^^^^^^^^^ Cannot call impure function
+  36 |       pos[i * 3 + 2] = Math.random() * -100;       // Z (distance)
+  37 |       ran[i] = Math.random();
+  38 |     }   react-hooks/purity
+  36:24  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpStars.tsx:36:24
+  34 |       pos[i * 3] = (Math.random() - 0.5) * 40;     // X
+  35 |       pos[i * 3 + 1] = (Math.random() - 0.5) * 40; // Y
+> 36 |       pos[i * 3 + 2] = Math.random() * -100;       // Z (distance)
+     |                        ^^^^^^^^^^^^^ Cannot call impure function
+  37 |       ran[i] = Math.random();
+  38 |     }
+  39 |     return { positions: pos, randoms: ran };  react-hooks/purity
+  37:16  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/admin/Documents/programming/projects/multivrs/src/components/sections/WarpStars.tsx:37:16
+  35 |       pos[i * 3 + 1] = (Math.random() - 0.5) * 40; // Y
+  36 |       pos[i * 3 + 2] = Math.random() * -100;       // Z (distance)
+> 37 |       ran[i] = Math.random();
+     |                ^^^^^^^^^^^^^ Cannot call impure function
+  38 |     }
+  39 |     return { positions: pos, randoms: ran };
+  40 |   }, []);                                                        react-hooks/purity
+  42:13  warning  'state' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  42:20  warning  'delta' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+
+✖ 36 problems (14 errors, 22 warnings)
+  0 errors and 6 warnings potentially fixable with the `--fix` option.
+
