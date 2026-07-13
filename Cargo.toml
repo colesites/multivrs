@@ -1,0 +1,19 @@
+# Rust workspace for the native crates (CLI now; builder-core / proxy-adjacent
+# later). Lives alongside the bun/turbo JS workspace — these crate dirs have no
+# package.json, so bun/turbo ignore them. See ARCHITECTURE.md §13.
+[workspace]
+resolver = "2"
+members = ["packages/builder-core", "packages/cli", "packages/cli-auth", "packages/cli-config"]
+
+[workspace.package]
+edition = "2024"
+version = "0.0.0"
+license = "MIT"
+
+[workspace.dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+dirs = "6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tempfile = "3"

@@ -1,0 +1,11 @@
+{
+  "name": "kontinue-ai",
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "installCommand": "bun install",
+  "outputDirectory": ".next",
+  "regions": ["iad1"],
+  "env": {
+    "API_URL": "https://api.example.com"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "fixture-swift-rust",
+  "dependencies": {
+    "swift-rust": "1.0.0"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "fixture-vite",
+  "devDependencies": {
+    "vite": "5.4.0"
+  }
+}

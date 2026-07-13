@@ -1,0 +1,24 @@
+[package]
+name = "cli"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "multivrs"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+base64 = "0.22.1"
+builder-core = { path = "../builder-core" }
+clap.workspace = true
+cli-auth = { path = "../cli-auth" }
+cli-config = { path = "../cli-config" }
+reqwest = { version = "0.13.4", features = ["blocking", "json", "rustls"] }
+rayon = "1.11.0"
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

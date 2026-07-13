@@ -1,0 +1,19 @@
+{
+  "name": "@repo/backend",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "convex dev",
+    "lint": "biome check .",
+    "format": "biome check --fix .",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "convex": "^1.16.0"
+  },
+  "devDependencies": {
+    "@repo/biome-config": "*",
+    "@repo/typescript-config": "*",
+    "typescript": "5.9.2"
+  }
+}

@@ -1,0 +1,174 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// User model - stores core user identity data
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  name          String
+  username        String? @unique
+  displayUsername String?
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+  projects Project[]
+  apiTokens ApiToken[]
+
+  @@index([email])
+  @@index([username])
+  @@map("users")
+}
+
+model ApiToken {
+  id         String    @id @default(uuid())
+  userId     String
+  name       String
+  tokenHash  String    @unique
+  tokenHint  String
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("api_tokens")
+}
+
+// Session model - stores active user sessions
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+// Account model - stores OAuth and password credentials
+model Account {
+  id           String    @id @default(uuid())
+  userId       String
+  accountId    String
+  providerId   String
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+// Verification model - stores email verification and password reset tokens
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+  @@map("verifications")
+}
+
+// Project model - a deployable unit owned by a user (control plane)
+model Project {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  framework String? // "nextjs" | "swift-rust" | "vite" | "static" | null (auto)
+  ownerId   String
+  // The production alias pointer: which deployment production serves.
+  productionDeploymentId String? @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner                User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  deployments          Deployment[] @relation("ProjectDeployments")
+  productionDeployment Deployment?  @relation("ProductionDeployment", fields: [productionDeploymentId], references: [id], onDelete: SetNull)
+  domains              Domain[]
+
+  @@index([ownerId])
+  @@map("projects")
+}
+
+// Deployment model - an immutable build of a project (commit, status, artifact)
+model Deployment {
+  id           String   @id @default(uuid())
+  projectId    String
+  status       String   @default("queued") // queued|building|ready|error|canceled
+  target       String   @default("preview") // preview|production
+  renderMode   String? // ssr|ssr-wasm|ssr-htmx|wasm (swift-rust)
+  commitSha    String?
+  branch       String?
+  artifactHash String? // content-addressed pointer into R2
+  url          String?
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  errorMessage String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project      Project  @relation("ProjectDeployments", fields: [projectId], references: [id], onDelete: Cascade)
+  productionOf Project? @relation("ProductionDeployment")
+  logs         DeploymentLog[]
+
+  @@index([projectId])
+  @@map("deployments")
+}
+
+model DeploymentLog {
+  id           String   @id @default(uuid())
+  deploymentId String
+  level        String   @default("info") // info|warn|error
+  message      String
+  createdAt    DateTime @default(now())
+
+  deployment Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+
+  @@index([deploymentId, createdAt])
+  @@map("deployment_logs")
+}
+
+// Domain model - a hostname aliased to a project (TLS/verification state)
+model Domain {
+  id         String   @id @default(uuid())
+  projectId  String
+  hostname   String   @unique
+  verified   Boolean  @default(false)
+  certStatus String   @default("pending") // pending|active|error
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("domains")
+}

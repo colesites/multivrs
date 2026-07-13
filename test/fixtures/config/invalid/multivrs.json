@@ -1,0 +1,6 @@
+{
+  "name": "broken-app",
+  "framework": "rails",
+  "regions": "iad1",
+  "unknownKey": true
+}

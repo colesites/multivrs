@@ -1,0 +1,14 @@
+name = "multivrs-serve"
+main = "src/index.ts"
+compatibility_date = "2026-07-10"
+
+# R2 bucket that stores every deployment's blobs + manifests.
+# Created automatically on first `wrangler deploy` (if it doesn't exist).
+[[r2_buckets]]
+binding = "ARTIFACTS"
+bucket_name = "multivrs-artifacts"
+
+# The control-plane API base URL used to resolve deployment IDs.
+# In production this is the deployed dashboard URL.
+[vars]
+CONTROL_PLANE_URL = "http://localhost:3000"

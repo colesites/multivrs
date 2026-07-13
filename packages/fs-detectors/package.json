@@ -1,0 +1,23 @@
+{
+  "name": "@multivrs/fs-detectors",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome check --fix .",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@multivrs/config": "*",
+    "@multivrs/frameworks": "*"
+  },
+  "devDependencies": {
+    "@repo/biome-config": "*",
+    "@repo/typescript-config": "*",
+    "typescript": "5.9.2"
+  }
+}

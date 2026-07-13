@@ -1,0 +1,19 @@
+{
+  "name": "serve-worker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:dry": "wrangler deploy --dry-run",
+    "typecheck": "tsc --noEmit",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250201.0",
+    "@repo/typescript-config": "*",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.0.0"
+  }
+}

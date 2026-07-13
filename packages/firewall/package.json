@@ -1,0 +1,23 @@
+{
+  "name": "@multivrs/firewall",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome check --fix .",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@multivrs/error-utils": "*",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@repo/biome-config": "*",
+    "@repo/typescript-config": "*",
+    "typescript": "5.9.2"
+  }
+}

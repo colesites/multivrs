@@ -36,3 +36,7 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# Rust (Cargo workspace for cli / builder-core)
+/target
+**/*.rs.bk
