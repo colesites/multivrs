@@ -35,10 +35,12 @@ export function useHeroAnimations() {
           };
 
           if (reduceMotion) {
+            const words = headlineRef.current?.querySelectorAll(".hero-word");
             gsap.set(
               [
                 eyebrowRef.current,
                 headlineRef.current,
+                words,
                 subtitleRef.current,
                 ctaRef.current,
               ],
@@ -53,21 +55,22 @@ export function useHeroAnimations() {
           });
 
           /* Eyebrow badge slides up */
-          tl.from(eyebrowRef.current, {
-            autoAlpha: 0,
-            y: 30,
-            duration: 0.6,
-          });
+          tl.fromTo(
+            eyebrowRef.current,
+            { autoAlpha: 0, y: 30 },
+            { autoAlpha: 1, y: 0, duration: 0.6 },
+          );
 
           /* Headline words stagger in */
           const words = headlineRef.current?.querySelectorAll(".hero-word");
           if (words?.length) {
-            tl.from(
+            tl.fromTo(
               words,
+              { autoAlpha: 0, y: 60, rotationX: 15 },
               {
-                autoAlpha: 0,
-                y: 60,
-                rotationX: 15,
+                autoAlpha: 1,
+                y: 0,
+                rotationX: 0,
                 stagger: 0.08,
                 duration: 0.9,
               },
@@ -76,16 +79,18 @@ export function useHeroAnimations() {
           }
 
           /* Subtitle fades up */
-          tl.from(
+          tl.fromTo(
             subtitleRef.current,
-            { autoAlpha: 0, y: 25, duration: 0.7 },
+            { autoAlpha: 0, y: 25 },
+            { autoAlpha: 1, y: 0, duration: 0.7 },
             "<0.3",
           );
 
           /* CTA buttons slide in */
-          tl.from(
+          tl.fromTo(
             ctaRef.current,
-            { autoAlpha: 0, y: 20, duration: 0.6 },
+            { autoAlpha: 0, y: 20 },
+            { autoAlpha: 1, y: 0, duration: 0.6 },
             "<0.2",
           );
         },

@@ -2,18 +2,11 @@
 
 import { useRef } from "react";
 import {
-  DeployArt,
-  ScaleArt,
-  SecureArt,
-} from "@/components/marketing/art/capability-art";
-import {
-  drawOn,
-  parallax,
   revealLines,
   revealUp,
   useGSAP,
+  gsap,
 } from "@/components/marketing/scroll";
-import { cn } from "@/lib/utils";
 
 type Pillar = {
   id: string;
@@ -21,7 +14,6 @@ type Pillar = {
   name: string;
   desc: string;
   features: string[];
-  Art: (props: { className?: string }) => React.ReactElement;
 };
 
 const PILLARS: Pillar[] = [
@@ -36,7 +28,6 @@ const PILLARS: Pillar[] = [
       "Edge functions",
       "Preview deploys",
     ],
-    Art: DeployArt,
   },
   {
     id: "scale",
@@ -49,7 +40,6 @@ const PILLARS: Pillar[] = [
       "Tenant isolation",
       "Observability",
     ],
-    Art: ScaleArt,
   },
   {
     id: "secure",
@@ -62,7 +52,6 @@ const PILLARS: Pillar[] = [
       "DDoS mitigation",
       "Platform security",
     ],
-    Art: SecureArt,
   },
 ];
 
@@ -70,6 +59,10 @@ export function CapabilitiesSection() {
   const root = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  
+  // Sticky scroll refs
+  const pinWrapperRef = useRef<HTMLDivElement>(null);
+  const textsRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
@@ -85,25 +78,48 @@ export function CapabilitiesSection() {
         },
       );
 
-      // Per-pillar: stagger the copy, stroke-on the diagram, drift the panel.
-      root.current
-        .querySelectorAll<HTMLElement>("[data-pillar]")
-        .forEach((pillar) => {
-          revealUp(pillar.querySelectorAll<HTMLElement>("[data-reveal]"), {
-            trigger: pillar,
-            start: "top 78%",
-            y: 28,
-            stagger: 0.08,
-          });
-          drawOn(pillar.querySelectorAll<SVGElement>("[data-draw]"), {
-            trigger: pillar,
-            start: "top 72%",
-          });
-          parallax(pillar.querySelector("[data-parallax]"), {
-            yPercent: -8,
-            trigger: pillar,
-          });
+      // Sticky scroll animation for pillars
+      if (pinWrapperRef.current && textsRef.current) {
+        const texts = Array.from(textsRef.current.children);
+        const total = PILLARS.length;
+
+        if (texts.length === 0) return;
+
+        // Ensure initially hidden except the first
+        gsap.set(texts, { autoAlpha: 0, scale: 0.9, y: 50 });
+        if (texts[0]) gsap.set(texts[0], { autoAlpha: 1, scale: 1, y: 0 });
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: pinWrapperRef.current,
+            start: "top top",
+            end: `+=${total * 100}%`,
+            scrub: true,
+            pin: true,
+            anticipatePin: 1,
+            // As we scroll through these pillars, we want to notify the 3D canvas
+            // We can dispatch a custom event with the progress
+            onUpdate: (self) => {
+              window.dispatchEvent(new CustomEvent("multivrs-capabilities-scroll", {
+                detail: { progress: self.progress }
+              }));
+            }
+          }
         });
+
+        for (let i = 0; i < total - 1; i++) {
+          const currentText = texts[i];
+          const nextText = texts[i + 1];
+
+          if (!currentText || !nextText) continue;
+
+          // Fade out current
+          tl.to(currentText, { autoAlpha: 0, scale: 1.1, y: -50, duration: 1 }, `step${i}`);
+
+          // Fade in next
+          tl.to(nextText, { autoAlpha: 1, scale: 1, y: 0, duration: 1 }, `step${i}+=0.5`);
+        }
+      }
     },
     { scope: root },
   );
@@ -112,10 +128,10 @@ export function CapabilitiesSection() {
     <section
       ref={root}
       id="platform"
-      className="relative mx-auto max-w-7xl px-6 py-28 lg:px-10 lg:py-40"
+      className="relative mx-auto w-full max-w-none pt-28 lg:pt-40"
     >
       {/* Section header */}
-      <div ref={headerRef} className="max-w-2xl">
+      <div ref={headerRef} className="max-w-4xl mx-auto px-6 lg:px-10 mb-20 lg:mb-32 text-center">
         <p
           data-reveal
           className="mb-5 font-mono text-xs tracking-[0.25em] text-white/40 uppercase"
@@ -124,79 +140,54 @@ export function CapabilitiesSection() {
         </p>
         <h2
           ref={headingRef}
-          className="font-clash text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.02] tracking-tight text-white"
+          className="font-clash text-[clamp(2.5rem,6vw,5rem)] font-bold leading-[1.02] tracking-tight text-white"
         >
           One platform for every layer of the stack.
         </h2>
         <p
           data-reveal
-          className="mt-6 max-w-xl font-acari text-base leading-relaxed text-white/50 sm:text-lg"
+          className="mt-6 mx-auto max-w-xl font-acari text-base leading-relaxed text-white/50 sm:text-lg"
         >
           Deploy, scale, and secure your software on infrastructure built to
           disappear, so you can focus on what you ship, not where it runs.
         </p>
       </div>
 
-      {/* Pillars */}
-      <div className="mt-20 flex flex-col gap-px lg:mt-28">
-        {PILLARS.map((pillar, i) => {
-          const flipped = i % 2 === 1;
-          return (
-            <article
-              key={pillar.id}
-              data-pillar
-              className="grid items-center gap-10 border-t border-white/10 py-16 lg:grid-cols-2 lg:gap-16 lg:py-24"
-            >
-              {/* Copy */}
-              <div className={cn(flipped && "lg:order-2")}>
-                <div data-reveal className="mb-6 flex items-center gap-3">
-                  <span className="font-mono text-xs tracking-widest text-white/30">
-                    {pillar.index}
-                  </span>
-                  <span className="h-px w-8 bg-white/15" />
-                </div>
-                <h3
-                  data-reveal
-                  className="font-clash text-[clamp(3rem,7vw,5.5rem)] font-bold leading-[0.9] tracking-tight text-white"
-                >
-                  {pillar.name}
-                </h3>
-                <p
-                  data-reveal
-                  className="mt-6 max-w-md font-acari text-base leading-relaxed text-white/50"
-                >
-                  {pillar.desc}
-                </p>
-                <ul
-                  data-reveal
-                  className="mt-8 grid max-w-md grid-cols-2 gap-x-6 gap-y-3"
-                >
-                  {pillar.features.map((feature) => (
-                    <li
-                      key={feature}
-                      className="flex items-center gap-2.5 font-mono text-[0.7rem] tracking-wider text-white/45 uppercase"
-                    >
-                      <span className="size-1 rounded-full bg-[#2563eb]" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+      {/* Sticky Scroll Container */}
+      <div ref={pinWrapperRef} className="h-screen w-full relative flex items-center justify-center pt-0 pb-0">
+        
+        {/* Texts container - Centered */}
+        <div ref={textsRef} className="relative w-full max-w-4xl px-6 lg:px-10 h-full flex flex-col justify-center items-center text-center">
+          {PILLARS.map((pillar) => (
+            <div key={pillar.id} className="absolute inset-0 flex flex-col justify-center items-center pointer-events-none">
+              <div className="mb-8 flex flex-col items-center gap-4">
+                <span className="font-mono text-sm tracking-[0.3em] text-white/40">
+                  {pillar.index}
+                </span>
+                <span className="h-8 w-px bg-white/15" />
               </div>
-
-              {/* Visual */}
-              <div className={cn(flipped && "lg:order-1")}>
-                <div
-                  data-parallax
-                  data-reveal
-                  className="card-grain inner-glow relative flex aspect-[5/4] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.015]"
-                >
-                  <pillar.Art className="size-44 lg:size-52" />
-                </div>
-              </div>
-            </article>
-          );
-        })}
+              <h3 className="font-clash text-[clamp(4rem,10vw,8rem)] font-bold leading-[0.8] tracking-tighter text-white drop-shadow-2xl mix-blend-plus-lighter">
+                {pillar.name}
+              </h3>
+              <p className="mt-8 max-w-2xl font-acari text-xl leading-relaxed text-white/70 drop-shadow-lg">
+                {pillar.desc}
+              </p>
+              <ul className="mt-12 flex flex-wrap justify-center max-w-3xl gap-x-8 gap-y-4">
+                {pillar.features.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-center gap-3 font-mono text-sm tracking-widest text-white/60 uppercase backdrop-blur-md bg-white/5 px-4 py-2 rounded-full border border-white/10"
+                  >
+                    <span className="size-1.5 rounded-full bg-[#2563eb] shadow-[0_0_10px_#2563eb]" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </div>
+      
     </section>
   );
 }

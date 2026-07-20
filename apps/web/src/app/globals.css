@@ -152,6 +152,7 @@
 /* Will-change hints for animated elements */
 .will-animate {
   will-change: transform, opacity;
+  visibility: hidden;
 }
 
 /* Custom Colorful Scrollbar */

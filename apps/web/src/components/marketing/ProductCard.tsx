@@ -47,10 +47,26 @@ export function ProductCard({ product }: { product: Product }) {
       ref={cardRef}
       data-card
       className={cn(
-        "card-grain group relative flex flex-col gap-5 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.015] p-6 transition-[border-color,box-shadow] duration-500 will-change-transform hover:border-[#2563eb]/30 hover:shadow-[0_0_50px_-12px_rgba(37,99,235,0.25)] sm:p-7",
+        "bento-card card-grain group relative flex flex-col gap-5 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.015] backdrop-blur-2xl p-6 transition-[border-color,box-shadow] duration-500 will-change-transform sm:p-7",
         product.span,
       )}
     >
+      {/* Spotlight effect */}
+      <div 
+        className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover/bento:opacity-100"
+        style={{
+          background: "radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(37, 99, 235, 0.15), transparent 40%)",
+          zIndex: 0
+        }}
+      />
+      <div 
+        className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition duration-300 group-hover/bento:opacity-100 mix-blend-overlay"
+        style={{
+          background: "radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.4), transparent 40%)",
+          zIndex: 1
+        }}
+      />
+
       {/* Stretched, accessible link over the whole card */}
       <Link
         {...linkProps}

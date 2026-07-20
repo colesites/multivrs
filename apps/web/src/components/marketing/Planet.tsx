@@ -68,9 +68,11 @@ export function Planet({
             varying vec2 vUv;
             varying vec3 vNormal;
             varying vec3 vViewPosition;
+            varying vec3 vLocalPosition;
 
             void main() {
               vUv = uv;
+              vLocalPosition = position;
               // Pass the normal perfectly unaltered so it remains perfectly smooth
               vNormal = normalize(normalMatrix * normal);
               
@@ -89,6 +91,7 @@ export function Planet({
             varying vec2 vUv;
             varying vec3 vNormal;
             varying vec3 vViewPosition;
+            varying vec3 vLocalPosition;
 
             // Simplex noise for organic detail
             vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -151,7 +154,8 @@ export function Planet({
 
             void main() {
               // Intricate swirling FBM pattern blending the two beautiful blue colours
-              vec3 p = vec3(vUv * 6.0, uTime); // Map noise over UV
+              vec3 p = normalize(vLocalPosition) * 4.0;
+              p.z += uTime;
               float noiseVal = fbm(p);
               
               // We use smoothstep to create distinct bands of color, giving it sharp but fluid details

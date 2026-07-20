@@ -5,6 +5,7 @@ import { CtaSection } from "@/components/marketing/CtaSection";
 import { HeroSection } from "@/components/marketing/HeroSection";
 import { LatestSection } from "@/components/marketing/LatestSection";
 import { ProductsBento } from "@/components/marketing/ProductsBento";
+import { UniverseCanvas } from "@/components/marketing/UniverseCanvas";
 
 export const metadata: Metadata = {
   title: "Multivrs | Software Ecosystem for Modern Teams",
@@ -16,12 +17,17 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
-      <HeroSection />
-      <CapabilitiesSection />
-      <ProductsBento />
-      <LatestSection />
-      <CtaSection />
-      <BrandWordmark />
+      <UniverseCanvas />
+      
+      {/* The DOM overlays */}
+      <div className="relative z-10">
+        <HeroSection />
+        <CapabilitiesSection />
+        <ProductsBento />
+        <LatestSection />
+        <CtaSection />
+        <BrandWordmark />
+      </div>
     </>
   );
 }
