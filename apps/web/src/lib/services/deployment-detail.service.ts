@@ -1,11 +1,19 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import type {
+  DashboardDeploymentDetail,
+  DashboardDeploymentLog,
+} from "@/lib/services/deployment-detail.types";
+
+type DeploymentLogRow = Omit<DashboardDeploymentLog, "createdAt"> & {
+  createdAt: Date;
+};
 
 export async function dashboardDeploymentDetail(
   username: string,
   scope: string,
   deploymentId: string,
-) {
+): Promise<DashboardDeploymentDetail | null> {
   const deployment = await prisma.deployment.findFirst({
     where: {
       id: deploymentId,
@@ -29,7 +37,7 @@ export async function dashboardDeploymentDetail(
     commitSha: deployment.commitSha,
     errorMessage: deployment.errorMessage,
     createdAt: deployment.createdAt.toISOString(),
-    logs: deployment.logs.map((log) => ({
+    logs: deployment.logs.map((log: DeploymentLogRow) => ({
       id: log.id,
       level: log.level,
       message: log.message,
