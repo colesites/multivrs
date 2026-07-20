@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "biome check .",
     "format": "biome check --fix .",
@@ -59,6 +60,7 @@
     "@types/three": "^0.184.1",
     "@types/ws": "^8.18.1",
     "babel-plugin-react-compiler": "1.0.0",
+    "dotenv": "^17.4.2",
     "gsap": "^3.15.0",
     "prisma": "7.8.0",
     "tailwindcss": "^4",
