@@ -292,11 +292,22 @@ function CameraRig() {
 
 export function UniverseCanvas() {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  if (!mounted || isMobile) return null;
 
   return (
-    <div className="fixed inset-0 h-screen w-screen z-0 pointer-events-none bg-[#030303]">
+    <div className="hidden md:block fixed inset-0 h-screen w-screen z-0 pointer-events-none bg-[#030303]">
       <Canvas
         camera={{ position: [0, 0, 50], fov: 60 }}
         dpr={[1, 1.5]}
