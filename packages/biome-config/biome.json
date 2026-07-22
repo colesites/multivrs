@@ -1,4 +1,5 @@
 {
+  "root": false,
   "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
   "vcs": {
     "enabled": true,
@@ -9,6 +10,11 @@
     "ignoreUnknown": true,
     "includes": ["**", "!**/node_modules", "!**/dist", "!**/.next", "!**/.turbo"]
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -18,7 +24,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "complexity": {
         "noUselessFragments": "warn"
       },

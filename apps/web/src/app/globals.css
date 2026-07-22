@@ -111,6 +111,10 @@
 
 /* Hero gradient text effect */
 .hero-gradient-text {
+  display: inline-block;
+  padding-right: 0.15em;
+  margin-right: -0.15em;
+  padding-bottom: 0.05em;
   background: linear-gradient(
     135deg,
     #ffffff 0%,

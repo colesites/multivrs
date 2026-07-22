@@ -13,6 +13,11 @@
       "!**/next-env.d.ts"
     ]
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "linter": {
     "rules": {
       "suspicious": {

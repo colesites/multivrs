@@ -13,6 +13,7 @@ import {
   FOOTER_GROUPS_PRIMARY,
   FOOTER_GROUPS_SECONDARY,
 } from "@/lib/marketing/footer";
+import Image from "next/image";
 
 /**
  * Site footer, modeled on Vercel's: a split "for humans / for agents" call to
@@ -23,7 +24,7 @@ import {
  */
 export default function Footer() {
   return (
-    <footer className="relative border-t border-white/10">
+    <footer className="relative z-20 border-t border-white/10 bg-[#030303]">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-20">
         {/* Split CTA */}
         <div className="grid gap-12 border-b border-white/10 pb-16 md:grid-cols-2">
