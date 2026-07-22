@@ -13,17 +13,17 @@ export const FOOTER_GROUPS_PRIMARY: NavColumn[] = [
     links: [
       {
         title: "Swift Rust",
-        href: "https://swift-rust-self.vercel.app/",
+        href: "https://swift-rust.multivrs.space/",
         external: true,
       },
       {
         title: "Swift Rust UI",
-        href: "https://ui-swift-rust.vercel.app/",
+        href: "https://ui.multivrs.space/",
         external: true,
       },
       { title: "Kontinue AI", href: "https://kontinueai.com/", external: true },
       { title: "Domains", href: "/domains" },
-      { title: "Email", href: "/email" },
+      { title: "Emails", href: "/emails" },
     ],
   },
   {

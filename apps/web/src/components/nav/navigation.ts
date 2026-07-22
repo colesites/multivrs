@@ -32,7 +32,12 @@ export const PRODUCT_COLUMNS: NavColumn[] = [
       },
       {
         title: "Present",
-        href: "https://present.c-technology-inc.com",
+        href: "https://present.multivrs.space/",
+        external: true,
+      },
+      {
+        title: "VrsPay",
+        href: "https://vrs-pay.multivrs.space/",
         external: true,
       },
     ],
@@ -54,18 +59,23 @@ export const PRODUCT_COLUMNS: NavColumn[] = [
     links: [
       {
         title: "Swift Rust",
-        href: "https://swift-rust-self.vercel.app/",
+        href: "https://swift-rust.multivrs.space/",
         external: true,
       },
       {
         title: "Swift Rust UI",
-        href: "https://ui-swift-rust.vercel.app/",
+        href: "https://ui.multivrs.space/",
+        external: true,
+      },
+      {
+        title: "Auth",
+        href: "https://auth.multivrs.space/",
         external: true,
       },
       { title: "Multivrs Agent", href: "/agent" },
       { title: "Multivrs Plugin", href: "/plugin" },
-      { title: "Domains", href: "/domain" },
-      { title: "Email", href: "/email" },
+      { title: "Domains", href: "/domains" },
+      { title: "Emails", href: "/emails" },
     ],
   },
 ];
