@@ -78,8 +78,8 @@ export function CapabilitiesSection() {
         },
       );
 
-      // Sticky scroll animation for pillars
-      if (pinWrapperRef.current && textsRef.current) {
+      // Sticky scroll animation for pillars (Desktop only)
+      if (window.innerWidth >= 768 && pinWrapperRef.current && textsRef.current) {
         const texts = Array.from(textsRef.current.children);
         const total = PILLARS.length;
 
@@ -100,11 +100,13 @@ export function CapabilitiesSection() {
             // As we scroll through these pillars, we want to notify the 3D canvas
             // We can dispatch a custom event with the progress
             onUpdate: (self) => {
-              window.dispatchEvent(new CustomEvent("multivrs-capabilities-scroll", {
-                detail: { progress: self.progress }
-              }));
-            }
-          }
+              window.dispatchEvent(
+                new CustomEvent("multivrs-capabilities-scroll", {
+                  detail: { progress: self.progress },
+                }),
+              );
+            },
+          },
         });
 
         for (let i = 0; i < total - 1; i++) {
@@ -114,10 +116,18 @@ export function CapabilitiesSection() {
           if (!currentText || !nextText) continue;
 
           // Fade out current
-          tl.to(currentText, { autoAlpha: 0, scale: 1.1, y: -50, duration: 1 }, `step${i}`);
+          tl.to(
+            currentText,
+            { autoAlpha: 0, scale: 1.1, y: -50, duration: 1 },
+            `step${i}`,
+          );
 
           // Fade in next
-          tl.to(nextText, { autoAlpha: 1, scale: 1, y: 0, duration: 1 }, `step${i}+=0.5`);
+          tl.to(
+            nextText,
+            { autoAlpha: 1, scale: 1, y: 0, duration: 1 },
+            `step${i}+=0.5`,
+          );
         }
       }
     },
@@ -131,7 +141,10 @@ export function CapabilitiesSection() {
       className="relative mx-auto w-full max-w-none pt-28 lg:pt-40"
     >
       {/* Section header */}
-      <div ref={headerRef} className="max-w-4xl mx-auto px-6 lg:px-10 mb-20 lg:mb-32 text-center">
+      <div
+        ref={headerRef}
+        className="max-w-4xl mx-auto px-6 lg:px-10 mb-20 lg:mb-32 text-center"
+      >
         <p
           data-reveal
           className="mb-5 font-mono text-xs tracking-[0.25em] text-white/40 uppercase"
@@ -153,8 +166,45 @@ export function CapabilitiesSection() {
         </p>
       </div>
 
-      {/* Sticky Scroll Container */}
-      <div ref={pinWrapperRef} className="h-screen w-full relative flex items-center justify-center pt-0 pb-0">
+      {/* Mobile Normal Layout (<768px) */}
+      <div className="flex md:hidden flex-col gap-16 px-6 py-12 max-w-3xl mx-auto text-center">
+        {PILLARS.map((pillar) => (
+          <div
+            key={pillar.id}
+            className="flex flex-col items-center text-center border-b border-white/10 pb-16 last:border-0 last:pb-0"
+          >
+            <div className="mb-6 flex flex-col items-center gap-3">
+              <span className="font-mono text-xs tracking-[0.3em] text-white/40">
+                {pillar.index}
+              </span>
+              <span className="h-6 w-px bg-white/15" />
+            </div>
+            <h3 className="font-clash text-4xl sm:text-5xl font-bold tracking-tight text-white drop-shadow-lg">
+              {pillar.name}
+            </h3>
+            <p className="mt-4 font-acari text-base leading-relaxed text-white/70">
+              {pillar.desc}
+            </p>
+            <ul className="mt-6 flex flex-wrap justify-center gap-2.5">
+              {pillar.features.map((feature) => (
+                <li
+                  key={feature}
+                  className="flex items-center gap-2 font-mono text-xs tracking-wider text-white/60 uppercase backdrop-blur-md bg-white/5 px-3 py-1.5 rounded-full border border-white/10"
+                >
+                  <span className="size-1.5 rounded-full bg-[#2563eb] shadow-[0_0_8px_#2563eb]" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      {/* Sticky Scroll Container (Desktop Only, >=768px) */}
+      <div
+        ref={pinWrapperRef}
+        className="hidden md:flex h-screen w-full relative items-center justify-center pt-0 pb-0"
+      >
         
         {/* Texts container - Centered */}
         <div ref={textsRef} className="relative w-full max-w-4xl px-6 lg:px-10 h-full flex flex-col justify-center items-center text-center">
