@@ -104,7 +104,7 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: [
       {
-        url: "/opengraph-image",
+        url: `${SITE_URL}/og-image.png`,
         width: 1200,
         height: 630,
         alt: `${SITE_NAME} — Build Beyond Limits`,
@@ -115,7 +115,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${SITE_NAME} — Build Beyond Limits`,
     description: SITE_DESCRIPTION,
-    images: ["/opengraph-image"],
+    images: [`${SITE_URL}/og-image.png`],
   },
   robots: {
     index: true,
@@ -157,14 +157,12 @@ export default function RootLayout({
     >
       <head>
         <meta name="theme-color" content="#030303" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-        />
+        <script type="application/ld+json">
+          {JSON.stringify(jsonLd)}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(websiteJsonLd)}
+        </script>
       </head>
       <body className="min-h-full flex flex-col font-inter bg-background text-foreground selection:bg-white/10 selection:text-white">
         <Toaster position="top-center" richColors />
