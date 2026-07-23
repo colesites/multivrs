@@ -10,8 +10,12 @@ interface NavbarMobileProps {
 }
 
 import SpecularButton from "@/components/SpecularButton";
+import { authClient } from "@/lib/auth-client";
 
 export function NavbarMobile({ onClose }: NavbarMobileProps) {
+  const { data: session } = authClient.useSession();
+  const isSignedIn = !!session?.user;
+
   return (
     <div className="fixed inset-x-0 top-16 bottom-0 z-50 overflow-y-auto bg-background/95 backdrop-blur-xl md:hidden">
       <div className="flex min-h-full flex-col p-6">
@@ -49,34 +53,53 @@ export function NavbarMobile({ onClose }: NavbarMobileProps) {
         </div>
 
         <div className="mt-auto flex flex-col gap-3">
-          <Link href="/login" onClick={onClose} className="w-full">
-            <SpecularButton
-              size="md"
-              radius={10}
-              tint="#ffffff"
-              tintOpacity={0.05}
-              baseColor="#333333"
-              lineColor="#ffffff"
-              textColor="#ffffff"
-              className="w-full"
-            >
-              Sign in
-            </SpecularButton>
-          </Link>
-          <Link href="/signup" onClick={onClose} className="w-full">
-            <SpecularButton
-              size="md"
-              radius={10}
-              tint="#ffffff"
-              tintOpacity={0.95}
-              baseColor="#ffffff"
-              lineColor="#ffffff"
-              textColor="#000000"
-              className="w-full"
-            >
-              Sign up
-            </SpecularButton>
-          </Link>
+          {isSignedIn ? (
+            <Link href="/dashboard" onClick={onClose} className="w-full">
+              <SpecularButton
+                size="md"
+                radius={10}
+                tint="#ffffff"
+                tintOpacity={0.95}
+                baseColor="#ffffff"
+                lineColor="#ffffff"
+                textColor="#000000"
+                className="w-full"
+              >
+                Dashboard
+              </SpecularButton>
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" onClick={onClose} className="w-full">
+                <SpecularButton
+                  size="md"
+                  radius={10}
+                  tint="#ffffff"
+                  tintOpacity={0.05}
+                  baseColor="#333333"
+                  lineColor="#ffffff"
+                  textColor="#ffffff"
+                  className="w-full"
+                >
+                  Sign in
+                </SpecularButton>
+              </Link>
+              <Link href="/signup" onClick={onClose} className="w-full">
+                <SpecularButton
+                  size="md"
+                  radius={10}
+                  tint="#ffffff"
+                  tintOpacity={0.95}
+                  baseColor="#ffffff"
+                  lineColor="#ffffff"
+                  textColor="#000000"
+                  className="w-full"
+                >
+                  Sign up
+                </SpecularButton>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>

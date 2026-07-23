@@ -15,10 +15,13 @@ import {
   type NavColumn,
 } from "./navigation";
 
+import { authClient } from "@/lib/auth-client";
 import SpecularButton from "@/components/SpecularButton";
 
 export function Navbar() {
   const pathname = usePathname();
+  const { data: session } = authClient.useSession();
+  const isSignedIn = !!session?.user;
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   // Which mega-menu is expanded (null = closed). Shared by triggers + panel.
@@ -116,36 +119,7 @@ export function Navbar() {
           <div className="hidden items-center gap-3 md:flex">
             {pathname === "/domains" ? (
               <>
-                <SpecularButton
-                  size="sm"
-                  radius={10}
-                  tint="#ffffff"
-                  tintOpacity={0.05}
-                  baseColor="#333333"
-                  lineColor="#ffffff"
-                  textColor="#ffffff"
-                >
-                  <span className="flex items-center gap-1.5 font-medium">
-                    <Bookmark className="size-4" /> Saved
-                  </span>
-                </SpecularButton>
-                <SpecularButton
-                  size="sm"
-                  radius={10}
-                  tint="#ffffff"
-                  tintOpacity={0.95}
-                  baseColor="#ffffff"
-                  lineColor="#ffffff"
-                  textColor="#000000"
-                >
-                  <span className="flex items-center gap-1.5 font-semibold">
-                    <ShoppingCart className="size-4" /> Cart
-                  </span>
-                </SpecularButton>
-              </>
-            ) : (
-              <>
-                <Link href="/login">
+                {isSignedIn && (
                   <SpecularButton
                     size="sm"
                     radius={10}
@@ -155,39 +129,153 @@ export function Navbar() {
                     lineColor="#ffffff"
                     textColor="#ffffff"
                   >
-                    Log In
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Bookmark className="size-4" /> Saved
+                    </span>
                   </SpecularButton>
-                </Link>
-                <Link href="/signup">
-                  <SpecularButton
-                    size="sm"
-                    radius={10}
-                    tint="#ffffff"
-                    tintOpacity={0.95}
-                    baseColor="#ffffff"
-                    lineColor="#ffffff"
-                    textColor="#000000"
-                  >
-                    Sign Up
-                  </SpecularButton>
-                </Link>
+                )}
+                <SpecularButton
+                  size="sm"
+                  radius={10}
+                  tint="#ffffff"
+                  tintOpacity={0.05}
+                  baseColor="#333333"
+                  lineColor="#ffffff"
+                  textColor="#ffffff"
+                >
+                  <span className="flex items-center gap-1.5 font-semibold">
+                    <ShoppingCart className="size-4" /> Cart
+                  </span>
+                </SpecularButton>
+                {!isSignedIn && (
+                  <>
+                    <Link href="/login">
+                      <SpecularButton
+                        size="sm"
+                        radius={10}
+                        tint="#ffffff"
+                        tintOpacity={0.05}
+                        baseColor="#333333"
+                        lineColor="#ffffff"
+                        textColor="#ffffff"
+                      >
+                        Log In
+                      </SpecularButton>
+                    </Link>
+                    <Link href="/signup">
+                      <SpecularButton
+                        size="sm"
+                        radius={10}
+                        tint="#ffffff"
+                        tintOpacity={0.95}
+                        baseColor="#ffffff"
+                        lineColor="#ffffff"
+                        textColor="#000000"
+                      >
+                        Sign Up
+                      </SpecularButton>
+                    </Link>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                {isSignedIn ? (
+                  <Link href="/dashboard">
+                    <SpecularButton
+                      size="sm"
+                      radius={10}
+                      tint="#ffffff"
+                      tintOpacity={0.95}
+                      baseColor="#ffffff"
+                      lineColor="#ffffff"
+                      textColor="#000000"
+                    >
+                      Dashboard
+                    </SpecularButton>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/login">
+                      <SpecularButton
+                        size="sm"
+                        radius={10}
+                        tint="#ffffff"
+                        tintOpacity={0.05}
+                        baseColor="#333333"
+                        lineColor="#ffffff"
+                        textColor="#ffffff"
+                      >
+                        Log In
+                      </SpecularButton>
+                    </Link>
+                    <Link href="/signup">
+                      <SpecularButton
+                        size="sm"
+                        radius={10}
+                        tint="#ffffff"
+                        tintOpacity={0.95}
+                        baseColor="#ffffff"
+                        lineColor="#ffffff"
+                        textColor="#000000"
+                      >
+                        Sign Up
+                      </SpecularButton>
+                    </Link>
+                  </>
+                )}
               </>
             )}
           </div>
 
-          {/* Mobile toggle */}
-          <button
-            type="button"
-            className="ml-auto text-white/70 md:hidden"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          >
-            {mobileOpen ? (
-              <X className="size-5" />
-            ) : (
-              <Menu className="size-5" />
+          {/* Mobile right actions & toggle */}
+          <div className="flex items-center gap-2 md:hidden">
+            {pathname === "/domains" && (
+              <>
+                {isSignedIn && (
+                  <SpecularButton
+                    size="sm"
+                    radius={10}
+                    tint="#ffffff"
+                    tintOpacity={0.05}
+                    baseColor="#333333"
+                    lineColor="#ffffff"
+                    textColor="#ffffff"
+                    className="!px-2.5 !py-2"
+                    aria-label="Saved domains"
+                  >
+                    <Bookmark className="size-4" />
+                  </SpecularButton>
+                )}
+                <SpecularButton
+                  size="sm"
+                  radius={10}
+                  tint="#ffffff"
+                  tintOpacity={0.05}
+                  baseColor="#333333"
+                  lineColor="#ffffff"
+                  textColor="#ffffff"
+                  className="!px-2.5 !py-2"
+                  aria-label="Shopping cart"
+                >
+                  <ShoppingCart className="size-4" />
+                </SpecularButton>
+              </>
             )}
-          </button>
+
+            <button
+              type="button"
+              className="ml-1 text-white/70"
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            >
+              {mobileOpen ? (
+                <X className="size-5" />
+              ) : (
+                <Menu className="size-5" />
+              )}
+            </button>
+          </div>
         </nav>
 
         {/* Expanding mega-menu panel (desktop). The grid-rows 0fr→1fr trick
