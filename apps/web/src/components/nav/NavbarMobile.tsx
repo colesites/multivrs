@@ -1,58 +1,76 @@
 "use client";
 
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import SpecularButton from "@/components/SpecularButton";
+import { authClient } from "@/lib/auth-client";
 import { MEGA_MENUS, NAV_LINKS, type NavColumn } from "./navigation";
 
 interface NavbarMobileProps {
   onClose: () => void;
 }
 
-import SpecularButton from "@/components/SpecularButton";
-import { authClient } from "@/lib/auth-client";
-
 export function NavbarMobile({ onClose }: NavbarMobileProps) {
   const { data: session } = authClient.useSession();
   const isSignedIn = !!session?.user;
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+
+  const toggleMenu = (label: string) => {
+    setOpenMenu((prev) => (prev === label ? null : label));
+  };
 
   return (
     <div className="fixed inset-x-0 top-16 bottom-0 z-50 overflow-y-auto bg-background/95 backdrop-blur-xl md:hidden">
-      <div className="flex min-h-full flex-col p-6">
-        {MEGA_MENUS.map((menu) => (
-          <div key={menu.label} className="mb-8">
-            <h3 className="mb-4 text-sm font-semibold text-white/80">
-              {menu.label}
-            </h3>
-            <div className="space-y-6">
-              {menu.columns.map((column) => (
-                <MobileColumn
-                  key={column.heading}
-                  column={column}
-                  onClose={onClose}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-
-        <div className="mb-8 border-t border-white/5 pt-8">
-          <ul className="grid gap-4">
-            {NAV_LINKS.map((link) => (
-              <li key={link.label}>
-                <Link
-                  href={link.href}
-                  className="text-lg font-medium text-white/80"
-                  onClick={onClose}
+      <div className="flex min-h-[calc(100vh-4rem)] flex-col p-6">
+        <div className="space-y-1">
+          {MEGA_MENUS.map((menu) => {
+            const isOpen = openMenu === menu.label;
+            return (
+              <div key={menu.label} className="border-b border-white/5 pb-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => toggleMenu(menu.label)}
+                  className="flex w-full items-center justify-between py-3 text-left text-xl font-medium text-white/90 transition-colors hover:text-white"
+                  aria-expanded={isOpen}
                 >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+                  <span>{menu.label}</span>
+                  <ChevronDown
+                    className={`size-5 text-white/50 transition-transform duration-200 ${
+                      isOpen ? "rotate-180 text-white" : ""
+                    }`}
+                  />
+                </button>
+
+                {isOpen && (
+                  <div className="mt-2 space-y-6 pl-2 pb-4 pt-1">
+                    {menu.columns.map((column) => (
+                      <MobileColumn
+                        key={column.heading}
+                        column={column}
+                        onClose={onClose}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {NAV_LINKS.map((link) => (
+            <div key={link.label} className="border-b border-white/5 pb-2 pt-1">
+              <Link
+                href={link.href}
+                className="flex items-center py-3 text-xl font-medium text-white/90 transition-colors hover:text-white"
+                onClick={onClose}
+              >
+                {link.label}
+              </Link>
+            </div>
+          ))}
         </div>
 
-        <div className="mt-auto flex flex-col gap-3">
+        <div className="mt-auto pt-8 flex flex-col gap-3">
           {isSignedIn ? (
             <Link href="/dashboard" onClick={onClose} className="w-full">
               <SpecularButton
@@ -81,7 +99,7 @@ export function NavbarMobile({ onClose }: NavbarMobileProps) {
                   textColor="#ffffff"
                   className="w-full"
                 >
-                  Sign in
+                  Log In
                 </SpecularButton>
               </Link>
               <Link href="/signup" onClick={onClose} className="w-full">
@@ -95,7 +113,7 @@ export function NavbarMobile({ onClose }: NavbarMobileProps) {
                   textColor="#000000"
                   className="w-full"
                 >
-                  Sign up
+                  Sign Up
                 </SpecularButton>
               </Link>
             </>
