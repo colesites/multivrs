@@ -74,6 +74,7 @@ const clashDisplay = localFont({
 
 const SITE_DESCRIPTION =
   "MULTIVRS is a modern software ecosystem: cloud deployment, developer tooling, AI workflows, and premium product experiences.";
+const SOCIAL_IMAGE_PATH = "/og-image.png?v=2";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -104,9 +105,10 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: [
       {
-        url: `${SITE_URL}/og-image.png`,
+        url: SOCIAL_IMAGE_PATH,
         width: 1200,
         height: 630,
+        type: "image/png",
         alt: `${SITE_NAME} — Build Beyond Limits`,
       },
     ],
@@ -115,7 +117,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${SITE_NAME} — Build Beyond Limits`,
     description: SITE_DESCRIPTION,
-    images: [`${SITE_URL}/og-image.png`],
+    images: [SOCIAL_IMAGE_PATH],
   },
   robots: {
     index: true,
