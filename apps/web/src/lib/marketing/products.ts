@@ -70,7 +70,7 @@ export const PRODUCTS: Product[] = [
     tag: "Infrastructure",
     blurb:
       "Programmable forwarding and sending — catch-all addresses, routing rules, and deliverability you can trust.",
-    href: "/email",
+    href: "/emails",
     art: "email",
     span: "md:col-span-4",
   },

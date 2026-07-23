@@ -15,6 +15,8 @@ import {
   type NavColumn,
 } from "./navigation";
 
+import SpecularButton from "@/components/SpecularButton";
+
 export function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
@@ -43,6 +45,7 @@ export function Navbar() {
 
   return (
     <>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: collapsing mega menu on mouse leave */}
       <header
         // Leaving the whole header (bar + panel) collapses the menu.
         onMouseLeave={() => setActiveMenu(null)}
@@ -113,29 +116,61 @@ export function Navbar() {
           <div className="hidden items-center gap-3 md:flex">
             {pathname === "/domains" ? (
               <>
-                <Button className="h-10 rounded-lg border border-white/15 bg-transparent px-5 text-sm font-medium text-white hover:bg-white/5">
-                  <Bookmark className="size-4" /> Saved
-                </Button>
-                <Button className="h-10 rounded-lg bg-white px-5 text-sm font-semibold text-black hover:bg-white/90">
-                  <ShoppingCart className="size-4" /> Cart
-                </Button>
+                <SpecularButton
+                  size="sm"
+                  radius={10}
+                  tint="#ffffff"
+                  tintOpacity={0.05}
+                  baseColor="#333333"
+                  lineColor="#ffffff"
+                  textColor="#ffffff"
+                >
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Bookmark className="size-4" /> Saved
+                  </span>
+                </SpecularButton>
+                <SpecularButton
+                  size="sm"
+                  radius={10}
+                  tint="#ffffff"
+                  tintOpacity={0.95}
+                  baseColor="#ffffff"
+                  lineColor="#ffffff"
+                  textColor="#000000"
+                >
+                  <span className="flex items-center gap-1.5 font-semibold">
+                    <ShoppingCart className="size-4" /> Cart
+                  </span>
+                </SpecularButton>
               </>
             ) : (
               <>
-            <Button
-              render={<Link href="/login" />}
-              nativeButton={false}
-              className="h-10 rounded-lg border border-white/15 bg-transparent px-5 text-sm font-medium text-white transition-colors hover:bg-white/5"
-            >
-              Log In
-            </Button>
-            <Button
-              render={<Link href="/signup" />}
-              nativeButton={false}
-              className="h-10 rounded-lg bg-white px-5 text-sm font-semibold text-black transition-all hover:bg-white/90 active:scale-[0.98]"
-            >
-              Sign Up
-            </Button>
+                <Link href="/login">
+                  <SpecularButton
+                    size="sm"
+                    radius={10}
+                    tint="#ffffff"
+                    tintOpacity={0.05}
+                    baseColor="#333333"
+                    lineColor="#ffffff"
+                    textColor="#ffffff"
+                  >
+                    Log In
+                  </SpecularButton>
+                </Link>
+                <Link href="/signup">
+                  <SpecularButton
+                    size="sm"
+                    radius={10}
+                    tint="#ffffff"
+                    tintOpacity={0.95}
+                    baseColor="#ffffff"
+                    lineColor="#ffffff"
+                    textColor="#000000"
+                  >
+                    Sign Up
+                  </SpecularButton>
+                </Link>
               </>
             )}
           </div>
@@ -174,6 +209,7 @@ export function Navbar() {
       </header>
 
       {/* Dim the page behind an open panel. */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: mouse enter closes mega menu overlay */}
       <div
         aria-hidden
         onMouseEnter={() => setActiveMenu(null)}

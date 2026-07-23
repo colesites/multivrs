@@ -15,6 +15,8 @@ import {
 } from "@/lib/marketing/footer";
 import Image from "next/image";
 
+import SpecularButton from "@/components/SpecularButton";
+
 /**
  * Site footer, modeled on Vercel's: a split "for humans / for agents" call to
  * action, a 6-column × 2-row link grid, and a bottom bar with the brand mark,
@@ -34,17 +36,31 @@ export default function Footer() {
               started with Swift Rust and Multivrs in seconds.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/signup"
-                className="inline-flex h-10 items-center rounded-full bg-white px-5 text-sm font-semibold text-background transition-colors hover:bg-white/90"
-              >
-                Deploy an app
+              <Link href="/signup">
+                <SpecularButton
+                  size="sm"
+                  radius={9999}
+                  tint="#ffffff"
+                  tintOpacity={0.95}
+                  baseColor="#ffffff"
+                  lineColor="#ffffff"
+                  textColor="#000000"
+                >
+                  <span className="font-semibold">Deploy an app</span>
+                </SpecularButton>
               </Link>
-              <Link
-                href="/docs"
-                className="inline-flex h-10 items-center rounded-full border border-white/15 px-5 text-sm font-medium text-white transition-colors hover:bg-white/5"
-              >
-                View templates
+              <Link href="/docs">
+                <SpecularButton
+                  size="sm"
+                  radius={9999}
+                  tint="#ffffff"
+                  tintOpacity={0.05}
+                  baseColor="#333333"
+                  lineColor="#ffffff"
+                  textColor="#ffffff"
+                >
+                  <span className="font-medium">View templates</span>
+                </SpecularButton>
               </Link>
             </div>
           </div>

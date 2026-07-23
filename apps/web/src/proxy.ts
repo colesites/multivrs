@@ -32,6 +32,7 @@ const publicPrefixes = [
   "/plugin",
   "/domains",
   "/email",
+  "/emails",
   "/ci-cd",
   "/changelog",
   "/customers",

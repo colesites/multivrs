@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useHeroAnimations } from "@/components/marketing/hero-animations";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import SpecularButton from "@/components/SpecularButton";
 
 const HEADLINE_WORDS = ["Build", "Beyond", "Limits"];
 const SUBTITLE =
@@ -61,23 +61,37 @@ export function HeroContent() {
         ref={ctaRef}
         className="will-animate flex flex-col gap-4 sm:flex-row sm:gap-5"
       >
-        <Button
-          size="lg"
-          className="group relative h-10 overflow-hidden rounded-full bg-white px-5 text-sm font-semibold text-background transition-all hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] hover:scale-[1.02] active:scale-[0.98]"
-        >
-          Start for free
-          <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
-        </Button>
+        <Link href="/signup">
+          <SpecularButton
+            size="md"
+            radius={9999}
+            tint="#ffffff"
+            tintOpacity={0.95}
+            baseColor="#ffffff"
+            lineColor="#ffffff"
+            textColor="#000000"
+            className="group"
+          >
+            <span className="flex items-center gap-2 font-semibold">
+              Start for free
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+            </span>
+          </SpecularButton>
+        </Link>
 
-        <Button
-          variant="outline"
-          size="lg"
-          nativeButton={false}
-          render={<Link href="/contact/sales" />}
-          className="h-10 rounded-full border border-white/15 bg-transparent px-5 text-sm font-medium text-white transition-colors hover:border-white/25 hover:bg-white/5"
-        >
-          Talk to sales
-        </Button>
+        <Link href="/contact/sales">
+          <SpecularButton
+            size="md"
+            radius={9999}
+            tint="#ffffff"
+            tintOpacity={0.05}
+            baseColor="#333333"
+            lineColor="#ffffff"
+            textColor="#ffffff"
+          >
+            <span className="font-medium">Talk to sales</span>
+          </SpecularButton>
+        </Link>
       </div>
     </div>
   );

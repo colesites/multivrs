@@ -28,6 +28,7 @@ export const RESERVED_USERNAMES = new Set([
   "shipped",
   "plugin",
   "email",
+  "emails",
   "legal",
   "login",
   "signup",

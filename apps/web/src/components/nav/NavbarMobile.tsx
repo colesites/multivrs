@@ -9,6 +9,8 @@ interface NavbarMobileProps {
   onClose: () => void;
 }
 
+import SpecularButton from "@/components/SpecularButton";
+
 export function NavbarMobile({ onClose }: NavbarMobileProps) {
   return (
     <div className="fixed inset-x-0 top-16 bottom-0 z-50 overflow-y-auto bg-background/95 backdrop-blur-xl md:hidden">
@@ -47,21 +49,34 @@ export function NavbarMobile({ onClose }: NavbarMobileProps) {
         </div>
 
         <div className="mt-auto flex flex-col gap-3">
-          <Button
-            render={<Link href="/login" onClick={onClose} />}
-            nativeButton={false}
-            variant="outline"
-            className="w-full rounded-full"
-          >
-            Sign in
-          </Button>
-          <Button
-            render={<Link href="/signup" onClick={onClose} />}
-            nativeButton={false}
-            className="w-full rounded-full bg-white text-black"
-          >
-            Sign up
-          </Button>
+          <Link href="/login" onClick={onClose} className="w-full">
+            <SpecularButton
+              size="md"
+              radius={10}
+              tint="#ffffff"
+              tintOpacity={0.05}
+              baseColor="#333333"
+              lineColor="#ffffff"
+              textColor="#ffffff"
+              className="w-full"
+            >
+              Sign in
+            </SpecularButton>
+          </Link>
+          <Link href="/signup" onClick={onClose} className="w-full">
+            <SpecularButton
+              size="md"
+              radius={10}
+              tint="#ffffff"
+              tintOpacity={0.95}
+              baseColor="#ffffff"
+              lineColor="#ffffff"
+              textColor="#000000"
+              className="w-full"
+            >
+              Sign up
+            </SpecularButton>
+          </Link>
         </div>
       </div>
     </div>

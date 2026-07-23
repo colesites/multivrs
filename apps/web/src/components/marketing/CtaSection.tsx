@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
 import { magnetic, revealUp, useGSAP } from "@/components/marketing/scroll";
-import { Button } from "@/components/ui/button";
+import SpecularButton from "@/components/SpecularButton";
 
 /**
  * Closing CTA band. Reveals on scroll and gives the primary button a subtle
@@ -56,23 +56,37 @@ export function CtaSection() {
           className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:gap-5"
         >
           <div ref={magnetRef} className="will-change-transform">
-            <Button
-              nativeButton={false}
-              render={<Link href="/signup" />}
-              className="group h-11 rounded-full bg-white px-6 text-sm font-semibold text-background transition-all hover:shadow-[0_0_40px_rgba(37,99,235,0.35)] active:scale-[0.98]"
-            >
-              Start for free
-              <ArrowRight className="ml-1.5 size-4 transition-transform group-hover:translate-x-1" />
-            </Button>
+            <Link href="/signup">
+              <SpecularButton
+                size="md"
+                radius={9999}
+                tint="#ffffff"
+                tintOpacity={0.95}
+                baseColor="#ffffff"
+                lineColor="#ffffff"
+                textColor="#000000"
+                className="group"
+              >
+                <span className="flex items-center gap-2 font-semibold">
+                  Start for free
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </SpecularButton>
+            </Link>
           </div>
-          <Button
-            variant="outline"
-            nativeButton={false}
-            render={<Link href="/contact/sales" />}
-            className="h-11 rounded-full border border-white/15 bg-transparent px-6 text-sm font-medium text-white transition-colors hover:border-white/25 hover:bg-white/5"
-          >
-            Talk to sales
-          </Button>
+          <Link href="/contact/sales">
+            <SpecularButton
+              size="md"
+              radius={9999}
+              tint="#ffffff"
+              tintOpacity={0.05}
+              baseColor="#333333"
+              lineColor="#ffffff"
+              textColor="#ffffff"
+            >
+              <span className="font-medium">Talk to sales</span>
+            </SpecularButton>
+          </Link>
         </div>
       </div>
     </section>
