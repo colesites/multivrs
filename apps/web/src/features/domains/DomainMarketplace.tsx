@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import type { DomainProjectOption } from "@/lib/services/domain.service";
+import { DomainCheckoutDialog } from "./DomainCheckoutDialog";
 import {
   type AvailabilityFilter,
   DomainFilters,
@@ -25,10 +27,14 @@ export function DomainMarketplace({
   query,
   teamSlug,
   source,
+  projects,
+  sandboxEnabled,
 }: {
   query: string;
   teamSlug?: string;
   source?: string;
+  projects: DomainProjectOption[];
+  sandboxEnabled: boolean;
 }) {
   const [value, setValue] = useState(query);
   const [results, setResults] = useState<DomainSearchResult[]>([]);
@@ -41,6 +47,8 @@ export function DomainMarketplace({
   const [availability, setAvailability] = useState<AvailabilityFilter>("all");
   const [sort, setSort] = useState<DomainSort>("relevance");
   const [limit, setLimit] = useState(60);
+  const [checkoutDomain, setCheckoutDomain] =
+    useState<DomainSearchResult | null>(null);
   const searching = normalizeDomainQuery(value).length >= 2;
 
   function updateValue(nextValue: string) {
@@ -123,8 +131,9 @@ export function DomainMarketplace({
 
         const nextCatalog = detailed.body.catalog ?? [];
         const relevant = relevantDomainExtensions(nextCatalog);
+        const relevantSet = new Set(relevant);
         const remainder = nextCatalog.filter(
-          (extension) => !relevant.includes(extension),
+          (extension) => !relevantSet.has(extension),
         );
         const targetExtensions = tld
           ? [tld]
@@ -138,9 +147,12 @@ export function DomainMarketplace({
           setResults,
         );
 
+        const initiallyLoaded = new Set(
+          RELEVANT_DOMAIN_EXTENSIONS.slice(0, 12),
+        );
         const remaining = targetExtensions.filter(
           (extension) =>
-            !RELEVANT_DOMAIN_EXTENSIONS.slice(0, 12).includes(
+            !initiallyLoaded.has(
               extension as (typeof RELEVANT_DOMAIN_EXTENSIONS)[number],
             ),
         );
@@ -148,7 +160,8 @@ export function DomainMarketplace({
         let cursor = 0;
         const worker = async () => {
           while (cursor < batches.length && !controller.signal.aborted) {
-            const batch = batches[cursor++];
+            const batch = batches[cursor];
+            cursor += 1;
             if (!batch) return;
             try {
               const next = await fetchDomainBatch(
@@ -156,7 +169,7 @@ export function DomainMarketplace({
                 batch,
                 controller.signal,
               );
-              if (!next.response.ok) throw new Error("Domain batch failed");
+              ensureSuccessfulResponse(next.response);
               await revealDomainResults(
                 next.body.results,
                 controller.signal,
@@ -255,6 +268,7 @@ export function DomainMarketplace({
                 sort={sort}
                 onSortChange={setSort}
                 canLoadMore={!tld && limit < total && limit < 180}
+                onAdd={setCheckoutDomain}
                 onLoadMore={() =>
                   setLimit((current) => Math.min(180, current + 60))
                 }
@@ -266,6 +280,15 @@ export function DomainMarketplace({
           </section>
         ) : null}
       </div>
+      {checkoutDomain ? (
+        <DomainCheckoutDialog
+          result={checkoutDomain}
+          projects={projects}
+          teamSlug={teamSlug}
+          sandboxEnabled={sandboxEnabled}
+          onClose={() => setCheckoutDomain(null)}
+        />
+      ) : null}
     </main>
   );
 }
@@ -282,6 +305,7 @@ function Results({
   sort,
   onSortChange,
   canLoadMore,
+  onAdd,
   onLoadMore,
 }: {
   results: DomainSearchResult[];
@@ -295,11 +319,15 @@ function Results({
   sort: DomainSort;
   onSortChange: (value: DomainSort) => void;
   canLoadMore: boolean;
+  onAdd: (result: DomainSearchResult) => void;
   onLoadMore: () => void;
 }) {
   const actions = {
     onSave: (domain: string) => toast.success(`${domain} saved`),
-    onAdd: (domain: string) => toast.success(`${domain} added to cart`),
+    onAdd: (domain: string) => {
+      const result = results.find((item) => item.domain === domain);
+      if (result) onAdd(result);
+    },
   };
   const byExtension = new Map(
     results.map((result) => [domainExtension(result.domain), result]),
@@ -428,6 +456,10 @@ async function fetchDomainBatch(
   const response = await fetch(endpoint, { signal });
   const body = (await response.json()) as SearchResponse;
   return { response, body };
+}
+
+function ensureSuccessfulResponse(response: Response): void {
+  if (!response.ok) throw new Error("Domain batch failed");
 }
 
 async function revealDomainResults(

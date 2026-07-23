@@ -8,20 +8,22 @@ generator client {
 
 // User model - stores core user identity data
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  emailVerified Boolean  @default(false)
-  name          String
-  username        String? @unique
+  id              String   @id @default(uuid())
+  email           String   @unique
+  emailVerified   Boolean  @default(false)
+  name            String
+  username        String?  @unique
   displayUsername String?
-  image         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  image           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  sessions Session[]
-  accounts Account[]
-  projects Project[]
-  apiTokens ApiToken[]
+  sessions      Session[]
+  accounts      Account[]
+  projects      Project[]
+  apiTokens     ApiToken[]
+  domainOrders  DomainOrder[]
+  subscriptions BillingSubscription[]
 
   @@index([email])
   @@index([username])
@@ -64,10 +66,10 @@ model Session {
 
 // Account model - stores OAuth and password credentials
 model Account {
-  id           String    @id @default(uuid())
-  userId       String
-  accountId    String
-  providerId   String
+  id                    String    @id @default(uuid())
+  userId                String
+  accountId             String
+  providerId            String
   accessToken           String?   @db.Text
   refreshToken          String?   @db.Text
   idToken               String?   @db.Text
@@ -100,20 +102,21 @@ model Verification {
 
 // Project model - a deployable unit owned by a user (control plane)
 model Project {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  framework String? // "nextjs" | "swift-rust" | "vite" | "static" | null (auto)
-  ownerId   String
+  id                     String   @id @default(uuid())
+  name                   String
+  slug                   String   @unique
+  framework              String? // "nextjs" | "swift-rust" | "vite" | "static" | null (auto)
+  ownerId                String
   // The production alias pointer: which deployment production serves.
-  productionDeploymentId String? @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  productionDeploymentId String?  @unique
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  owner                User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  deployments          Deployment[] @relation("ProjectDeployments")
-  productionDeployment Deployment?  @relation("ProductionDeployment", fields: [productionDeploymentId], references: [id], onDelete: SetNull)
+  owner                User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  deployments          Deployment[]  @relation("ProjectDeployments")
+  productionDeployment Deployment?   @relation("ProductionDeployment", fields: [productionDeploymentId], references: [id], onDelete: SetNull)
   domains              Domain[]
+  domainOrders         DomainOrder[]
 
   @@index([ownerId])
   @@map("projects")
@@ -121,10 +124,10 @@ model Project {
 
 // Deployment model - an immutable build of a project (commit, status, artifact)
 model Deployment {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   projectId    String
-  status       String   @default("queued") // queued|building|ready|error|canceled
-  target       String   @default("preview") // preview|production
+  status       String    @default("queued") // queued|building|ready|error|canceled
+  target       String    @default("preview") // preview|production
   renderMode   String? // ssr|ssr-wasm|ssr-htmx|wasm (swift-rust)
   commitSha    String?
   branch       String?
@@ -133,11 +136,11 @@ model Deployment {
   startedAt    DateTime?
   finishedAt   DateTime?
   errorMessage String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  project      Project  @relation("ProjectDeployments", fields: [projectId], references: [id], onDelete: Cascade)
-  productionOf Project? @relation("ProductionDeployment")
+  project      Project         @relation("ProjectDeployments", fields: [projectId], references: [id], onDelete: Cascade)
+  productionOf Project?        @relation("ProductionDeployment")
   logs         DeploymentLog[]
 
   @@index([projectId])
@@ -171,4 +174,56 @@ model Domain {
 
   @@index([projectId])
   @@map("domains")
+}
+
+model DomainOrder {
+  id               String   @id @default(uuid())
+  userId           String
+  projectId        String
+  hostname         String
+  amount           Int
+  currency         String
+  status           String   @default("pending") // pending|processing|paid|fulfilled|failed
+  stripeSessionId  String?  @unique
+  providerDomainId String?
+  failureMessage   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([hostname, status])
+  @@map("domain_orders")
+}
+
+model BillingSubscription {
+  id                   String    @id @default(uuid())
+  userId               String?
+  stripeCustomerId     String
+  stripeSubscriptionId String    @unique
+  stripePriceId        String
+  stripeProductId      String
+  status               String
+  lastPaymentStatus    String    @default("unknown")
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([stripeCustomerId])
+  @@map("billing_subscriptions")
+}
+
+model StripeWebhookEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+
+  @@map("stripe_webhook_events")
 }

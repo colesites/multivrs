@@ -186,10 +186,10 @@ export function Navbar() {
                       size="sm"
                       radius={10}
                       tint="#ffffff"
-                      tintOpacity={0.95}
-                      baseColor="#ffffff"
+                      tintOpacity={0.05}
+                      baseColor="#333333"
                       lineColor="#ffffff"
-                      textColor="#000000"
+                      textColor="#ffffff"
                     >
                       Dashboard
                     </SpecularButton>

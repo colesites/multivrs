@@ -14,7 +14,10 @@ import {
   dashboardDeployments,
   dashboardProjects,
 } from "@/lib/services/dashboard.service";
-import { dashboardDomains } from "@/lib/services/domain.service";
+import {
+  dashboardDomains,
+  domainProjectOptions,
+} from "@/lib/services/domain.service";
 
 /**
  * Section pages, e.g. /c-tech/~/cdn (all projects) or
@@ -80,11 +83,19 @@ export default async function SectionPage({
   if (section === "domains") {
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session) notFound();
-    const domains = await dashboardDomains(
-      session.user.id,
-      scope === ALL_PROJECTS_SCOPE ? undefined : scope,
+    const projectSlug = scope === ALL_PROJECTS_SCOPE ? undefined : scope;
+    const [domains, projects] = await Promise.all([
+      dashboardDomains(session.user.id, projectSlug),
+      domainProjectOptions(session.user.id, projectSlug),
+    ]);
+    return (
+      <DomainsPage
+        domains={domains}
+        projects={projects}
+        teamSlug={username}
+        scope={scope}
+      />
     );
-    return <DomainsPage domains={domains} teamSlug={username} />;
   }
 
   const scopeLabel = scope === ALL_PROJECTS_SCOPE ? "All Projects" : scope;
