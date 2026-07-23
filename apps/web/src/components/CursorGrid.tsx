@@ -125,11 +125,11 @@ const CursorGrid = ({
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      cols = Math.ceil(w / p.cellSize) + 1;
-      rows = Math.ceil(h / p.cellSize) + 1;
+      cols = Math.ceil(w / cellSize) + 1;
+      rows = Math.ceil(h / cellSize) + 1;
       // Center the lattice so edge cells crop evenly on both sides
-      offX = (w - cols * p.cellSize) / 2;
-      offY = (h - rows * p.cellSize) / 2;
+      offX = (w - cols * cellSize) / 2;
+      offY = (h - rows * cellSize) / 2;
       alphas = new Float32Array(cols * rows);
       touched = new Float64Array(cols * rows);
     };
@@ -159,7 +159,8 @@ const CursorGrid = ({
           const dist = Math.hypot(cx - x, cy - y);
           if (dist > r) continue;
           const level = ease(1 - dist / r) * p.maxOpacity * (boost ?? 1);
-          if (level > alphas[i]) {
+          const currentAlpha = alphas[i] ?? 0;
+          if (level > currentAlpha) {
             alphas[i] = level;
             touched[i] = now;
           } else if (level > 0) {
@@ -197,6 +198,7 @@ const CursorGrid = ({
       // Expanding click pulses hand their energy to cells as they pass
       for (let pi = pulses.length - 1; pi >= 0; pi--) {
         const pulse = pulses[pi];
+        if (!pulse) continue;
         const age = (now - pulse.t0) / 1000;
         const ringR = age * p.pulseSpeed;
         if (ringR > Math.hypot(w, h)) {
@@ -213,7 +215,8 @@ const CursorGrid = ({
             const i = cRow * cols + cCol;
             const [cx, cy] = cellCenter(i);
             const dist = Math.hypot(cx - pulse.x, cy - pulse.y);
-            if (Math.abs(dist - ringR) < band / 2 && p.maxOpacity > alphas[i]) {
+            const currentAlpha = alphas[i] ?? 0;
+            if (Math.abs(dist - ringR) < band / 2 && p.maxOpacity > currentAlpha) {
               alphas[i] = p.maxOpacity;
               touched[i] = now;
             }
@@ -226,9 +229,10 @@ const CursorGrid = ({
       const half = p.cellSize / 2;
 
       for (let i = 0; i < alphas.length; i++) {
-        let a = alphas[i];
+        let a = alphas[i] ?? 0;
         if (a <= 0) continue;
-        if (now - touched[i] > p.holdTime) {
+        const lastTouched = touched[i] ?? 0;
+        if (now - lastTouched > p.holdTime) {
           a = Math.max(0, a - fadeStep);
           alphas[i] = a;
           if (a <= 0) continue;
@@ -310,11 +314,11 @@ const CursorGrid = ({
       container.removeEventListener('pointermove', onPointerMove);
       container.removeEventListener('pointerdown', onPointerDown);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cellSize]);
 
   // Repaint static layers when visual props change while idle
   useEffect(() => {
+    void [gridOpacity, color, lineWidth, maxOpacity, fillOpacity, cellRadius];
     wakeRef.current?.();
   }, [gridOpacity, color, lineWidth, maxOpacity, fillOpacity, cellRadius]);
 
