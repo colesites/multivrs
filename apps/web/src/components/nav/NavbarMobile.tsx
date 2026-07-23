@@ -70,7 +70,7 @@ export function NavbarMobile({ onClose }: NavbarMobileProps) {
           ))}
         </div>
 
-        <div className="mt-auto pt-8 flex flex-col gap-3">
+        <div className="mt-6 flex flex-col gap-3">
           {isSignedIn ? (
             <Link href="/dashboard" onClick={onClose} className="w-full">
               <SpecularButton
