@@ -4,7 +4,9 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { DomainProjectOption } from "@/lib/services/domain.service";
+import { DomainCartSheet } from "./DomainCartSheet";
 import { DomainCheckoutDialog } from "./DomainCheckoutDialog";
+import { useDomainCommerce } from "./DomainCommerceProvider";
 import {
   type AvailabilityFilter,
   DomainFilters,
@@ -19,6 +21,7 @@ import {
   relevantDomainExtensions,
 } from "./domain-marketplace";
 import { RotatingDomainWord } from "./RotatingDomainWord";
+import { SavedDomainsSheet } from "./SavedDomainsSheet";
 
 const Beams = dynamic(() => import("@/components/Beams"), { ssr: false });
 type SearchState = "idle" | "loading" | "ready" | "not-configured" | "error";
@@ -29,13 +32,16 @@ export function DomainMarketplace({
   source,
   projects,
   sandboxEnabled,
+  openCheckout,
 }: {
   query: string;
   teamSlug?: string;
   source?: string;
   projects: DomainProjectOption[];
   sandboxEnabled: boolean;
+  openCheckout: boolean;
 }) {
+  const { cartItem, hydrated, setCartOpen } = useDomainCommerce();
   const [value, setValue] = useState(query);
   const [results, setResults] = useState<DomainSearchResult[]>([]);
   const [state, setState] = useState<SearchState>(query ? "loading" : "idle");
@@ -50,6 +56,14 @@ export function DomainMarketplace({
   const [checkoutDomain, setCheckoutDomain] =
     useState<DomainSearchResult | null>(null);
   const searching = normalizeDomainQuery(value).length >= 2;
+
+  useEffect(() => {
+    if (!openCheckout || !hydrated || !cartItem) return;
+    setCartOpen(true);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("checkout");
+    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+  }, [cartItem, hydrated, openCheckout, setCartOpen]);
 
   function updateValue(nextValue: string) {
     if (!searching && normalizeDomainQuery(nextValue).length >= 2) {
@@ -268,7 +282,6 @@ export function DomainMarketplace({
                 sort={sort}
                 onSortChange={setSort}
                 canLoadMore={!tld && limit < total && limit < 180}
-                onAdd={setCheckoutDomain}
                 onLoadMore={() =>
                   setLimit((current) => Math.min(180, current + 60))
                 }
@@ -289,6 +302,8 @@ export function DomainMarketplace({
           onClose={() => setCheckoutDomain(null)}
         />
       ) : null}
+      <DomainCartSheet onCheckout={setCheckoutDomain} />
+      <SavedDomainsSheet />
     </main>
   );
 }
@@ -305,7 +320,6 @@ function Results({
   sort,
   onSortChange,
   canLoadMore,
-  onAdd,
   onLoadMore,
 }: {
   results: DomainSearchResult[];
@@ -319,15 +333,24 @@ function Results({
   sort: DomainSort;
   onSortChange: (value: DomainSort) => void;
   canLoadMore: boolean;
-  onAdd: (result: DomainSearchResult) => void;
   onLoadMore: () => void;
 }) {
+  const { addToCart, isSignedIn, isSaved, toggleSaved } = useDomainCommerce();
   const actions = {
-    onSave: (domain: string) => toast.success(`${domain} saved`),
-    onAdd: (domain: string) => {
-      const result = results.find((item) => item.domain === domain);
-      if (result) onAdd(result);
+    onSave: async (result: DomainSearchResult) => {
+      const saved = isSaved(result.domain);
+      try {
+        await toggleSaved(result);
+        toast.success(
+          saved
+            ? `${result.domain} removed from saved`
+            : `${result.domain} saved`,
+        );
+      } catch {
+        toast.error("Saved domains could not be updated.");
+      }
     },
+    onAdd: addToCart,
   };
   const byExtension = new Map(
     results.map((result) => [domainExtension(result.domain), result]),
@@ -361,6 +384,8 @@ function Results({
               key={result.domain}
               result={result}
               featured
+              canSave={isSignedIn}
+              saved={isSaved(result.domain)}
               {...actions}
             />
           ) : (
@@ -395,7 +420,13 @@ function Results({
       <div className="grid border-l border-t border-white/8 sm:grid-cols-2 lg:grid-cols-3">
         {visibleSlots.map(({ extension, result }) =>
           result ? (
-            <DomainResult key={result.domain} result={result} {...actions} />
+            <DomainResult
+              key={result.domain}
+              result={result}
+              canSave={isSignedIn}
+              saved={isSaved(result.domain)}
+              {...actions}
+            />
           ) : (
             <DomainResultSkeleton key={extension} />
           ),
@@ -454,6 +485,10 @@ async function fetchDomainBatch(
   endpoint.searchParams.set("tlds", extensions.join(","));
   if (fast) endpoint.searchParams.set("fast", "1");
   const response = await fetch(endpoint, { signal });
+  if (!response.ok) {
+    const body = (await response.json()) as SearchResponse;
+    return { response, body };
+  }
   const body = (await response.json()) as SearchResponse;
   return { response, body };
 }

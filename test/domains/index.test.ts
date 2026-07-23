@@ -3,6 +3,7 @@ import {
   normalizeDomainQuery,
   relevantDomainExtensions,
 } from "../../apps/web/src/features/domains/domain-marketplace";
+import { buildSignInHref, normalizeAuthReturnPath } from "../../apps/web/src/lib/auth/return-path";
 import {
   connectDomainSchema,
   dnsRecordInputSchema,
@@ -84,5 +85,13 @@ describe("domain marketplace", () => {
         confirmSandbox: true,
       }).success,
     ).toBe(true);
+  });
+
+  test("preserves safe checkout return paths and rejects external redirects", () => {
+    expect(normalizeAuthReturnPath("/domains?q=hello&checkout=1")).toBe(
+      "/domains?q=hello&checkout=1",
+    );
+    expect(normalizeAuthReturnPath("//attacker.example/path")).toBe("/dashboard");
+    expect(buildSignInHref("/domains?checkout=1")).toBe("/login?from=%2Fdomains%3Fcheckout%3D1");
   });
 });

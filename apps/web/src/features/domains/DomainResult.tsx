@@ -1,21 +1,22 @@
 import { Bookmark, ShoppingCart } from "lucide-react";
 import type { DomainSearchResult } from "./domain-marketplace";
+import { formatDomainPrice } from "./domain-price";
 
 export function DomainResult({
   result,
   featured = false,
+  canSave,
+  saved,
   onSave,
   onAdd,
 }: {
   result: DomainSearchResult;
   featured?: boolean;
-  onSave: (domain: string) => void;
-  onAdd: (domain: string) => void;
+  canSave: boolean;
+  saved: boolean;
+  onSave: (result: DomainSearchResult) => Promise<void>;
+  onAdd: (result: DomainSearchResult) => void;
 }) {
-  const formatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: result.currency,
-  });
   const hasPrice =
     typeof result.price === "number" && Number.isFinite(result.price);
   const hasRenewalPrice =
@@ -23,9 +24,14 @@ export function DomainResult({
     Number.isFinite(result.renewalPrice);
   const numericPrice = hasPrice ? result.price : null;
   const numericRenewalPrice = hasRenewalPrice ? result.renewalPrice : null;
-  const price = numericPrice === null ? null : formatter.format(numericPrice);
+  const price =
+    numericPrice === null
+      ? null
+      : formatDomainPrice(numericPrice, result.currency);
   const renewalPrice =
-    numericRenewalPrice == null ? null : formatter.format(numericRenewalPrice);
+    numericRenewalPrice == null
+      ? null
+      : formatDomainPrice(numericRenewalPrice, result.currency);
   const discounted =
     numericPrice !== null &&
     numericRenewalPrice != null &&
@@ -72,17 +78,26 @@ export function DomainResult({
       </div>
       {result.available ? (
         <div className="flex gap-1">
+          {canSave ? (
+            <button
+              type="button"
+              onClick={() => void onSave(result)}
+              aria-label={
+                saved
+                  ? `Remove ${result.domain} from saved`
+                  : `Save ${result.domain}`
+              }
+              className="grid size-8 place-items-center text-white/40 hover:text-white"
+            >
+              <Bookmark
+                className="size-4"
+                fill={saved ? "currentColor" : "none"}
+              />
+            </button>
+          ) : null}
           <button
             type="button"
-            onClick={() => onSave(result.domain)}
-            aria-label={`Save ${result.domain}`}
-            className="grid size-8 place-items-center text-white/40 hover:text-white"
-          >
-            <Bookmark className="size-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onAdd(result.domain)}
+            onClick={() => onAdd(result)}
             aria-label={`Add ${result.domain} to cart`}
             className="grid size-8 place-items-center border border-white/12 text-white/65 hover:bg-white hover:text-black"
           >

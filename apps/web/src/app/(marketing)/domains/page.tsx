@@ -17,10 +17,11 @@ export default async function DomainsPage({
     q?: string;
     teamSlug?: string;
     source?: string;
+    checkout?: string;
   }>;
 }) {
   const [params, requestHeaders] = await Promise.all([searchParams, headers()]);
-  const { q = "", teamSlug, source } = params;
+  const { q = "", teamSlug, source, checkout } = params;
   const session = await auth.api.getSession({ headers: requestHeaders });
   const projects = session ? await domainProjectOptions(session.user.id) : [];
   return (
@@ -30,6 +31,7 @@ export default async function DomainsPage({
       source={source}
       projects={projects}
       sandboxEnabled={isOpenproviderSandbox()}
+      openCheckout={checkout === "1"}
     />
   );
 }

@@ -1,3 +1,4 @@
+import { getSessionCookie } from "better-auth/cookies";
 import { type NextRequest, NextResponse } from "next/server";
 
 /**
@@ -44,8 +45,9 @@ export default async function proxy(req: NextRequest) {
 
   // Optimistic check: presence of the session cookie. This is NOT a real
   // auth check — the matching page/layout verifies the session server-side.
-  const sessionCookie = req.cookies.get("multivrs.session_token");
-  const hasSession = !!sessionCookie?.value;
+  const hasSession = Boolean(
+    getSessionCookie(req, { cookiePrefix: "multivrs" }),
+  );
 
   const isPublic = publicPrefixes.some(
     (p) => path === p || path.startsWith(`${p}/`),

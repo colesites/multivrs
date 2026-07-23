@@ -23,6 +23,7 @@ model User {
   projects      Project[]
   apiTokens     ApiToken[]
   domainOrders  DomainOrder[]
+  savedDomains  SavedDomain[]
   subscriptions BillingSubscription[]
 
   @@index([email])
@@ -196,6 +197,24 @@ model DomainOrder {
   @@index([userId, createdAt])
   @@index([hostname, status])
   @@map("domain_orders")
+}
+
+model SavedDomain {
+  id           String   @id @default(uuid())
+  userId       String
+  hostname     String
+  price        Float?
+  renewalPrice Float?
+  currency     String
+  premium      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hostname])
+  @@index([userId, createdAt])
+  @@map("saved_domains")
 }
 
 model BillingSubscription {

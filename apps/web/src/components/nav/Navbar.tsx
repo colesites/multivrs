@@ -1,11 +1,19 @@
 "use client";
 
-import { ArrowUpRight, Bookmark, ChevronDown, Menu, ShoppingCart, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  Bookmark,
+  ChevronDown,
+  Menu,
+  ShoppingCart,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MultivrsMark } from "@/components/brand/Logo";
-import { Button } from "@/components/ui/button";
+import SpecularButton from "@/components/SpecularButton";
+import { useDomainCommerce } from "@/features/domains/DomainCommerceProvider";
 import { cn } from "@/lib/utils";
 import { NavbarMobile } from "./NavbarMobile";
 import {
@@ -15,13 +23,10 @@ import {
   type NavColumn,
 } from "./navigation";
 
-import { authClient } from "@/lib/auth-client";
-import SpecularButton from "@/components/SpecularButton";
-
 export function Navbar() {
   const pathname = usePathname();
-  const { data: session } = authClient.useSession();
-  const isSignedIn = !!session?.user;
+  const { cartItem, isSignedIn, setCartOpen, setSavedOpen } =
+    useDomainCommerce();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   // Which mega-menu is expanded (null = closed). Shared by triggers + panel.
@@ -128,6 +133,7 @@ export function Navbar() {
                     baseColor="#333333"
                     lineColor="#ffffff"
                     textColor="#ffffff"
+                    onClick={() => setSavedOpen(true)}
                   >
                     <span className="flex items-center gap-1.5 font-medium">
                       <Bookmark className="size-4" /> Saved
@@ -142,9 +148,15 @@ export function Navbar() {
                   baseColor="#333333"
                   lineColor="#ffffff"
                   textColor="#ffffff"
+                  onClick={() => setCartOpen(true)}
                 >
                   <span className="flex items-center gap-1.5 font-semibold">
                     <ShoppingCart className="size-4" /> Cart
+                    {cartItem ? (
+                      <span className="grid size-4 place-items-center rounded-full bg-white text-[9px] text-black">
+                        1
+                      </span>
+                    ) : null}
                   </span>
                 </SpecularButton>
                 {!isSignedIn && (
@@ -178,52 +190,48 @@ export function Navbar() {
                   </>
                 )}
               </>
+            ) : isSignedIn ? (
+              <Link href="/dashboard">
+                <SpecularButton
+                  size="sm"
+                  radius={10}
+                  tint="#ffffff"
+                  tintOpacity={0.05}
+                  baseColor="#333333"
+                  lineColor="#ffffff"
+                  textColor="#ffffff"
+                >
+                  Dashboard
+                </SpecularButton>
+              </Link>
             ) : (
               <>
-                {isSignedIn ? (
-                  <Link href="/dashboard">
-                    <SpecularButton
-                      size="sm"
-                      radius={10}
-                      tint="#ffffff"
-                      tintOpacity={0.05}
-                      baseColor="#333333"
-                      lineColor="#ffffff"
-                      textColor="#ffffff"
-                    >
-                      Dashboard
-                    </SpecularButton>
-                  </Link>
-                ) : (
-                  <>
-                    <Link href="/login">
-                      <SpecularButton
-                        size="sm"
-                        radius={10}
-                        tint="#ffffff"
-                        tintOpacity={0.05}
-                        baseColor="#333333"
-                        lineColor="#ffffff"
-                        textColor="#ffffff"
-                      >
-                        Log In
-                      </SpecularButton>
-                    </Link>
-                    <Link href="/signup">
-                      <SpecularButton
-                        size="sm"
-                        radius={10}
-                        tint="#ffffff"
-                        tintOpacity={0.95}
-                        baseColor="#ffffff"
-                        lineColor="#ffffff"
-                        textColor="#000000"
-                      >
-                        Sign Up
-                      </SpecularButton>
-                    </Link>
-                  </>
-                )}
+                <Link href="/login">
+                  <SpecularButton
+                    size="sm"
+                    radius={10}
+                    tint="#ffffff"
+                    tintOpacity={0.05}
+                    baseColor="#333333"
+                    lineColor="#ffffff"
+                    textColor="#ffffff"
+                  >
+                    Log In
+                  </SpecularButton>
+                </Link>
+                <Link href="/signup">
+                  <SpecularButton
+                    size="sm"
+                    radius={10}
+                    tint="#ffffff"
+                    tintOpacity={0.95}
+                    baseColor="#ffffff"
+                    lineColor="#ffffff"
+                    textColor="#000000"
+                  >
+                    Sign Up
+                  </SpecularButton>
+                </Link>
               </>
             )}
           </div>
@@ -243,6 +251,7 @@ export function Navbar() {
                     textColor="#ffffff"
                     className="!px-2.5 !py-2"
                     aria-label="Saved domains"
+                    onClick={() => setSavedOpen(true)}
                   >
                     <Bookmark className="size-4" />
                   </SpecularButton>
@@ -257,8 +266,14 @@ export function Navbar() {
                   textColor="#ffffff"
                   className="!px-2.5 !py-2"
                   aria-label="Shopping cart"
+                  onClick={() => setCartOpen(true)}
                 >
-                  <ShoppingCart className="size-4" />
+                  <span className="relative">
+                    <ShoppingCart className="size-4" />
+                    {cartItem ? (
+                      <span className="absolute -right-2 -top-2 size-2 rounded-full bg-blue-400" />
+                    ) : null}
+                  </span>
                 </SpecularButton>
               </>
             )}
@@ -297,7 +312,6 @@ export function Navbar() {
       </header>
 
       {/* Dim the page behind an open panel. */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: mouse enter closes mega menu overlay */}
       <div
         aria-hidden
         onMouseEnter={() => setActiveMenu(null)}

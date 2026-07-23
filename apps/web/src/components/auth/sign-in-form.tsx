@@ -20,7 +20,7 @@ const inputClass =
  * Email + password sign-in form, with Google/GitHub OAuth.
  * Mono + blue (#2563eb) styling, no gradients.
  */
-export function SignInForm() {
+export function SignInForm({ returnTo }: { returnTo: string }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -58,16 +58,18 @@ export function SignInForm() {
       const result = await authClient.signIn.email({
         email: formData.email,
         password: formData.password,
+        callbackURL: returnTo,
       });
       if (result.error) {
         toast.error(result.error.message || "Invalid email or password.");
         setIsLoading(false);
         return;
       }
+      setIsLoading(false);
       toast.success("Welcome back.");
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Sign-in error:", error);
+      router.replace(returnTo);
+      router.refresh();
+    } catch {
       toast.error("An unexpected error occurred. Please try again.");
       setIsLoading(false);
     }
@@ -82,7 +84,7 @@ export function SignInForm() {
         <p className="text-sm text-white/50">Welcome back to Multivrs.</p>
       </div>
 
-      <OAuthButtons />
+      <OAuthButtons callbackURL={returnTo} />
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

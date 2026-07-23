@@ -66,24 +66,26 @@ const GitHubIcon = () => (
   </svg>
 );
 
-export function OAuthButtons() {
+export function OAuthButtons({
+  callbackURL = "/dashboard",
+}: {
+  callbackURL?: string;
+}) {
   const [loadingProvider, setLoadingProvider] = useState<Provider | null>(null);
 
   const handleOAuthSignIn = async (provider: Provider) => {
     setLoadingProvider(provider);
     try {
-      const result = await authClient.signIn.social({ provider });
+      const result = await authClient.signIn.social({ provider, callbackURL });
       if (result.error) {
         toast.error(
           result.error.message || `${provider} sign-in failed. Try again.`,
         );
       }
-    } catch (error) {
-      console.error(`${provider} OAuth error:`, error);
+    } catch {
       toast.error("An unexpected error occurred. Please try again.");
-    } finally {
-      setLoadingProvider(null);
     }
+    setLoadingProvider(null);
   };
 
   const disabled = loadingProvider !== null;
@@ -94,7 +96,7 @@ export function OAuthButtons() {
         type="button"
         onClick={() => handleOAuthSignIn("google")}
         disabled={disabled}
-        className="flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] text-sm font-medium text-white/90 transition-all duration-200 hover:border-[#2563eb]/50 hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] text-sm font-medium text-white/90 transition-colors duration-200 hover:border-[#2563eb]/50 hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loadingProvider === "google" ? <Spinner /> : <GoogleIcon />}
         Google
@@ -104,7 +106,7 @@ export function OAuthButtons() {
         type="button"
         onClick={() => handleOAuthSignIn("github")}
         disabled={disabled}
-        className="flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] text-sm font-medium text-white/90 transition-all duration-200 hover:border-[#2563eb]/50 hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] text-sm font-medium text-white/90 transition-colors duration-200 hover:border-[#2563eb]/50 hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loadingProvider === "github" ? <Spinner /> : <GitHubIcon />}
         GitHub

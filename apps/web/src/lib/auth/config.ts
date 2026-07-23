@@ -43,6 +43,8 @@ export const authConfig = {
   baseURL: baseUrl,
   trustedOrigins: [
     "http://localhost:3000",
+    "https://multivrs.space",
+    "https://www.multivrs.space",
     "https://multivrs.vercel.app",
     "https://*.vercel.app",
   ],
