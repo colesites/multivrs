@@ -74,7 +74,7 @@ const clashDisplay = localFont({
 
 const SITE_DESCRIPTION =
   "MULTIVRS is a modern software ecosystem: cloud deployment, developer tooling, AI workflows, and premium product experiences.";
-const SOCIAL_IMAGE_PATH = "/og-image.png?v=2";
+const SOCIAL_IMAGE_PATH = "/og.png";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -159,9 +159,7 @@ export default function RootLayout({
     >
       <head>
         <meta name="theme-color" content="#030303" />
-        <script type="application/ld+json">
-          {JSON.stringify(jsonLd)}
-        </script>
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
         <script type="application/ld+json">
           {JSON.stringify(websiteJsonLd)}
         </script>
