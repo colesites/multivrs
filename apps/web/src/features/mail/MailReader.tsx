@@ -110,9 +110,7 @@ export function MailReader({
                   </p>
                   <p className="truncate text-[10px] text-white/35">
                     to {message.to.join(", ")} ·{" "}
-                    {new Date(message.createdAt).toLocaleString("en-US", {
-                      timeZone: "UTC",
-                    })}
+                    {new Date(message.createdAt).toLocaleString("en-US")}
                   </p>
                 </div>
                 <span className="ml-auto h-fit rounded-full border border-white/10 px-2 py-1 font-mono text-[8px] uppercase text-white/35">

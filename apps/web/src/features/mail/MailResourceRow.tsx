@@ -88,9 +88,7 @@ export function MailResourceRow({
         <p className="truncate text-white/75">{item.name}</p>
         {item.createdAt ? (
           <p className="mt-1 text-[9px] text-white/25">
-            {new Date(item.createdAt).toLocaleDateString("en-US", {
-              timeZone: "UTC",
-            })}
+            {new Date(item.createdAt).toLocaleDateString("en-US")}
           </p>
         ) : null}
       </div>

@@ -84,9 +84,7 @@ export function MailOverview({
                 </span>
               </span>
               <span className="ml-auto shrink-0 text-[10px] text-white/25">
-                {new Date(thread.lastMessageAt).toLocaleDateString("en-US", {
-                  timeZone: "UTC",
-                })}
+                {new Date(thread.lastMessageAt).toLocaleDateString("en-US")}
               </span>
             </button>
           ))}

@@ -12,7 +12,10 @@ export async function POST(request: Request) {
     const input = await parseBody(request, composeMailSchema);
     const message = await composeMail(userId, input);
     if (!message.scheduledAt) {
-      after(() => dispatchMailDelivery(userId, message.id));
+      // await it directly for immediate debugging
+      await dispatchMailDelivery(userId, message.id).catch(e => {
+        console.error("Mail delivery error:", e);
+      });
     }
     return ok(
       { id: message.id, status: message.status, createdAt: message.createdAt },

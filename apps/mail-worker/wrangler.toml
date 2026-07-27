@@ -14,7 +14,7 @@ max_retries = 5
 dead_letter_queue = "multivrs-mail-dead-letter"
 
 [vars]
-CONTROL_PLANE_URL = "http://localhost:3000"
+CONTROL_PLANE_URL = "https://multivrs.space"
 
 [triggers]
 crons = ["* * * * *"]
