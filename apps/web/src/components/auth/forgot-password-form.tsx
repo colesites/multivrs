@@ -24,7 +24,7 @@ export function ForgotPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(undefined);
 
@@ -35,19 +35,19 @@ export function ForgotPasswordForm() {
     }
 
     setIsLoading(true);
-    try {
-      await authClient.requestPasswordReset({
+    void authClient
+      .requestPasswordReset({
         email,
         redirectTo: "/reset-password",
+      })
+      .then(() => {
+        setIsLoading(false);
+        setSent(true);
+      })
+      .catch(() => {
+        toast.error("An unexpected error occurred. Please try again.");
+        setIsLoading(false);
       });
-      // Always succeed from the user's perspective.
-      setSent(true);
-    } catch (err) {
-      console.error("Password reset request error:", err);
-      toast.error("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   if (sent) {

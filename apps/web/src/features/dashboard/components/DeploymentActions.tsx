@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { readableError, requestOk } from "@/lib/api/request.client";
 import type { DashboardDeployment } from "./DeploymentsPage";
 
 export function DeploymentActions({
@@ -22,27 +23,26 @@ export function DeploymentActions({
   const router = useRouter();
   const [canceling, setCanceling] = useState(false);
 
-  async function cancelDeployment() {
+  function cancelDeployment() {
+    if (canceling) return;
     setCanceling(true);
-    try {
-      const response = await fetch(
-        `/api/projects/${deployment.projectId}/deployments/${deployment.id}/status`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ status: "canceled" }),
-        },
-      );
-      if (!response.ok) throw new Error("Unable to cancel deployment");
-      toast.success("Deployment canceled");
-      router.refresh();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Unable to cancel deployment",
-      );
-    } finally {
-      setCanceling(false);
-    }
+    void requestOk(
+      `/api/projects/${deployment.projectId}/deployments/${deployment.id}/status`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ status: "canceled" }),
+      },
+      "Unable to cancel deployment",
+    )
+      .then(() => {
+        toast.success("Deployment canceled");
+        router.refresh();
+      })
+      .catch((error: unknown) =>
+        toast.error(readableError(error, "Unable to cancel deployment")),
+      )
+      .finally(() => setCanceling(false));
   }
 
   async function copyUrl() {

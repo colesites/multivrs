@@ -10,10 +10,10 @@
 import { promises as fs } from "node:fs";
 import { join } from "node:path";
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
-  DeleteObjectCommand,
   S3Client,
   type S3ClientConfig,
 } from "@aws-sdk/client-s3";
@@ -242,7 +242,7 @@ export async function uploadArtifact(
       skipped++;
       continue;
     }
-    const bytes = await fs.readFile(join(sourceDir, file.path));
+    const bytes = await fs.readFile(join(/* turbopackIgnore: true */ sourceDir, file.path));
     await store.put(file.hash, bytes);
     uploaded++;
   }

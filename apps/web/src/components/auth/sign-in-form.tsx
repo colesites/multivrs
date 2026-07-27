@@ -38,7 +38,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
       if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
@@ -53,26 +53,27 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
       return;
     }
 
+    if (isLoading) return;
     setIsLoading(true);
-    try {
-      const result = await authClient.signIn.email({
+    void authClient.signIn
+      .email({
         email: formData.email,
         password: formData.password,
         callbackURL: returnTo,
-      });
-      if (result.error) {
-        toast.error(result.error.message || "Invalid email or password.");
-        setIsLoading(false);
-        return;
-      }
-      setIsLoading(false);
-      toast.success("Welcome back.");
-      router.replace(returnTo);
-      router.refresh();
-    } catch {
-      toast.error("An unexpected error occurred. Please try again.");
-      setIsLoading(false);
-    }
+      })
+      .then((result) => {
+        if (result.error) {
+          toast.error(result.error.message || "Invalid email or password.");
+          return;
+        }
+        toast.success("Welcome back.");
+        router.replace(returnTo);
+        router.refresh();
+      })
+      .catch(() =>
+        toast.error("An unexpected error occurred. Please try again."),
+      )
+      .finally(() => setIsLoading(false));
   };
 
   return (

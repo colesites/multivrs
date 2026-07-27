@@ -1,5 +1,12 @@
-import { GitBranch, MoreHorizontal, Activity, Zap } from "lucide-react";
+import { GitBranch, MoreHorizontal, Settings } from "lucide-react";
 import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ProjectCardMetrics } from "@/features/dashboard/components/ProjectCardMetrics";
 import type {
   DashboardProject,
   ProjectStatus,
@@ -20,15 +27,12 @@ interface ProjectCardProps {
 export function ProjectCard({ project, href }: ProjectCardProps) {
   const status = STATUS[project.status];
   const initial = project.name[0]?.toUpperCase() ?? "P";
-  
-  // Fake analytics fallback if not provided
-  const visits = project.analytics?.pageVisits || "0k";
-  const speed = project.analytics?.speedInsightScore || 0;
-  const speedColor = speed >= 90 ? "text-emerald-500" : speed >= 50 ? "text-amber-500" : "text-rose-500";
+
+  const visits = project.analytics?.pageVisits ?? "—";
+  const speed = project.analytics?.speedInsightScore ?? 0;
 
   return (
-    <div className="group relative flex flex-col rounded-[16px] border border-[var(--hairline)] bg-[var(--ink-raised)]/70 backdrop-blur-md transition-all hover:border-[var(--hairline-strong)] hover:bg-[var(--ink-raised)]/90 overflow-hidden card-grain">
-      
+    <div className="group relative flex flex-col rounded-[16px] border border-[var(--hairline)] bg-[var(--ink-raised)]/70 backdrop-blur-md transition-[border-color,background-color] hover:border-[var(--hairline-strong)] hover:bg-[var(--ink-raised)]/90 overflow-hidden card-grain">
       {/* Top Section */}
       <div className="p-5 flex flex-col gap-4">
         <div className="flex items-start justify-between">
@@ -56,13 +60,25 @@ export function ProjectCard({ project, href }: ProjectCardProps) {
             >
               <span className={cn("size-2 rounded-full", status.dot)} />
             </span>
-            <button
-              type="button"
-              aria-label="Project options"
-              className="flex items-center justify-center size-6 rounded-md text-muted-foreground/50 transition-all hover:bg-white/[0.05] hover:text-foreground"
-            >
-              <MoreHorizontal className="size-4" strokeWidth={1.75} />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Project options"
+                  className="flex items-center justify-center size-6 rounded-md text-muted-foreground/50 transition-colors hover:bg-white/[0.05] hover:text-foreground"
+                >
+                  <MoreHorizontal className="size-4" strokeWidth={1.75} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href={`${href}/settings`} className="cursor-pointer">
+                    <Settings className="mr-2 size-4" />
+                    <span>Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -97,22 +113,7 @@ export function ProjectCard({ project, href }: ProjectCardProps) {
         </div>
       </div>
 
-      {/* Mini Analytics Footer */}
-      <div className="flex items-center justify-between border-t border-[var(--hairline)] bg-black/20 px-5 py-3">
-         <div className="flex items-center gap-5">
-           {/* Visits */}
-           <div className="flex items-center gap-1.5" title="Page Visits (Last 30d)">
-              <Activity className="size-3.5 text-blue-400" />
-              <span className="text-[12px] font-bold text-foreground/80">{visits}</span>
-           </div>
-           
-           {/* Speed Insights */}
-           <div className="flex items-center gap-1.5" title="Speed Insight Score">
-              <Zap className={cn("size-3.5", speedColor)} fill="currentColor" fillOpacity={0.2} />
-              <span className="text-[12px] font-bold text-foreground/80">{speed || "—"}</span>
-           </div>
-         </div>
-      </div>
+      <ProjectCardMetrics visits={visits} speed={speed} />
     </div>
   );
 }

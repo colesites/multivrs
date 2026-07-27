@@ -11,11 +11,11 @@ export function SettingsSidebarHeader() {
       <div className="flex h-20 items-center px-6 relative z-10 w-full shrink-0 border-b border-border/50">
         <Button
           variant="ghost"
-          className="flex items-center gap-2 p-0 h-auto hover:bg-transparent text-sm font-bold text-muted-foreground hover:text-foreground transition-all group"
+          className="group flex h-auto items-center gap-2 p-0 text-sm font-bold text-muted-foreground transition-colors hover:bg-transparent hover:text-foreground"
           nativeButton={false}
           render={<Link href="/dashboard" />}
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent/30 group-hover:bg-accent border border-border/50 transition-all shadow-sm">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/50 bg-accent/30 shadow-sm transition-colors group-hover:bg-accent">
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
           </div>
           <span>Back to Dashboard</span>

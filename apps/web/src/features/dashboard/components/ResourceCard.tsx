@@ -17,7 +17,6 @@ interface ResourceCardProps {
   badge?: string;
   footerLeft?: React.ReactNode;
   footerRight?: React.ReactNode;
-  onClick?: () => void;
   children?: React.ReactNode;
 }
 
@@ -31,7 +30,6 @@ export function ResourceCard({
   badge,
   footerLeft,
   footerRight,
-  onClick,
   children,
 }: ResourceCardProps) {
   const accent = ACCENT_STYLES[accentColor];
@@ -39,12 +37,10 @@ export function ResourceCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col rounded-[24px] border border-white/6 bg-background overflow-hidden transition-all duration-500 hover:border-white/10 card-grain inner-glow",
+        "group relative flex flex-col rounded-[24px] border border-white/6 bg-background overflow-hidden transition-colors duration-500 hover:border-white/10 card-grain inner-glow",
         accent.shadow,
-        onClick && "cursor-pointer",
       )}
       style={{ "--glow-color": accent.glow } as React.CSSProperties}
-      onClick={onClick}
     >
       {/* Top accent line */}
       <div
@@ -67,7 +63,7 @@ export function ResourceCard({
           <div className="flex items-center gap-4 min-w-0">
             <div
               className={cn(
-                "flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border transition-all duration-500 group-hover:scale-110",
+                "flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border transition-[transform,border-color,background-color] duration-500 group-hover:scale-110",
                 accent.iconBg,
                 accent.iconBgHover,
               )}
@@ -125,8 +121,8 @@ export function ResourceCard({
 
         {meta && meta.length > 0 && (
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4">
-            {meta.map((m, i) => (
-              <div key={i} className="flex flex-col gap-0.5">
+            {meta.map((m) => (
+              <div key={m.label} className="flex flex-col gap-0.5">
                 <span className="text-[9px] font-bold text-muted-foreground/35 uppercase tracking-[0.2em]">
                   {m.label}
                 </span>
@@ -144,7 +140,7 @@ export function ResourceCard({
           <div>{footerLeft}</div>
           <div>
             {footerRight || (
-              <ArrowUpRight className="h-4 w-4 text-muted-foreground/20 group-hover:text-foreground/50 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground/20 group-hover:text-foreground/50 transition-[transform,color] duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             )}
           </div>
         </div>

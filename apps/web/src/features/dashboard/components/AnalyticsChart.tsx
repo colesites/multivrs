@@ -8,90 +8,85 @@ import {
   Tooltip,
   XAxis,
 } from "recharts";
-import { mockActivityHistory } from "@/lib/mock";
+import type { AnalyticsPoint } from "@/features/dashboard/types/analytics.types";
 
-export function AnalyticsChart() {
+export function AnalyticsChart({ points }: { points: AnalyticsPoint[] }) {
   return (
-    <div className="border-y border-[var(--hairline)] py-6 sm:py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h3 className="text-lg font-bold text-foreground tracking-tight">
-            Traffic Overview
-          </h3>
-          <p className="text-[13px] text-muted-foreground/80 mt-1">
-            Daily visitors across all monitored properties.
-          </p>
+    <section className="border-y border-[var(--hairline)] py-7">
+      <div className="mb-8">
+        <h3 className="text-base font-semibold tracking-tight text-foreground">
+          Traffic timeline
+        </h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Hourly requests from the serving edge.
+        </p>
+      </div>
+      {points.length ? (
+        <div className="h-[320px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={points}
+              margin={{ top: 8, right: 0, left: -24, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="edgeTraffic" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.45} />
+                  <stop offset="95%" stopColor="#60a5fa" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="rgba(255,255,255,0.06)"
+              />
+              <XAxis
+                dataKey="label"
+                tickLine={false}
+                axisLine={false}
+                fontSize={11}
+                dy={12}
+              />
+              <Tooltip
+                content={<TrafficTooltip />}
+                cursor={{ stroke: "rgba(255,255,255,0.15)" }}
+              />
+              <Area
+                type="monotone"
+                dataKey="requests"
+                stroke="#60a5fa"
+                strokeWidth={2}
+                fill="url(#edgeTraffic)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
-      </div>
+      ) : (
+        <div className="flex h-52 items-center justify-center border border-dashed border-[var(--hairline)] text-sm text-muted-foreground">
+          Traffic will appear after the first edge request.
+        </div>
+      )}
+    </section>
+  );
+}
 
-      <div className="h-[350px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={mockActivityHistory}
-            margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id="colorVisits2" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.6} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="rgba(255,255,255,0.04)"
-              strokeDashoffset={2}
-            />
-            <XAxis
-              dataKey="name"
-              stroke="rgba(255,255,255,0.3)"
-              fontSize={11}
-              tickLine={false}
-              axisLine={false}
-              dy={15}
-              tickMargin={10}
-              fontWeight={600}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "rgba(9, 9, 11, 0.7)",
-                borderRadius: "16px",
-                border: "1px solid rgba(255,255,255,0.1)",
-                backdropFilter: "blur(20px)",
-                boxShadow:
-                  "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)",
-              }}
-              itemStyle={{ color: "#fff", fontSize: "13px", fontWeight: 600 }}
-              labelStyle={{
-                color: "rgba(255,255,255,0.5)",
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                marginBottom: "4px",
-              }}
-              cursor={{
-                stroke: "rgba(255,255,255,0.1)",
-                strokeWidth: 1,
-                strokeDasharray: "4 4",
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="value"
-              stroke="#60a5fa"
-              strokeWidth={3}
-              fillOpacity={1}
-              fill="url(#colorVisits2)"
-              activeDot={{
-                r: 6,
-                fill: "#60a5fa",
-                stroke: "#09090b",
-                strokeWidth: 3,
-              }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+function TrafficTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{ value?: number }>;
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/85 px-3 py-2 shadow-2xl backdrop-blur-xl">
+      <p className="font-geist-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-1 text-sm font-semibold text-white">
+        {payload[0]?.value?.toLocaleString()} requests
+      </p>
     </div>
   );
 }

@@ -2,6 +2,7 @@
  * Phase 1 feature test — @multivrs/frameworks (the detection catalog).
  */
 import { describe, expect, test } from "bun:test";
+import { FRAMEWORK_IDS } from "@multivrs/config";
 import { FRAMEWORKS, getFramework } from "@multivrs/frameworks";
 
 describe("@multivrs/frameworks", () => {
@@ -12,10 +13,14 @@ describe("@multivrs/frameworks", () => {
     expect(ids).toContain("static");
   });
 
+  test("catalog covers every supported Phase 4 runtime", () => {
+    expect(FRAMEWORKS.map((framework) => framework.id).sort()).toEqual([...FRAMEWORK_IDS].sort());
+  });
+
   test("nextjs preset carries its build settings", () => {
     const next = getFramework("nextjs");
-    expect(next?.build.buildCommand).toBe("next build");
-    expect(next?.build.outputDirectory).toBe(".next");
+    expect(next?.build.buildCommand).toBe("bunx @opennextjs/cloudflare build");
+    expect(next?.build.outputDirectory).toBe(".open-next");
   });
 
   test("static is the last (fallback) framework", () => {

@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { connectDomainSchema } from "@/lib/domains/dns.schemas";
 
-export const sandboxDomainOrderSchema = connectDomainSchema.extend({
+export const sandboxDomainOrderSchema = z.object({
+  hostname: connectDomainSchema.shape.hostname,
   confirmSandbox: z.literal(true),
 });
 

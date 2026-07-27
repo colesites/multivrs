@@ -8,6 +8,8 @@ export interface DashboardDomain {
   status: string;
   managed: boolean;
   renewalLabel: string;
+  registeredLabel: string;
+  autoRenew: boolean;
 }
 
 export interface DomainProjectOption {
@@ -22,10 +24,8 @@ export async function dashboardDomains(
 ): Promise<DashboardDomain[]> {
   const domains = await prisma.domain.findMany({
     where: {
-      project: {
-        ownerId: userId,
-        ...(projectSlug ? { slug: projectSlug } : {}),
-      },
+      userId,
+      ...(projectSlug ? { project: { slug: projectSlug } } : {}),
     },
     include: { project: { select: { name: true } } },
     orderBy: { createdAt: "desc" },
@@ -33,13 +33,27 @@ export async function dashboardDomains(
   return domains.map((domain) => ({
     id: domain.id,
     name: domain.hostname,
-    project: domain.project.name,
+    project: domain.project?.name ?? "Unconnected",
     status:
       domain.verified && domain.certStatus === "active" ? "Active" : "Pending",
-    managed: false,
-    renewalLabel: "—",
+    managed: domain.managed,
+    renewalLabel: formatDomainDate(domain.expiresAt),
+    registeredLabel: formatDomainDate(domain.createdAt),
+    autoRenew: domain.autoRenew,
   }));
 }
+
+function formatDomainDate(value: Date | null): string {
+  if (!value) return "Not available";
+  return dashboardDomainDateFormatter.format(value);
+}
+
+const dashboardDomainDateFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
+});
 
 export async function domainProjectOptions(
   userId: string,

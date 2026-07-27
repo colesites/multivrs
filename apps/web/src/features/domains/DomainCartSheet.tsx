@@ -1,7 +1,8 @@
 "use client";
 
-import { ShoppingCart, Trash2 } from "lucide-react";
+import { Bookmark, ShoppingCart, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { MultivrsMark } from "@/components/brand/Logo";
 import {
   Sheet,
@@ -12,43 +13,40 @@ import {
 } from "@/components/ui/sheet";
 import { buildSignInHref } from "@/lib/auth/return-path";
 import { useDomainCommerce } from "./DomainCommerceProvider";
-import type { DomainSearchResult } from "./domain-marketplace";
 import { formatDomainPrice } from "./domain-price";
 import { useResponsiveSheetSide } from "./use-responsive-sheet-side";
 
-export function DomainCartSheet({
-  onCheckout,
-}: {
-  onCheckout: (result: DomainSearchResult) => void;
-}) {
+export function DomainCartSheet() {
   const router = useRouter();
   const side = useResponsiveSheetSide();
-  const { cartItem, cartOpen, isSignedIn, removeFromCart, setCartOpen } =
-    useDomainCommerce();
+  const {
+    cartItems,
+    cartOpen,
+    isSignedIn,
+    moveCartToSaved,
+    removeFromCart,
+    setCartOpen,
+  } = useDomainCommerce();
 
   function signInToCheckout() {
-    const returnUrl = new URL(window.location.href);
-    returnUrl.searchParams.set("checkout", "1");
     setCartOpen(false);
-    router.push(
-      buildSignInHref(
-        `${returnUrl.pathname}${returnUrl.search}${returnUrl.hash}`,
-      ),
-    );
+    router.push(buildSignInHref("/domains/checkout"));
   }
 
   function continueToCheckout() {
-    if (!cartItem) return;
+    if (!cartItems.length) return;
     setCartOpen(false);
-    onCheckout(cartItem);
+    router.push("/domains/checkout");
   }
 
-  const price = cartItem
-    ? formatDomainPrice(cartItem.price, cartItem.currency)
-    : "—";
-  const renewal = cartItem
-    ? formatDomainPrice(cartItem.renewalPrice, cartItem.currency)
-    : "—";
+  const currency = cartItems[0]?.currency ?? "USD";
+  const sameCurrency = cartItems.every((item) => item.currency === currency);
+  const total = sameCurrency
+    ? formatDomainPrice(
+        cartItems.reduce((sum, item) => sum + (item.price ?? 0), 0),
+        currency,
+      )
+    : "Calculated at checkout";
 
   return (
     <Sheet open={cartOpen} onOpenChange={setCartOpen}>
@@ -61,35 +59,67 @@ export function DomainCartSheet({
             Your cart
           </SheetTitle>
           <SheetDescription className="sr-only">
-            Review your selected domain and continue to checkout.
+            Review your selected domains and continue to checkout.
           </SheetDescription>
         </SheetHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
-          {cartItem ? (
-            <div className="flex items-start gap-4 px-6 py-7">
-              <div className="grid size-10 shrink-0 place-items-center border border-white/10 bg-white/[0.03]">
-                <ShoppingCart className="size-4 text-white/45" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-clash text-lg font-medium">
-                  {cartItem.domain}
-                </p>
-                <p className="mt-1 text-sm text-white/40">
-                  Renews at {renewal}/year
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="font-medium">{price}</p>
-                <button
-                  type="button"
-                  onClick={removeFromCart}
-                  className="mt-3 inline-grid size-8 place-items-center text-white/35 hover:text-red-300"
-                  aria-label={`Remove ${cartItem.domain} from cart`}
+          {cartItems.length ? (
+            <div className="divide-y divide-white/8">
+              {cartItems.map((item) => (
+                <div
+                  key={item.domain}
+                  className="flex items-start gap-4 px-6 py-5"
                 >
-                  <Trash2 className="size-4" />
-                </button>
-              </div>
+                  <div className="grid size-10 shrink-0 place-items-center border border-white/10 bg-white/[0.03]">
+                    <ShoppingCart className="size-4 text-white/45" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-clash text-lg font-medium">
+                      {item.domain}
+                    </p>
+                    <p className="mt-1 text-sm text-white/40">
+                      Renews at{" "}
+                      {formatDomainPrice(item.renewalPrice, item.currency)}/year
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">
+                      {formatDomainPrice(item.price, item.currency)}
+                    </p>
+                    <div className="mt-3 flex items-center justify-end">
+                      {isSignedIn ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void moveCartToSaved(item)
+                              .then(() =>
+                                toast.success(`${item.domain} moved to saved`),
+                              )
+                              .catch(() =>
+                                toast.error(
+                                  "The domain could not be moved to saved.",
+                                ),
+                              );
+                          }}
+                          className="inline-grid size-8 place-items-center text-white/35 hover:text-white"
+                          aria-label={`Move ${item.domain} to saved domains`}
+                        >
+                          <Bookmark className="size-4" />
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => removeFromCart(item.domain)}
+                        className="inline-grid size-8 place-items-center text-white/35 hover:text-red-300"
+                        aria-label={`Remove ${item.domain} from cart`}
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="grid h-full min-h-64 place-items-center px-6 text-center">
@@ -107,11 +137,13 @@ export function DomainCartSheet({
         <div className="border-t border-white/10 bg-black/50 p-6">
           <div className="mb-5 flex items-center justify-between text-lg">
             <span>Total</span>
-            <span className="font-semibold">{cartItem ? price : "—"}</span>
+            <span className="font-semibold">
+              {cartItems.length ? total : "—"}
+            </span>
           </div>
           <button
             type="button"
-            disabled={!cartItem}
+            disabled={!cartItems.length}
             onClick={isSignedIn ? continueToCheckout : signInToCheckout}
             className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-white font-medium text-black hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40"
           >

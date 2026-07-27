@@ -1,10 +1,5 @@
 import "server-only";
 import type { DashboardDeployment } from "@/features/dashboard/components/DeploymentsPage";
-import {
-  MOCK_DEPLOYMENTS,
-  MOCK_PROJECTS,
-  USE_MOCK_DATA,
-} from "@/features/dashboard/constants/mock-data";
 import type {
   DashboardProject,
   ProjectStatus,
@@ -42,8 +37,6 @@ function duration(createdAt: Date, updatedAt: Date, state: string): string {
 export async function dashboardProjects(
   username: string,
 ): Promise<DashboardProject[] | null> {
-  if (USE_MOCK_DATA) return MOCK_PROJECTS;
-
   const owner = await prisma.user.findUnique({
     where: { username },
     select: { id: true },
@@ -78,18 +71,6 @@ export async function dashboardDeployments(
   username: string,
   projectSlug?: string,
 ): Promise<DashboardDeployment[] | null> {
-  if (USE_MOCK_DATA) {
-    return MOCK_DEPLOYMENTS.filter(
-      (deployment) => !projectSlug || deployment.project === projectSlug,
-    ).map((deployment) => ({
-      ...deployment,
-      projectId: `mock-${deployment.project}`,
-      environment:
-        deployment.environment === "Production" ? "Production" : "Preview",
-      detailsUrl: `/${username}/${projectSlug ?? "~"}/deployments/${deployment.id}`,
-    }));
-  }
-
   const owner = await prisma.user.findUnique({
     where: { username },
     select: { id: true },

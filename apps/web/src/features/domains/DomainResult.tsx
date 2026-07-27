@@ -1,4 +1,4 @@
-import { Bookmark, ShoppingCart } from "lucide-react";
+import { Bookmark, Check, ShoppingCart, Trash2 } from "lucide-react";
 import type { DomainSearchResult } from "./domain-marketplace";
 import { formatDomainPrice } from "./domain-price";
 
@@ -7,6 +7,7 @@ export function DomainResult({
   featured = false,
   canSave,
   saved,
+  inCart,
   onSave,
   onAdd,
 }: {
@@ -14,6 +15,7 @@ export function DomainResult({
   featured?: boolean;
   canSave: boolean;
   saved: boolean;
+  inCart: boolean;
   onSave: (result: DomainSearchResult) => Promise<void>;
   onAdd: (result: DomainSearchResult) => void;
 }) {
@@ -98,10 +100,25 @@ export function DomainResult({
           <button
             type="button"
             onClick={() => onAdd(result)}
-            aria-label={`Add ${result.domain} to cart`}
-            className="grid size-8 place-items-center border border-white/12 text-white/65 hover:bg-white hover:text-black"
+            aria-label={
+              inCart
+                ? `Remove ${result.domain} from cart`
+                : `Add ${result.domain} to cart`
+            }
+            className={`group/cart grid size-8 place-items-center border transition-colors ${
+              inCart
+                ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-300 hover:border-red-300/35 hover:bg-red-300/10 hover:text-red-300"
+                : "border-white/12 text-white/65 hover:bg-white hover:text-black"
+            }`}
           >
-            <ShoppingCart className="size-4" />
+            {inCart ? (
+              <span className="relative size-4">
+                <Check className="absolute inset-0 size-4 transition-opacity group-hover/cart:opacity-0" />
+                <Trash2 className="absolute inset-0 size-4 opacity-0 transition-opacity group-hover/cart:opacity-100" />
+              </span>
+            ) : (
+              <ShoppingCart className="size-4" />
+            )}
           </button>
         </div>
       ) : null}

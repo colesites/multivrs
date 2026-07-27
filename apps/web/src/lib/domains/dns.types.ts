@@ -43,11 +43,18 @@ export interface DomainDnsOverview {
 export interface DomainDetail {
   id: string;
   hostname: string;
-  projectId: string;
-  projectName: string;
-  projectSlug: string;
+  managed: boolean;
+  autoRenew: boolean;
+  registeredAt: string;
+  expiresAt: string | null;
+  providerDomainId: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  projectSlug: string | null;
   verified: boolean;
   certStatus: string;
+  certVerificationName: string | null;
+  certVerificationValue: string | null;
   verificationName: string;
   verificationValue: string;
 }

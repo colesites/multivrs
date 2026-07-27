@@ -1,12 +1,12 @@
 import "server-only";
 import type { DomainSearchResult } from "@/features/domains/domain-marketplace";
+import { searchLocalSandbox } from "@/lib/domains/local-sandbox-provider";
 import { getOpenproviderCatalog } from "@/lib/domains/openprovider-catalog";
 import {
   getOpenproviderConfig,
   getOpenproviderToken,
   isLocalOpenproviderSandbox,
 } from "@/lib/domains/openprovider-client";
-import { searchLocalSandbox } from "@/lib/domains/local-sandbox-provider";
 import {
   type CatalogEntry,
   parseDomainCheck,

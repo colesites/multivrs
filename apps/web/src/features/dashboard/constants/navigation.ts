@@ -3,14 +3,17 @@ import {
   AtSign,
   Gauge,
   Globe,
+  KeyRound,
   LayoutGrid,
   type LucideIcon,
   Network,
+  PlugZap,
   Radar,
   Rocket,
   ScrollText,
   Settings,
   ShieldCheck,
+  SquareTerminal,
 } from "lucide-react";
 
 /**
@@ -44,8 +47,15 @@ export const DASHBOARD_NAV_ITEMS: readonly DashboardNavItem[] = [
   { name: "Observability", slug: "observability", icon: Radar },
   { name: "Firewall", slug: "firewall", icon: ShieldCheck },
   { name: "CDN", slug: "cdn", icon: Network },
+  {
+    name: "Environment Variables",
+    slug: "environment-variables",
+    icon: KeyRound,
+  },
+  { name: "Integrations", slug: "integrations", icon: PlugZap },
+  { name: "Sandboxes", slug: "sandboxes", icon: SquareTerminal, badge: "Beta" },
   { name: "Domains", slug: "domains", icon: Globe },
-  { name: "Emails", slug: "emails", icon: AtSign, badge: "Beta" },
+  { name: "Emails", slug: "emails", icon: AtSign },
   { name: "Settings", slug: "settings", icon: Settings },
 ] as const;
 

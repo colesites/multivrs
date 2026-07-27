@@ -1,23 +1,30 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { AnalyticsPage } from "@/features/dashboard/components/AnalyticsPage";
-import { ApiTokensPage } from "@/features/dashboard/components/ApiTokensPage";
 import { DeploymentsPage } from "@/features/dashboard/components/DeploymentsPage";
 import { DomainsPage } from "@/features/dashboard/components/DomainsPage";
 import { LogsPage } from "@/features/dashboard/components/LogsPage";
+import { ProjectPlatformSection } from "@/features/dashboard/components/ProjectPlatformSection";
+import { ProjectSettingsPage } from "@/features/dashboard/components/ProjectSettingsPage";
 import { SectionPlaceholder } from "@/features/dashboard/components/SectionPlaceholder";
+import { SettingsPage } from "@/features/dashboard/components/SettingsPage";
 import { ALL_PROJECTS_SCOPE } from "@/features/dashboard/constants/navigation";
 import { getSectionMeta } from "@/features/dashboard/constants/sections";
+import { isPlatformProjectSection } from "@/features/dashboard/lib/project-platform-sections";
 import { auth } from "@/lib/auth";
+import { getAccountProfile } from "@/lib/services/account.service";
 import { listApiTokens } from "@/lib/services/api-token.service";
+import { listAuditEvents } from "@/lib/services/audit-event.service";
 import {
   dashboardDeployments,
   dashboardProjects,
 } from "@/lib/services/dashboard.service";
+import { getScopedProject } from "@/lib/services/dashboard-scope.service";
 import {
   dashboardDomains,
   domainProjectOptions,
 } from "@/lib/services/domain.service";
+import { getProject } from "@/lib/services/project.service";
+import { listProjectRuntimeLogs } from "@/lib/services/runtime-log.service";
 
 /**
  * Section pages, e.g. /c-tech/~/cdn (all projects) or
@@ -44,6 +51,8 @@ export default async function SectionPage({
   }
 
   if (section === "logs") {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) notFound();
     const projects = await dashboardProjects(username);
     if (!projects) notFound();
     return (
@@ -51,23 +60,11 @@ export default async function SectionPage({
         username={username}
         projects={projects}
         projectSlug={scope === ALL_PROJECTS_SCOPE ? undefined : scope}
-      />
-    );
-  }
-
-  if (section === "analytics") {
-    const projects = await dashboardProjects(username);
-    if (!projects) notFound();
-    const project =
-      scope === ALL_PROJECTS_SCOPE
-        ? undefined
-        : projects.find((item) => item.slug === scope);
-    if (scope !== ALL_PROJECTS_SCOPE && !project) notFound();
-    return (
-      <AnalyticsPage
-        username={username}
-        projects={projects}
-        project={project}
+        logs={
+          scope === ALL_PROJECTS_SCOPE
+            ? []
+            : await listProjectRuntimeLogs(session.user.id, username, scope)
+        }
       />
     );
   }
@@ -75,8 +72,29 @@ export default async function SectionPage({
   if (section === "settings" && scope === ALL_PROJECTS_SCOPE) {
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session) notFound();
+    const [events, profile, tokens] = await Promise.all([
+      listAuditEvents(session.user.id),
+      getAccountProfile(session.user.id),
+      listApiTokens(session.user.id),
+    ]);
+    return <SettingsPage events={events} profile={profile} tokens={tokens} />;
+  }
+
+  if (section === "settings") {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) notFound();
+    const scopedProject = await getScopedProject(
+      session.user.id,
+      username,
+      scope,
+    );
+    const project = await getProject(session.user.id, scopedProject.id);
     return (
-      <ApiTokensPage initialTokens={await listApiTokens(session.user.id)} />
+      <ProjectSettingsPage
+        key={project.id}
+        project={project}
+        username={username}
+      />
     );
   }
 
@@ -94,6 +112,17 @@ export default async function SectionPage({
         projects={projects}
         teamSlug={username}
         scope={scope}
+      />
+    );
+  }
+
+  if (isPlatformProjectSection(section)) {
+    return (
+      <ProjectPlatformSection
+        meta={meta}
+        scope={scope}
+        section={section}
+        username={username}
       />
     );
   }

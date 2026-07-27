@@ -1,9 +1,8 @@
 "use client";
 
-import { ArrowRight, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { AnalyticsProjectPicker } from "@/features/dashboard/components/AnalyticsProjectPicker";
+import type { PlatformAnalytics } from "@/features/dashboard/types/analytics.types";
 import type { DashboardProject } from "@/features/dashboard/types/project.types";
 import { AnalyticsBreakdowns } from "./AnalyticsBreakdowns";
 import { AnalyticsChart } from "./AnalyticsChart";
@@ -13,12 +12,14 @@ interface AnalyticsPageProps {
   username?: string;
   projects?: DashboardProject[];
   project?: DashboardProject;
+  analytics?: PlatformAnalytics;
 }
 
 export function AnalyticsPage({
   username,
   projects,
   project,
+  analytics,
 }: AnalyticsPageProps) {
   if (username && projects && !project) {
     return <AnalyticsProjectPicker username={username} projects={projects} />;
@@ -66,81 +67,21 @@ export function AnalyticsPage({
         </div>
       </div>
 
-      <AnalyticsMetrics />
-      <AnalyticsChart />
-      <AnalyticsBreakdowns />
-    </div>
-  );
-}
-
-function AnalyticsProjectPicker({
-  username,
-  projects,
-}: {
-  username: string;
-  projects: DashboardProject[];
-}) {
-  const router = useRouter();
-  const [query, setQuery] = useState("");
-  const filtered = useMemo(
-    () =>
-      projects.filter((project) =>
-        project.name.toLowerCase().includes(query.toLowerCase()),
-      ),
-    [projects, query],
-  );
-
-  return (
-    <div className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-5xl flex-col justify-center px-5 py-12">
-      <div className="mb-8 max-w-xl">
-        <p className="font-geist-mono text-[11px] uppercase tracking-[0.16em] text-blue-400">
-          Audience intelligence
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
-          Explore the audience behind every project.
-        </h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          Choose a project to uncover traffic, acquisition, geography, and
-          engagement patterns.
-        </p>
-      </div>
-      <div className="border-y border-[var(--hairline)]">
-        <div className="flex items-center gap-3 border-b border-[var(--hairline)] px-5 py-4">
-          <Search className="size-4 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Find a project…"
-            className="h-8 min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
-          />
-          <span className="font-geist-mono text-xs text-muted-foreground">
-            {filtered.length} projects
-          </span>
+      {analytics?.state !== "ready" && (
+        <div className="border-y border-amber-400/20 bg-amber-400/[0.04] px-4 py-3 text-xs text-amber-200">
+          {analytics?.state === "error"
+            ? "Analytics could not be loaded from Cloudflare. Try again shortly."
+            : "Add CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_ANALYTICS_API_TOKEN to load live edge analytics."}
         </div>
-        <div className="grid divide-y divide-[var(--hairline)]">
-          {filtered.map((item) => (
-            <button
-              key={item.slug}
-              type="button"
-              onClick={() => router.push(`/${username}/${item.slug}/analytics`)}
-              className="group flex items-center gap-4 px-5 py-4 text-left transition-colors hover:text-blue-300"
-            >
-              <span className="font-geist-mono text-sm text-blue-300">
-                {item.name.slice(0, 1)}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-foreground transition-colors group-hover:text-blue-200">
-                  {item.name}
-                </span>
-                <span className="mt-1 block truncate font-geist-mono text-xs text-muted-foreground">
-                  {item.domain}
-                </span>
-              </span>
-              <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-foreground" />
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
+      {analytics && <AnalyticsMetrics data={analytics} />}
+      {analytics && <AnalyticsChart points={analytics.series} />}
+      {analytics && (
+        <AnalyticsBreakdowns
+          paths={analytics.paths}
+          countries={analytics.countries}
+        />
+      )}
     </div>
   );
 }

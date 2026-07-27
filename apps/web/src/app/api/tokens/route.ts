@@ -2,7 +2,10 @@ import { z } from "zod";
 import { parseBody } from "@/lib/api/parse-body";
 import { fail, ok } from "@/lib/api/respond";
 import { requireSessionUserId } from "@/lib/api/session";
-import { createApiToken, listApiTokens } from "@/lib/services/api-token.service";
+import {
+  createApiToken,
+  listApiTokens,
+} from "@/lib/services/api-token.service";
 
 export const runtime = "nodejs";
 

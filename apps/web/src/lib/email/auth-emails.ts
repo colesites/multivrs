@@ -6,6 +6,7 @@
  * errors so Better Auth can react, rather than swallowing them.
  */
 
+import { logError } from "@/lib/services/logger.service";
 import { EMAIL_FROM, resend } from "./client";
 
 type OtpType =
@@ -80,7 +81,7 @@ export async function sendOtpEmail({
   );
 
   if (error) {
-    console.error(`[Resend] Failed to send ${type} OTP to ${email}:`, error);
+    logError("email.otp.send_failed", error, { type });
     throw new Error(error.message);
   }
 }

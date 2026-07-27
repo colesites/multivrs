@@ -1,4 +1,3 @@
-import { NotFoundError } from "@multivrs/error-utils";
 import { fail, ok } from "@/lib/api/respond";
 import { getPublicDeployment } from "@/lib/services/deployment.service";
 

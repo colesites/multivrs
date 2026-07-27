@@ -44,7 +44,7 @@ export const SPARKLINE_DATA = {
   ],
 } as const;
 
-export const RECENT_ACTIVITY: ActivityItem[] = [
+const DEVELOPMENT_ACTIVITY: ActivityItem[] = [
   {
     action: "Deployed",
     target: "kontinue-ai",
@@ -77,45 +77,5 @@ export const RECENT_ACTIVITY: ActivityItem[] = [
   },
 ];
 
-export const MOCK_NOTIFICATIONS = [
-  {
-    id: "1",
-    title: "Deployment successful",
-    description: "multivrs-space-v2 has been deployed to production.",
-    time: "2 min ago",
-    type: "success" as const,
-    read: false,
-  },
-  {
-    id: "2",
-    title: "Domain SSL expiring",
-    description: "The SSL certificate for echolive.io expires in 3 days.",
-    time: "1 hour ago",
-    type: "warning" as const,
-    read: false,
-  },
-  {
-    id: "3",
-    title: "New team member",
-    description: "Alice accepted your invitation to 'Multivrs Dev'.",
-    time: "2 hours ago",
-    type: "info" as const,
-    read: false,
-  },
-  {
-    id: "4",
-    title: "Build failed in CI",
-    description: "Deploy to staging failed due to type errors.",
-    time: "5 hours ago",
-    type: "error" as const,
-    read: true,
-  },
-  {
-    id: "5",
-    title: "Billing method updated",
-    description: "Your default payment method was updated.",
-    time: "1 day ago",
-    type: "info" as const,
-    read: true,
-  },
-];
+export const RECENT_ACTIVITY =
+  process.env.NODE_ENV === "development" ? DEVELOPMENT_ACTIVITY : [];

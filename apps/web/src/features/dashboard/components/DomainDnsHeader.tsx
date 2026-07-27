@@ -1,5 +1,6 @@
 import { ArrowLeft, ExternalLink, Globe2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { DomainDetail, DomainDnsOverview } from "@/lib/domains/dns.types";
@@ -8,10 +9,12 @@ export function DomainDnsHeader({
   domain,
   backUrl,
   managed,
+  connectionAction,
 }: {
   domain: DomainDetail;
   backUrl: string;
   managed: boolean;
+  connectionAction?: ReactNode;
 }) {
   return (
     <header>
@@ -37,26 +40,31 @@ export function DomainDnsHeader({
               </Badge>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Connected to {domain.projectName}
+              {domain.projectName
+                ? `Connected to ${domain.projectName}`
+                : "Not connected to a project"}
             </p>
           </div>
         </div>
-        <Button
-          render={
-            <a
-              href={`https://${domain.hostname}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <span className="sr-only">Visit {domain.hostname}</span>
-            </a>
-          }
-          nativeButton={false}
-          variant="outline"
-          size="sm"
-        >
-          Visit <ExternalLink />
-        </Button>
+        <div className="flex items-center gap-2">
+          {connectionAction}
+          <Button
+            render={
+              <a
+                href={`https://${domain.hostname}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span className="sr-only">Visit {domain.hostname}</span>
+              </a>
+            }
+            nativeButton={false}
+            variant="outline"
+            size="sm"
+          >
+            Visit <ExternalLink />
+          </Button>
+        </div>
       </div>
     </header>
   );

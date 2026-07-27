@@ -2,105 +2,131 @@ import "server-only";
 import { ConflictError, NotFoundError } from "@multivrs/error-utils";
 import type { DomainCheckoutInput } from "@/lib/domains/domain-checkout.schemas";
 import { searchOpenproviderExtensions } from "@/lib/domains/openprovider";
-import { isOpenproviderSandbox } from "@/lib/domains/openprovider-client";
 import { getStripe } from "@/lib/payments/stripe-client";
 import { prisma } from "@/lib/prisma";
+import { reuseOrReplaceDomainCheckout } from "@/lib/services/domain-checkout-reuse.service";
 
 export interface DomainCheckoutResult {
-  checkoutUrl: string;
+  clientSecret: string;
 }
 
 export async function createDomainCheckout(
   userId: string,
   input: DomainCheckoutInput,
 ): Promise<DomainCheckoutResult> {
-  if (isOpenproviderSandbox()) {
-    throw new ConflictError("Use test checkout while sandbox mode is enabled");
-  }
-  const [project, user, connected, activeOrder] = await Promise.all([
-    prisma.project.findFirst({
-      where: { id: input.projectId, ownerId: userId },
-      select: { id: true },
-    }),
+  const [user, connected, activeOrders] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       select: { email: true },
     }),
-    prisma.domain.findUnique({
-      where: { hostname: input.hostname },
+    prisma.domain.findFirst({
+      where: { hostname: { in: input.hostnames } },
       select: { id: true },
     }),
-    prisma.domainOrder.findFirst({
+    prisma.domainOrder.findMany({
       where: {
-        hostname: input.hostname,
+        hostname: { in: input.hostnames },
         status: { in: ["pending", "processing", "paid"] },
       },
-      select: { id: true },
+      select: {
+        hostname: true,
+        stripeSessionId: true,
+        userId: true,
+      },
     }),
   ]);
-  if (!project || !user) throw new NotFoundError("Project not found");
-  if (connected) throw new ConflictError("This domain is already connected");
-  if (activeOrder) {
-    throw new ConflictError("A checkout for this domain is already active");
-  }
-  const result = await checkDomain(input.hostname);
-  if (!result?.available || result.price === null) {
-    throw new ConflictError("This domain is no longer available");
-  }
-  const amount = Math.round(result.price * 100);
-  const currency = result.currency.toLowerCase();
-  const order = await prisma.domainOrder.create({
-    data: {
+  if (!user) throw new NotFoundError("Account not found");
+  if (connected) throw new ConflictError("A domain is already connected");
+  if (activeOrders.length) {
+    const reusable = await reuseOrReplaceDomainCheckout(
       userId,
-      projectId: project.id,
-      hostname: input.hostname,
-      amount,
-      currency,
-    },
-  });
+      input.hostnames,
+      activeOrders,
+    );
+    if (reusable) return { clientSecret: reusable };
+  }
+  const results = await Promise.all(input.hostnames.map(checkDomain));
+  const unavailable = results.find(
+    (result) => !result?.available || result.price === null,
+  );
+  if (unavailable || results.some((result) => !result)) {
+    throw new ConflictError(
+      `${unavailable?.domain ?? "A domain"} is no longer available`,
+    );
+  }
+  const available = results.filter((result) => result !== undefined);
+  const currencies = new Set(
+    available.map((result) => result.currency.toLowerCase()),
+  );
+  if (currencies.size !== 1) {
+    throw new ConflictError("Cart domains must use the same currency");
+  }
+  const currency = available[0]?.currency.toLowerCase() ?? "usd";
+  const orders = await prisma.$transaction(
+    available.map((result) =>
+      prisma.domainOrder.create({
+        data: {
+          user: { connect: { id: userId } },
+          hostname: result.domain,
+          amount: Math.round((result.price as number) * 100),
+          currency,
+        },
+      }),
+    ),
+  );
   try {
     const origin =
       process.env.NEXT_PUBLIC_APP_URL ??
       process.env.BETTER_AUTH_URL ??
       "http://localhost:3000";
+    const orderIds = orders.map((order) => order.id);
+    const metadata = {
+      checkoutType: "domain",
+      checkoutVersion: "custom-v3",
+      orderIds: JSON.stringify(orderIds),
+    };
     const session = await getStripe().checkout.sessions.create(
       {
         mode: "payment",
-        client_reference_id: order.id,
-        customer_email: user.email,
-        billing_address_collection: "required",
+        client_reference_id: orders[0]?.id,
+        payment_method_types: ["card"],
         phone_number_collection: { enabled: true },
-        success_url: `${origin}/domains/order/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/domains?q=${encodeURIComponent(input.hostname)}`,
-        metadata: { checkoutType: "domain", orderId: order.id },
-        payment_intent_data: {
-          metadata: { checkoutType: "domain", orderId: order.id },
-        },
-        line_items: [
-          {
-            quantity: 1,
-            price_data: {
-              currency,
-              unit_amount: amount,
-              product_data: {
-                name: input.hostname,
-                description: "One-year domain registration",
-              },
+        ui_mode: "elements",
+        return_url: `${origin}/domains/order/success?session_id={CHECKOUT_SESSION_ID}`,
+        metadata,
+        payment_intent_data: { metadata },
+        line_items: orders.map((order) => ({
+          quantity: 1,
+          price_data: {
+            currency,
+            unit_amount: order.amount,
+            product_data: {
+              name: order.hostname,
+              description: "One-year domain registration",
             },
           },
-        ],
+        })),
       },
-      { idempotencyKey: order.id },
+      { idempotencyKey: orders[0]?.id },
     );
-    if (!session.url) throw new Error("Stripe did not return a checkout URL");
-    await prisma.domainOrder.update({
-      where: { id: order.id },
-      data: { stripeSessionId: session.id },
-    });
-    return { checkoutUrl: session.url };
+    if (!session.client_secret) {
+      throw new Error("Stripe did not return a Checkout client secret");
+    }
+    await prisma.$transaction(
+      orders.map((order, index) =>
+        prisma.domainOrder.update({
+          where: { id: order.id },
+          data: {
+            stripeSessionId:
+              index === 0 ? session.id : `${session.id}:${index}`,
+          },
+        }),
+      ),
+    );
+    return { clientSecret: session.client_secret };
   } catch (error) {
-    await prisma.domainOrder.update({
-      where: { id: order.id },
+    await prisma.domainOrder.updateMany({
+      where: { id: { in: orders.map((order) => order.id) } },
       data: {
         status: "failed",
         failureMessage:

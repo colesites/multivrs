@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  output: "standalone",
   reactCompiler: true,
   // Workspace packages ship TypeScript source (exports point at ./src/*.ts),
   // so Next must transpile them rather than expect prebuilt JS.

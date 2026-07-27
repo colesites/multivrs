@@ -1,13 +1,17 @@
 "use client";
 
-import { useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef, useState, useEffect } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { Canvas } from "@react-three/fiber";
+import { z } from "zod";
+import { useDesktopViewport } from "@/hooks/use-client-viewport";
+import { deterministicUnit } from "@/lib/deterministic-random";
+
+const capabilitiesScrollSchema = z.object({ progress: z.number() });
 
 function Wormhole() {
   const pointsRef = useRef<THREE.Points>(null);
-  const shaderMatRef = useRef<THREE.ShaderMaterial>(null);
+  const shaderMaterialRef = useRef<THREE.ShaderMaterial>(null);
 
   // Generate 50,000 particles
   const { positions, sizes, colors, ids } = useMemo(() => {
@@ -28,18 +32,20 @@ function Wormhole() {
       ids[i] = i;
 
       // Base wormhole cylinder distribution
-      const theta = Math.random() * Math.PI * 2;
-      const z = (Math.random() - 0.5) * length;
-      const r = radius + (Math.random() - 0.5) * 5;
+      const theta = deterministicUnit(i * 6 + 1) * Math.PI * 2;
+      const z = (deterministicUnit(i * 6 + 2) - 0.5) * length;
+      const r = radius + (deterministicUnit(i * 6 + 3) - 0.5) * 5;
 
       positions[i * 3] = Math.cos(theta) * r;
       positions[i * 3 + 1] = Math.sin(theta) * r;
       positions[i * 3 + 2] = z;
 
-      sizes[i] = Math.random() * 2.0 + 0.5;
+      sizes[i] = deterministicUnit(i * 6 + 4) * 2 + 0.5;
 
-      const rand = Math.random();
-      const c = colorA.clone().lerp(rand > 0.8 ? colorC : colorB, Math.random());
+      const rand = deterministicUnit(i * 6 + 5);
+      const c = colorA
+        .clone()
+        .lerp(rand > 0.8 ? colorC : colorB, deterministicUnit(i * 6 + 6));
       colors[i * 3] = c.r;
       colors[i * 3 + 1] = c.g;
       colors[i * 3 + 2] = c.b;
@@ -55,37 +61,53 @@ function Wormhole() {
       uScaleIntensity: { value: 0 },
       uSecureIntensity: { value: 0 },
     }),
-    []
+    [],
   );
 
   const [capabilitiesProgress, setCapabilitiesProgress] = useState(0);
-  
+
   useEffect(() => {
-    const handleScroll = (e: any) => {
-      setCapabilitiesProgress(e.detail.progress);
+    const handleScroll = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = capabilitiesScrollSchema.safeParse(event.detail);
+      if (detail.success) setCapabilitiesProgress(detail.data.progress);
     };
     window.addEventListener("multivrs-capabilities-scroll", handleScroll);
-    return () => window.removeEventListener("multivrs-capabilities-scroll", handleScroll);
+    return () =>
+      window.removeEventListener("multivrs-capabilities-scroll", handleScroll);
   }, []);
 
   useFrame(({ clock }) => {
-    if (!shaderMatRef.current || !shaderMatRef.current.uniforms) return;
-    const u = shaderMatRef.current.uniforms as any;
-    u.uTime.value = clock.getElapsedTime();
+    const runtimeUniforms = shaderMaterialRef.current?.uniforms;
+    const timeUniform = runtimeUniforms?.uTime;
+    const scrollUniform = runtimeUniforms?.uScrollProgress;
+    const deployUniform = runtimeUniforms?.uDeployIntensity;
+    const scaleUniform = runtimeUniforms?.uScaleIntensity;
+    const secureUniform = runtimeUniforms?.uSecureIntensity;
+    if (
+      !timeUniform ||
+      !scrollUniform ||
+      !deployUniform ||
+      !scaleUniform ||
+      !secureUniform
+    )
+      return;
+    timeUniform.value = clock.elapsedTime;
 
     const scrollY = window.scrollY;
-    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    const maxScroll =
+      document.documentElement.scrollHeight - window.innerHeight;
     const progress = Math.min(1, Math.max(0, scrollY / (maxScroll || 1)));
-    u.uScrollProgress.value = progress;
+    scrollUniform.value = progress;
 
     const capProg = capabilitiesProgress;
-    
+
     // Deploy: peaks around 0.15
     let deployI = 0;
     if (capProg > 0.0 && capProg < 0.33) {
       deployI = 1.0 - Math.abs(capProg - 0.165) / 0.165;
     }
-    
+
     // Scale: peaks around 0.5
     let scaleI = 0;
     if (capProg > 0.33 && capProg < 0.66) {
@@ -99,9 +121,9 @@ function Wormhole() {
     }
 
     // Smooth interpolation for uniforms to prevent popping
-    u.uDeployIntensity.value += (deployI - u.uDeployIntensity.value) * 0.05;
-    u.uScaleIntensity.value += (scaleI - u.uScaleIntensity.value) * 0.05;
-    u.uSecureIntensity.value += (secureI - u.uSecureIntensity.value) * 0.05;
+    deployUniform.value += (deployI - deployUniform.value) * 0.05;
+    scaleUniform.value += (scaleI - scaleUniform.value) * 0.05;
+    secureUniform.value += (secureI - secureUniform.value) * 0.05;
   });
 
   return (
@@ -113,7 +135,7 @@ function Wormhole() {
         <bufferAttribute attach="attributes-aId" args={[ids, 1]} />
       </bufferGeometry>
       <shaderMaterial
-        ref={shaderMatRef}
+        ref={shaderMaterialRef}
         transparent
         depthWrite={false}
         blending={THREE.AdditiveBlending}
@@ -279,32 +301,26 @@ function Wormhole() {
   );
 }
 
-function CameraRig() {
-  const { camera } = useThree();
-  useFrame(() => {
-    const time = Date.now() * 0.001;
-    camera.position.x = Math.sin(time * 0.5) * 1.5;
-    camera.position.y = Math.cos(time * 0.4) * 1.5;
-    camera.lookAt(0, 0, -50);
+function WormholeRig() {
+  const groupRef = useRef<THREE.Group>(null);
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const time = clock.elapsedTime;
+    groupRef.current.position.x = Math.sin(time * 0.5) * 1.5;
+    groupRef.current.position.y = Math.cos(time * 0.4) * 1.5;
+    groupRef.current.rotation.z = Math.sin(time * 0.15) * 0.02;
   });
-  return null;
+  return (
+    <group ref={groupRef}>
+      <Wormhole />
+    </group>
+  );
 }
 
 export function UniverseCanvas() {
-  const [mounted, setMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isDesktop = useDesktopViewport();
 
-  useEffect(() => {
-    setMounted(true);
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  if (!mounted || isMobile) return null;
+  if (!isDesktop) return null;
 
   return (
     <div className="hidden md:block fixed inset-0 h-screen w-screen z-0 pointer-events-none bg-[#030303]">
@@ -315,9 +331,8 @@ export function UniverseCanvas() {
       >
         <fog attach="fog" args={["#030303", 10, 200]} />
         <ambientLight intensity={0.5} />
-        
-        <Wormhole />
-        <CameraRig />
+
+        <WormholeRig />
       </Canvas>
     </div>
   );

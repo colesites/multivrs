@@ -69,9 +69,18 @@ export async function getDeployment(
 export async function getPublicDeployment(
   deploymentId: string,
 ): Promise<Deployment> {
-  const row = await prisma.deployment.findUnique({
+  let row = await prisma.deployment.findUnique({
     where: { id: deploymentId },
   });
+  if (!row) {
+    const project = await prisma.project.findFirst({
+      where: { slug: deploymentId },
+      include: { deployments: { orderBy: { createdAt: "desc" }, take: 1 } },
+    });
+    if (project && project.deployments.length > 0) {
+      row = project.deployments[0] ?? null;
+    }
+  }
   if (!row) {
     throw new NotFoundError("Deployment not found");
   }

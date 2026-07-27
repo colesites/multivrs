@@ -9,7 +9,19 @@
 import { z } from "zod";
 
 /** Frameworks detection + builders understand. `null`/omitted = auto-detect. */
-export const FRAMEWORK_IDS = ["nextjs", "swift-rust", "vite", "static"] as const;
+export const FRAMEWORK_IDS = [
+  "nextjs",
+  "swift-rust",
+  "remix",
+  "hono",
+  "h3",
+  "node",
+  "go",
+  "python",
+  "ruby",
+  "vite",
+  "static",
+] as const;
 
 /** swift-rust per-project default render mode (see ARCHITECTURE.md §4). */
 export const RENDER_MODES = ["ssr", "ssr-wasm", "ssr-htmx", "wasm"] as const;
@@ -18,7 +30,7 @@ export const RENDER_MODES = ["ssr", "ssr-wasm", "ssr-htmx", "wasm"] as const;
  * Function runtimes the platform executes. `bun` is the default (swift-rust's
  * backend); `node` and `edge` are also supported. Orthogonal to `renderMode`.
  */
-export const RUNTIMES = ["bun", "node", "edge"] as const;
+export const RUNTIMES = ["bun", "node", "edge", "go", "python", "ruby"] as const;
 export const DEFAULT_RUNTIME = "bun" satisfies (typeof RUNTIMES)[number];
 
 const nonEmptyString = z.string().min(1);

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import SpecularButton from "@/components/SpecularButton";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -103,9 +104,18 @@ export function ConnectDomainDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={pending || !projectId}>
+            <SpecularButton
+              type="submit"
+              size="sm"
+              tint="#ffffff"
+              tintOpacity={0.9}
+              lineColor="#ffffff"
+              baseColor="#ffffff"
+              textColor="#000000"
+              disabled={pending || !projectId}
+            >
               {pending ? "Connecting…" : "Connect domain"}
-            </Button>
+            </SpecularButton>
           </DialogFooter>
         </form>
       </DialogContent>

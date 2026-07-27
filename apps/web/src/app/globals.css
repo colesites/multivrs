@@ -1,13 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
+
+@source "../**/*.{js,ts,jsx,tsx}";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-inter);
   --font-inter: var(--font-inter);
   --font-acari: var(--font-acari);
   --font-clash: var(--font-clash);
@@ -101,11 +102,11 @@
   }
   html {
     background-color: #030303;
-    @apply font-sans;
+    font-family: var(--font-inter), sans-serif;
   }
   body {
     background-color: #030303;
-    @apply bg-background text-foreground;
+    color: var(--foreground);
   }
 }
 

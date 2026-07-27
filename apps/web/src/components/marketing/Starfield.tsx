@@ -37,8 +37,8 @@ export function Starfield() {
   useFrame(({ clock }) => {
     if (!pointsRef.current) return;
     const material = pointsRef.current.material as THREE.PointsMaterial;
-    material.opacity = 0.6 + Math.sin(clock.getElapsedTime() * 0.3) * 0.15;
-    pointsRef.current.rotation.y = clock.getElapsedTime() * 0.005;
+    material.opacity = 0.6 + Math.sin(clock.elapsedTime * 0.3) * 0.15;
+    pointsRef.current.rotation.y = clock.elapsedTime * 0.005;
   });
 
   return (

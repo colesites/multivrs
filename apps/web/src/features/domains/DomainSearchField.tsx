@@ -1,4 +1,4 @@
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, Search, X } from "lucide-react";
 
 export function DomainSearchField({
   value,
@@ -18,9 +18,23 @@ export function DomainSearchField({
         placeholder="Search a domain or describe your idea"
         className="h-12 w-full border border-white/15 bg-black/60 pl-11 pr-12 text-sm text-white outline-none transition focus:border-white/45 focus:ring-2 focus:ring-white/10"
       />
-      <span aria-hidden className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center text-white/45">
-        <ArrowRight className="size-4" />
-      </span>
+      {value ? (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          aria-label="Clear search"
+          className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center text-white/45 transition-colors hover:text-white cursor-pointer"
+        >
+          <X className="size-4" />
+        </button>
+      ) : (
+        <span
+          aria-hidden
+          className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center text-white/45"
+        >
+          <ArrowRight className="size-4" />
+        </span>
+      )}
     </div>
   );
 }

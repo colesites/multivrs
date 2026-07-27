@@ -55,7 +55,7 @@ export function CtaSection() {
           data-reveal
           className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:gap-5"
         >
-          <div ref={magnetRef} className="will-change-transform">
+          <div ref={magnetRef}>
             <Link href="/signup">
               <SpecularButton
                 size="md"

@@ -41,7 +41,7 @@ export function SignUpForm() {
       if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
@@ -57,27 +57,30 @@ export function SignUpForm() {
     }
 
     setIsLoading(true);
-    try {
-      const result = await authClient.signUp.email({
+    void authClient.signUp
+      .email({
         email: formData.email,
         password: formData.password,
         name: formData.username,
         username: formData.username,
-      });
-      if (result.error) {
-        toast.error(
-          result.error.message || "Sign-up failed. Please try again.",
-        );
+      })
+      .then((result) => {
         setIsLoading(false);
-        return;
-      }
-      toast.success("Account created. Check your email for a code.");
-      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
-    } catch (error) {
-      console.error("Sign-up error:", error);
-      toast.error("An unexpected error occurred. Please try again.");
-      setIsLoading(false);
-    }
+        if (result.error) {
+          toast.error(
+            result.error.message || "Sign-up failed. Please try again.",
+          );
+          return;
+        }
+        toast.success("Account created. Check your email for a code.");
+        router.push(
+          `/verify-email?email=${encodeURIComponent(formData.email)}`,
+        );
+      })
+      .catch(() => {
+        toast.error("An unexpected error occurred. Please try again.");
+        setIsLoading(false);
+      });
   };
 
   return (

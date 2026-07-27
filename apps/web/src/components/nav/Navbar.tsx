@@ -25,7 +25,7 @@ import {
 
 export function Navbar() {
   const pathname = usePathname();
-  const { cartItem, isSignedIn, setCartOpen, setSavedOpen } =
+  const { cartItems, savedDomains, isSignedIn, setCartOpen, setSavedOpen } =
     useDomainCommerce();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -67,7 +67,7 @@ export function Navbar() {
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-10">
           <div className="flex items-center gap-8">
             <Link
-              href="/"
+              href="/home"
               className="flex items-center gap-2 text-white"
               onMouseEnter={() => setActiveMenu(null)}
             >
@@ -137,6 +137,11 @@ export function Navbar() {
                   >
                     <span className="flex items-center gap-1.5 font-medium">
                       <Bookmark className="size-4" /> Saved
+                      {savedDomains.length ? (
+                        <span className="grid size-4 place-items-center rounded-full bg-white text-[9px] text-black">
+                          {savedDomains.length}
+                        </span>
+                      ) : null}
                     </span>
                   </SpecularButton>
                 )}
@@ -152,9 +157,9 @@ export function Navbar() {
                 >
                   <span className="flex items-center gap-1.5 font-semibold">
                     <ShoppingCart className="size-4" /> Cart
-                    {cartItem ? (
+                    {cartItems.length ? (
                       <span className="grid size-4 place-items-center rounded-full bg-white text-[9px] text-black">
-                        1
+                        {cartItems.length}
                       </span>
                     ) : null}
                   </span>
@@ -253,7 +258,14 @@ export function Navbar() {
                     aria-label="Saved domains"
                     onClick={() => setSavedOpen(true)}
                   >
-                    <Bookmark className="size-4" />
+                    <span className="relative">
+                      <Bookmark className="size-4" />
+                      {savedDomains.length ? (
+                        <span className="absolute -right-2 -top-2 grid size-4 place-items-center rounded-full bg-blue-400 text-[9px] text-black">
+                          {savedDomains.length}
+                        </span>
+                      ) : null}
+                    </span>
                   </SpecularButton>
                 )}
                 <SpecularButton
@@ -270,8 +282,10 @@ export function Navbar() {
                 >
                   <span className="relative">
                     <ShoppingCart className="size-4" />
-                    {cartItem ? (
-                      <span className="absolute -right-2 -top-2 size-2 rounded-full bg-blue-400" />
+                    {cartItems.length ? (
+                      <span className="absolute -right-2 -top-2 grid size-4 place-items-center rounded-full bg-blue-400 text-[9px] text-black">
+                        {cartItems.length}
+                      </span>
                     ) : null}
                   </span>
                 </SpecularButton>

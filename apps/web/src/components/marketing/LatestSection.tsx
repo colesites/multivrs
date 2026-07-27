@@ -4,22 +4,21 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
 import { BlogCover } from "@/components/marketing/art/blog-cover";
-import { revealLines, revealUp, useGSAP, gsap, ScrollTrigger } from "@/components/marketing/scroll";
+import {
+  gsap,
+  revealLines,
+  revealUp,
+  ScrollTrigger,
+  useGSAP,
+} from "@/components/marketing/scroll";
 import { POSTS, type Post } from "@/lib/marketing/posts";
 import { cn } from "@/lib/utils";
-
-/** Bento spans for the four cards (4+2 / 3+3 on lg). First card is featured. */
-const SPANS = [
-  "lg:col-span-4",
-  "lg:col-span-2",
-  "lg:col-span-3",
-  "lg:col-span-3",
-];
 
 const dateFmt = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
   year: "numeric",
+  timeZone: "UTC",
 });
 
 export function LatestSection() {
@@ -97,18 +96,22 @@ export function LatestSection() {
         </Link>
       </div>
 
-      <div ref={gridRef} className="mt-14 h-screen flex flex-col justify-center overflow-hidden lg:mt-20">
-        <div 
+      <div
+        ref={gridRef}
+        className="mt-14 h-screen flex flex-col justify-center overflow-hidden lg:mt-20"
+      >
+        <div
           ref={wrapperRef}
           className="flex w-max items-stretch gap-10 px-6 lg:px-10"
           style={{ perspective: "1500px" }}
         >
           {POSTS.map((post, i) => (
-            <div key={post.slug} className="w-[85vw] sm:w-[500px] lg:w-[600px] flex-shrink-0" style={{ transformStyle: "preserve-3d" }}>
-              <BlogCard
-                post={post}
-                featured={i === 0}
-              />
+            <div
+              key={post.slug}
+              className="w-[85vw] sm:w-[500px] lg:w-[600px] flex-shrink-0"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <BlogCard post={post} featured={i === 0} />
             </div>
           ))}
         </div>

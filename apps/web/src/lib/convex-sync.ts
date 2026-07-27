@@ -6,6 +6,7 @@
 
 import { api } from "@repo/backend/convex/_generated/api";
 import { ConvexHttpClient } from "convex/browser";
+import { logError } from "@/lib/services/logger.service";
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 if (!convexUrl) {
@@ -41,10 +42,10 @@ async function withRetry<T>(
       return await fn();
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      console.error(
-        `[Convex Sync] ${operationName} failed (attempt ${attempt}/${RETRY_CONFIG.maxAttempts}):`,
-        lastError.message,
-      );
+      logError("convex.sync.attempt_failed", lastError, {
+        attempt,
+        operationName,
+      });
       if (attempt < RETRY_CONFIG.maxAttempts) {
         await sleep(delay);
         delay *= RETRY_CONFIG.backoffMultiplier;
@@ -52,9 +53,6 @@ async function withRetry<T>(
     }
   }
 
-  console.error(
-    `[Convex Sync] ${operationName} failed after ${RETRY_CONFIG.maxAttempts} attempts`,
-  );
   throw lastError;
 }
 
@@ -66,17 +64,12 @@ export async function syncUserToConvex(
   userData: ConvexUserData,
 ): Promise<void> {
   await withRetry(async () => {
-    const result = await convex.mutation(api.users.syncUser, {
+    await convex.mutation(api.users.syncUser, {
       authId: userData.authId,
       email: userData.email,
       name: userData.name,
       image: userData.image,
     });
-    console.log(
-      `[Convex Sync] User ${userData.authId} synced successfully:`,
-      result,
-    );
-    return result;
   }, `syncUserToConvex(${userData.authId})`);
 }
 
@@ -86,9 +79,7 @@ export async function syncUserToConvex(
  */
 export async function deleteUserFromConvex(authId: string): Promise<void> {
   await withRetry(async () => {
-    const result = await convex.mutation(api.users.deleteUser, { authId });
-    console.log(`[Convex Sync] User ${authId} deleted successfully:`, result);
-    return result;
+    await convex.mutation(api.users.deleteUser, { authId });
   }, `deleteUserFromConvex(${authId})`);
 }
 
@@ -100,14 +91,9 @@ export async function updateUserPresence(
   presence: "online" | "away" | "offline",
 ): Promise<void> {
   await withRetry(async () => {
-    const result = await convex.mutation(api.users.updatePresence, {
+    await convex.mutation(api.users.updatePresence, {
       authId,
       presence,
     });
-    console.log(
-      `[Convex Sync] User ${authId} presence updated to ${presence}:`,
-      result,
-    );
-    return result;
   }, `updateUserPresence(${authId}, ${presence})`);
 }

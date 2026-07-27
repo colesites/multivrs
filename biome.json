@@ -1,6 +1,17 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
   "extends": ["./packages/biome-config/biome.json"],
+  "files": {
+    "includes": [
+      "!**/node_modules",
+      "!**/dist",
+      "!**/.next",
+      "!**/.turbo",
+      "!**/.wrangler",
+      "!**/.multivrs-output",
+      "!!packages/backend/convex/_generated"
+    ]
+  },
   "css": {
     "parser": {
       "tailwindDirectives": true

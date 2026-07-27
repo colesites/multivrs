@@ -1,152 +1,138 @@
 "use client";
 
-import {
-  Calendar,
-  ChevronDown,
-  Circle,
-  ListFilter,
-  Pause,
-  Search,
-} from "lucide-react";
-import { useMemo, useState } from "react";
+import { Circle, RefreshCcw, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  type LogLevel,
-  MOCK_RUNTIME_LOGS,
-} from "@/features/dashboard/constants/mock-logs";
+import type {
+  RuntimeLogItem,
+  RuntimeLogLevel,
+} from "@/features/dashboard/types/runtime-log.types";
 
-const LEVELS: LogLevel[] = ["info", "warn", "error"];
+const LEVELS: RuntimeLogLevel[] = ["info", "warn", "error"];
 
-export function ProjectLogsConsole({ project }: { project: string }) {
+export function ProjectLogsConsole({
+  project,
+  logs,
+}: {
+  project: string;
+  logs: RuntimeLogItem[];
+}) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
-  const [activeLevels, setActiveLevels] = useState<LogLevel[]>(LEVELS);
-  const logs = useMemo(
-    () =>
-      MOCK_RUNTIME_LOGS.filter(
-        (log) =>
-          activeLevels.includes(log.level) &&
-          `${log.path} ${log.message} ${log.host}`
-            .toLowerCase()
-            .includes(query.toLowerCase()),
-      ),
-    [activeLevels, query],
+  const [activeLevels, setActiveLevels] = useState<RuntimeLogLevel[]>(LEVELS);
+  const [isRefreshing, startRefresh] = useTransition();
+  const activeLevelSet = new Set(activeLevels);
+  const filtered = logs.filter(
+    (log) =>
+      activeLevelSet.has(log.level) &&
+      `${log.message} ${log.source} ${log.deploymentId}`
+        .toLowerCase()
+        .includes(query.toLowerCase()),
   );
-  const toggle = (level: LogLevel) =>
-    setActiveLevels((levels) =>
-      levels.includes(level)
-        ? levels.filter((item) => item !== level)
-        : [...levels, level],
+  const toggle = (level: RuntimeLogLevel) =>
+    setActiveLevels((current) =>
+      current.includes(level)
+        ? current.filter((item) => item !== level)
+        : [...current, level],
     );
 
   return (
     <div className="w-full space-y-6 px-5 py-6">
-      <div className="flex items-center justify-between">
+      <header className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <p className="font-geist-mono text-[10px] uppercase tracking-[0.15em] text-blue-400">
+            Live control plane
+          </p>
+          <h1 className="mt-2 text-xl font-semibold tracking-tight text-foreground">
             Logs
           </h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            {project} · Runtime events
+            {project} · latest 200 build and deployment events
           </p>
         </div>
-        <Button variant="outline" size="sm" className="h-8 gap-2 text-[12px]">
-          <ListFilter className="size-3.5" /> Filter
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={isRefreshing}
+          onClick={() => startRefresh(() => router.refresh())}
+        >
+          <RefreshCcw
+            className={isRefreshing ? "size-3.5 animate-spin" : "size-3.5"}
+          />{" "}
+          Refresh
         </Button>
-      </div>
+      </header>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex h-9 min-w-[220px] flex-1 items-center gap-2 rounded-lg border border-[var(--hairline)] bg-background px-3">
+        <label className="flex h-9 min-w-[220px] flex-1 items-center gap-2 rounded-lg border border-[var(--hairline)] px-3">
           <Search className="size-3.5 text-muted-foreground" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search logs…"
-            className="min-w-0 flex-1 bg-transparent text-[12px] text-foreground outline-none placeholder:text-muted-foreground"
+            className="min-w-0 flex-1 bg-transparent text-xs outline-none"
           />
-        </div>
-        <Button variant="outline" className="h-9 gap-2 text-[12px]">
-          <Calendar className="size-3.5" /> Last 30 minutes
-        </Button>
-        <Button variant="outline" className="h-9 gap-2 text-[12px]">
-          <span>Production</span>
-          <ChevronDown className="size-3.5" />
-        </Button>
-        <Button variant="outline" className="h-9 gap-2 text-[12px]">
-          <span>All routes</span>
-          <ChevronDown className="size-3.5" />
-        </Button>
-        <div className="ml-auto flex h-9 items-center gap-1 rounded-lg border border-[var(--hairline)] bg-background p-1">
-          {LEVELS.map((level) => (
-            <button
-              key={level}
-              type="button"
-              aria-pressed={activeLevels.includes(level)}
-              onClick={() => toggle(level)}
-              className={`flex size-7 items-center justify-center rounded-md transition-colors ${activeLevels.includes(level) ? "bg-white/8" : "opacity-35"}`}
-            >
-              <Circle
-                className={`size-2.5 ${level === "error" ? "fill-rose-400 text-rose-400" : level === "warn" ? "fill-amber-400 text-amber-400" : "fill-emerald-400 text-emerald-400"}`}
-              />
-            </button>
-          ))}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 gap-1 px-2 text-[11px]"
+        </label>
+        {LEVELS.map((level) => (
+          <button
+            key={level}
+            type="button"
+            aria-pressed={activeLevels.includes(level)}
+            onClick={() => toggle(level)}
+            className="flex h-9 items-center gap-2 rounded-lg border border-[var(--hairline)] px-3 text-xs capitalize text-muted-foreground transition-colors hover:text-foreground aria-pressed:bg-white/[0.06] aria-pressed:text-foreground"
           >
-            <Pause className="size-3" /> Live
-          </Button>
-        </div>
+            <Circle
+              className={`size-2.5 ${level === "error" ? "fill-rose-400 text-rose-400" : level === "warn" ? "fill-amber-400 text-amber-400" : "fill-emerald-400 text-emerald-400"}`}
+            />{" "}
+            {level}
+          </button>
+        ))}
       </div>
-      <div className="overflow-hidden rounded-[12px] border border-[var(--hairline)] bg-background">
-        <div className="min-w-[840px]">
-          <div className="grid grid-cols-[8rem_4.5rem_4rem_11rem_9rem_minmax(16rem,1fr)] gap-3 border-b border-[var(--hairline)] px-4 py-3 font-geist-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+      <div className="overflow-x-auto rounded-xl border border-[var(--hairline)]">
+        <div className="min-w-[760px]">
+          <div className="grid grid-cols-[9rem_5rem_7rem_10rem_minmax(18rem,1fr)] gap-3 border-b border-[var(--hairline)] px-4 py-3 font-geist-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
             <span>Time</span>
-            <span>Method</span>
-            <span>Status</span>
-            <span>Host</span>
-            <span>Request</span>
+            <span>Level</span>
+            <span>Source</span>
+            <span>Deployment</span>
             <span>Message</span>
           </div>
-          {logs.map((log) => (
+          {filtered.map((log) => (
             <div
               key={log.id}
-              className="grid grid-cols-[8rem_4.5rem_4rem_11rem_9rem_minmax(16rem,1fr)] gap-3 border-b border-[var(--hairline)] px-4 py-3 font-geist-mono text-xs text-muted-foreground transition-colors hover:bg-white/[0.025]"
+              className="grid grid-cols-[9rem_5rem_7rem_10rem_minmax(18rem,1fr)] gap-3 border-b border-[var(--hairline)] px-4 py-3 font-geist-mono text-xs text-muted-foreground hover:bg-white/[0.025]"
             >
-              <span>{log.timestamp}</span>
-              <span className="text-foreground/85">{log.method}</span>
+              <time>
+                {new Date(log.timestamp).toLocaleString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                  timeZone: "UTC",
+                })}
+              </time>
               <span
                 className={
-                  log.status >= 500
+                  log.level === "error"
                     ? "text-rose-400"
-                    : log.status >= 400
+                    : log.level === "warn"
                       ? "text-amber-400"
                       : "text-emerald-400"
                 }
               >
-                {log.status}
+                {log.level}
               </span>
-              <span className="truncate">{log.host}</span>
-              <span className="text-foreground/85">{log.path}</span>
-              <span
-                className={log.level === "error" ? "text-rose-300" : "truncate"}
-              >
-                {log.message}
-              </span>
+              <span>{log.source}</span>
+              <span className="truncate">{log.deploymentId.slice(0, 12)}</span>
+              <span className="text-foreground/80">{log.message}</span>
             </div>
           ))}
-          {logs.length === 0 && (
+          {!filtered.length && (
             <p className="p-12 text-center text-sm text-muted-foreground">
-              No logs match the selected filters.
+              No real logs match these filters.
             </p>
           )}
         </div>
       </div>
-      <Button
-        variant="ghost"
-        className="h-10 w-full border border-[var(--hairline)] text-[12px] font-semibold text-muted-foreground hover:text-foreground"
-      >
-        Load more logs
-      </Button>
     </div>
   );
 }

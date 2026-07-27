@@ -1,13 +1,19 @@
 "use client";
 
-import { useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef, useState, useEffect } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
 import * as THREE from "three";
-import { Canvas } from "@react-three/fiber";
+import { useClientReady } from "@/hooks/use-client-viewport";
+import { deterministicUnit } from "@/lib/deterministic-random";
 
 const TEXT = "MULTIVRS";
 
-function getTextPositions(text: string, width: number, height: number, density: number) {
+function getTextPositions(
+  text: string,
+  width: number,
+  height: number,
+  density: number,
+) {
   if (typeof document === "undefined") return new Float32Array(0); // SSR safety
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -17,19 +23,19 @@ function getTextPositions(text: string, width: number, height: number, density: 
 
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, width, height);
-  
+
   ctx.fillStyle = "white";
   // Adjust font size and family to fit the brand aesthetic
   ctx.font = "900 140px sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(text, width / 2, height / 2);
-  
+
   const data = ctx.getImageData(0, 0, width, height)?.data;
   if (!data) return new Float32Array(0);
 
-  const points = [];
-  
+  const points: number[] = [];
+
   // Create particles based on density
   for (let y = 0; y < height; y += density) {
     for (let x = 0; x < width; x += density) {
@@ -40,7 +46,7 @@ function getTextPositions(text: string, width: number, height: number, density: 
         points.push(
           (x - width / 2) * 0.04,
           -(y - height / 2) * 0.04,
-          (Math.random() - 0.5) * 1.5 // slight Z depth
+          (deterministicUnit(y * width + x) - 0.5) * 1.5,
         );
       }
     }
@@ -52,7 +58,7 @@ function Particles() {
   const pointsRef = useRef<THREE.Points>(null);
   const shaderMatRef = useRef<THREE.ShaderMaterial>(null);
   const { viewport, pointer } = useThree();
-  
+
   // Pre-calculate positions on mount
   const positions = useMemo(() => {
     return getTextPositions(TEXT, 1000, 300, 3);
@@ -63,17 +69,19 @@ function Particles() {
     const numPoints = positions.length / 3;
     const sizes = new Float32Array(numPoints);
     const colors = new Float32Array(numPoints * 3);
-    
+
     const colorA = new THREE.Color("#2563eb"); // Blue
     const colorB = new THREE.Color("#9333ea"); // Purple
     const colorC = new THREE.Color("#10b981"); // Green/Teal accent
 
     for (let i = 0; i < numPoints; i++) {
-      sizes[i] = Math.random() * 1.5 + 0.5;
-      
+      sizes[i] = deterministicUnit(i * 3 + 1) * 1.5 + 0.5;
+
       // Mix colors for a nebula effect
-      const rand = Math.random();
-      const mixedColor = colorA.clone().lerp(rand > 0.5 ? colorB : colorC, Math.random());
+      const rand = deterministicUnit(i * 3 + 2);
+      const mixedColor = colorA
+        .clone()
+        .lerp(rand > 0.5 ? colorB : colorC, deterministicUnit(i * 3 + 3));
       colors[i * 3] = mixedColor.r;
       colors[i * 3 + 1] = mixedColor.g;
       colors[i * 3 + 2] = mixedColor.b;
@@ -86,29 +94,25 @@ function Particles() {
       uTime: { value: 0 },
       uMouse: { value: new THREE.Vector3(0, 0, 0) },
     }),
-    []
+    [],
   );
 
   useFrame(({ clock }) => {
-    if (!shaderMatRef.current || !shaderMatRef.current.uniforms) return;
-    
-    // Type cast to any because TS thinks uniforms could be undefined even after check
-    const uniforms = shaderMatRef.current.uniforms as any;
-    
+    const uniforms = shaderMatRef.current?.uniforms;
+    if (!uniforms) return;
+
     if (uniforms.uTime) {
-      uniforms.uTime.value = clock.getElapsedTime();
+      uniforms.uTime.value = clock.elapsedTime;
     }
-    
+
     // Smoothly interpolate mouse position into 3D scene coordinates
     // pointer is -1 to 1. multiply by viewport size/2.
     const targetX = (pointer.x * viewport.width) / 2;
     const targetY = (pointer.y * viewport.height) / 2;
-    
-    if (uniforms.uMouse) {
-      uniforms.uMouse.value.lerp(
-        new THREE.Vector3(targetX, targetY, 0),
-        0.1
-      );
+
+    const mouse = uniforms.uMouse?.value;
+    if (mouse instanceof THREE.Vector3) {
+      mouse.lerp(new THREE.Vector3(targetX, targetY, 0), 0.1);
     }
   });
 
@@ -117,20 +121,11 @@ function Particles() {
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-        />
-        <bufferAttribute
-          attach="attributes-aSize"
-          args={[sizes, 1]}
-        />
-        <bufferAttribute
-          attach="attributes-aColor"
-          args={[colors, 3]}
-        />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-aSize" args={[sizes, 1]} />
+        <bufferAttribute attach="attributes-aColor" args={[colors, 3]} />
       </bufferGeometry>
-      
+
       <shaderMaterial
         ref={shaderMatRef}
         transparent
@@ -243,10 +238,9 @@ function Particles() {
 }
 
 export function ParticleWordmark() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const ready = useClientReady();
 
-  if (!mounted) return null;
+  if (!ready) return null;
 
   return (
     <div className="absolute inset-0 h-full w-full pointer-events-auto cursor-crosshair">

@@ -18,8 +18,8 @@ describe("@multivrs/static-build settings", () => {
   test("uses the framework preset when config is absent", () => {
     expect(resolveBuildSettings("nextjs")).toEqual({
       installCommand: "bun install",
-      buildCommand: "next build",
-      outputDirectory: ".next",
+      buildCommand: "bunx @opennextjs/cloudflare build",
+      outputDirectory: ".open-next",
     });
   });
 
@@ -49,10 +49,10 @@ describe("@multivrs/static-build runBuild", () => {
       frameworkId: "nextjs",
       run,
     });
-    expect(commands).toEqual(["bun install", "next build"]);
+    expect(commands).toEqual(["bun install", "bunx @opennextjs/cloudflare build"]);
     expect(result.ranInstall).toBe(true);
     expect(result.ranBuild).toBe(true);
-    expect(result.outputDir).toBe("/tmp/app/.next");
+    expect(result.outputDir).toBe("/tmp/app/.open-next");
   });
 
   test("static (no build command) skips the build step", async () => {

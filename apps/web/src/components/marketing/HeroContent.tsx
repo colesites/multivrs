@@ -3,8 +3,8 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useHeroAnimations } from "@/components/marketing/hero-animations";
-import { Badge } from "@/components/ui/badge";
 import SpecularButton from "@/components/SpecularButton";
+import { Badge } from "@/components/ui/badge";
 
 const HEADLINE_WORDS = ["Build", "Beyond", "Limits"];
 const SUBTITLE =

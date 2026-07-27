@@ -10,8 +10,8 @@ export function SettingsSidebarNav() {
 
   return (
     <nav className="flex-1 px-4 pt-6 pb-6 space-y-4 relative z-10">
-      {SETTINGS_NAV_GROUPS.map((group, idx) => (
-        <div key={idx} className="mb-2">
+      {SETTINGS_NAV_GROUPS.map((group) => (
+        <div key={group.title ?? group.items[0]?.name} className="mb-2">
           {group.title && (
             <div className="mb-3 px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               {group.title}

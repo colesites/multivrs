@@ -34,7 +34,7 @@ const passwordSchema = z
  * Validates email format using Zod's built-in email validator
  */
 export const emailSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  email: z.email({ message: "Please enter a valid email address" }),
 });
 
 /**
@@ -51,7 +51,7 @@ export const signUpSchema = z
         /^[a-zA-Z0-9_]+$/,
         "Username can only contain letters, numbers, and underscores",
       ),
-    email: z.string().email({ message: "Please enter a valid email address" }),
+    email: z.email({ message: "Please enter a valid email address" }),
     password: passwordSchema,
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
@@ -65,7 +65,7 @@ export const signUpSchema = z
  * Validates user login with email and password
  */
 export const signInSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  email: z.email({ message: "Please enter a valid email address" }),
   password: z.string().min(1, "Password is required"),
 });
 

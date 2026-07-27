@@ -2,7 +2,7 @@
 
 import { ArrowRight, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { DashboardProject } from "@/features/dashboard/types/project.types";
 
 export function LogsProjectPicker({
@@ -14,12 +14,8 @@ export function LogsProjectPicker({
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const filtered = useMemo(
-    () =>
-      projects.filter((project) =>
-        project.name.toLowerCase().includes(query.toLowerCase()),
-      ),
-    [projects, query],
+  const filtered = projects.filter((project) =>
+    project.name.toLowerCase().includes(query.toLowerCase()),
   );
 
   return (
@@ -36,7 +32,8 @@ export function LogsProjectPicker({
         </p>
       </div>
       <div className="border-y border-[var(--hairline)]">
-        <div className="flex items-center gap-3 border-b border-[var(--hairline)] px-5 py-4">
+        <label className="flex items-center gap-3 border-b border-[var(--hairline)] px-5 py-4">
+          <span className="sr-only">Find a project</span>
           <Search className="size-4 text-muted-foreground" />
           <input
             value={query}
@@ -47,7 +44,7 @@ export function LogsProjectPicker({
           <span className="font-geist-mono text-xs text-muted-foreground">
             {filtered.length} projects
           </span>
-        </div>
+        </label>
         <div className="grid divide-y divide-[var(--hairline)]">
           {filtered.map((project) => (
             <button

@@ -9,7 +9,6 @@ import {
 import { getSandboxCustomerHandle } from "@/lib/domains/openprovider-customer";
 import { registerSandboxDomain } from "@/lib/domains/openprovider-register";
 import { prisma } from "@/lib/prisma";
-import { connectDomain } from "@/lib/services/domain-management.service";
 
 export interface SandboxDomainOrderResult {
   domainId: string;
@@ -28,11 +27,7 @@ export async function orderSandboxDomain(
       403,
     );
   }
-  const [project, existing, user] = await Promise.all([
-    prisma.project.findFirst({
-      where: { id: input.projectId, ownerId: userId },
-      select: { id: true },
-    }),
+  const [existing, user] = await Promise.all([
     prisma.domain.findUnique({
       where: { hostname: input.hostname },
       select: { id: true },
@@ -42,7 +37,7 @@ export async function orderSandboxDomain(
       select: { email: true, name: true },
     }),
   ]);
-  if (!project || !user) throw new NotFoundError("Project not found");
+  if (!user) throw new NotFoundError("Account not found");
   if (existing) throw new ConflictError("This domain is already connected");
   const customerHandle = isLocalOpenproviderSandbox()
     ? "LOCAL-SANDBOX"
@@ -51,11 +46,28 @@ export async function orderSandboxDomain(
     input.hostname,
     customerHandle,
   );
-  const domain = await connectDomain(userId, input);
+  const domain = await prisma.domain.create({
+    data: {
+      userId,
+      hostname: input.hostname,
+      projectId: null,
+      managed: true,
+      autoRenew: true,
+      expiresAt: oneYearFromNow(),
+      providerDomainId: registration.providerDomainId?.toString() ?? null,
+    },
+    select: { id: true, hostname: true },
+  });
   return {
     domainId: domain.id,
     hostname: domain.hostname,
     providerDomainId: registration.providerDomainId,
     status: registration.status,
   };
+}
+
+function oneYearFromNow(): Date {
+  const expiresAt = new Date();
+  expiresAt.setUTCFullYear(expiresAt.getUTCFullYear() + 1);
+  return expiresAt;
 }

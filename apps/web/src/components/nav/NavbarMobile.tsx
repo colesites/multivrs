@@ -27,7 +27,10 @@ export function NavbarMobile({ onClose }: NavbarMobileProps) {
           {MEGA_MENUS.map((menu) => {
             const isOpen = openMenu === menu.label;
             return (
-              <div key={menu.label} className="border-b border-white/5 pb-2 pt-1">
+              <div
+                key={menu.label}
+                className="border-b border-white/5 pb-2 pt-1"
+              >
                 <button
                   type="button"
                   onClick={() => toggleMenu(menu.label)}

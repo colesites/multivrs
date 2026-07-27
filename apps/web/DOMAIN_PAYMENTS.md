@@ -20,14 +20,18 @@ Remove `OPENPROVIDER_SANDBOX_DRIVER` and configure:
 ```dotenv
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 STRIPE_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
 STRIPE_DOMAIN_WEBHOOK_SECRET="whsec_..."
 STRIPE_SUBSCRIPTION_WEBHOOK_SECRET="whsec_..."
+STRIPE_FREE_MONTHLY_LOOKUP_KEY="multivrs_free_monthly"
+STRIPE_PRO_MONTHLY_LOOKUP_KEY="multivrs_pro_monthly"
 OPENPROVIDER_API_URL="https://api.openprovider.eu"
 OPENPROVIDER_USERNAME="..."
 OPENPROVIDER_PASSWORD="..."
 ```
 
-Hosted Stripe Checkout does not require a publishable key in the browser.
+The domain checkout page embeds Stripe Checkout. Use the publishable key from
+the same Stripe test or live account as `STRIPE_SECRET_KEY`.
 
 For local webhooks, run one Stripe CLI listener for each endpoint:
 
@@ -51,6 +55,30 @@ the Stripe test dashboard.
 
 Use Stripe test card `4242 4242 4242 4242`, any future expiry date, and any
 three-digit CVC.
+
+## Subscription pricing
+
+Create separate Hobby and Pro products with recurring monthly Prices in Stripe.
+Do not put both Prices on one Product: Product names, descriptions, and
+marketing features are shared by every Price attached to that Product.
+Assign the lookup keys configured in `STRIPE_FREE_MONTHLY_LOOKUP_KEY` and
+`STRIPE_PRO_MONTHLY_LOOKUP_KEY`. The pricing page loads both Products' names,
+descriptions, marketing features, active amounts, currencies, and intervals
+from Stripe. Enterprise is a sales-led plan without a Stripe Price.
+
+In the Stripe product editor, open **More options**, then use **Marketing feature
+list → Add line**. Put the plan summary in the Product **Description**, not the
+Price description.
+
+You can instead set `STRIPE_FREE_MONTHLY_PRICE_ID="price_..."` and
+`STRIPE_PRO_MONTHLY_PRICE_ID="price_..."`. A Price ID takes priority over its
+lookup key. Prefer lookup keys because Stripe Price amounts are immutable: when
+pricing changes, create a replacement Price and transfer the lookup key without
+deploying new code.
+
+Test and live mode have separate Stripe objects. Create or copy the Product and
+Price into live mode, keep the same lookup key, and use the matching test/live
+secret key in each environment.
 
 ## Production
 

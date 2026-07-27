@@ -47,23 +47,25 @@ export function ProductCard({ product }: { product: Product }) {
       ref={cardRef}
       data-card
       className={cn(
-        "bento-card card-grain group relative flex flex-col gap-5 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.015] backdrop-blur-2xl p-6 transition-[border-color,box-shadow] duration-500 will-change-transform sm:p-7",
+        "bento-card card-grain group relative flex flex-col gap-5 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.015] backdrop-blur-2xl p-6 transition-[border-color,box-shadow] duration-500 sm:p-7",
         product.span,
       )}
     >
       {/* Spotlight effect */}
-      <div 
+      <div
         className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover/bento:opacity-100"
         style={{
-          background: "radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(37, 99, 235, 0.15), transparent 40%)",
-          zIndex: 0
+          background:
+            "radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(37, 99, 235, 0.15), transparent 40%)",
+          zIndex: 0,
         }}
       />
-      <div 
+      <div
         className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition duration-300 group-hover/bento:opacity-100 mix-blend-overlay"
         style={{
-          background: "radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.4), transparent 40%)",
-          zIndex: 1
+          background:
+            "radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.4), transparent 40%)",
+          zIndex: 1,
         }}
       />
 
@@ -79,11 +81,11 @@ export function ProductCard({ product }: { product: Product }) {
         <div
           ref={artRef}
           aria-hidden="true"
-          className="absolute inset-0 flex items-center justify-center p-1 will-change-transform"
+          className="absolute inset-0 flex items-center justify-center p-1"
         >
           <div
             ref={floatRef}
-            className="flex h-full w-full items-center justify-center will-change-transform"
+            className="flex h-full w-full items-center justify-center"
           >
             <Art className="h-full w-full opacity-90 transition-opacity duration-500 group-hover:opacity-100" />
           </div>

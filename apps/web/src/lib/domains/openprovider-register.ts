@@ -70,7 +70,7 @@ async function registerDomain(
       admin_handle: customerHandle,
       tech_handle: customerHandle,
       billing_handle: customerHandle,
-      autorenew: "off",
+      autorenew: "on",
       name_servers: OPENPROVIDER_NAMESERVERS.map((name) => ({ name })),
     }),
   });

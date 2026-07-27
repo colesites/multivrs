@@ -165,7 +165,7 @@ export default function RootLayout({
         </script>
       </head>
       <body className="min-h-full flex flex-col font-inter bg-background text-foreground selection:bg-white/10 selection:text-white">
-        <Toaster position="top-center" richColors />
+        <Toaster position="bottom-right" richColors />
         <main className="flex-1">{children}</main>
       </body>
     </html>

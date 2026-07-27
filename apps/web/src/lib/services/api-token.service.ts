@@ -1,6 +1,7 @@
 import "server-only";
 import { generateApiToken, hashApiToken, tokenHint } from "@/lib/api/api-token";
 import { prisma } from "@/lib/prisma";
+import { recordAuditEvent } from "@/lib/services/audit-event.service";
 
 export interface ApiTokenSummary {
   id: string;
@@ -29,7 +30,9 @@ function summary(token: {
   };
 }
 
-export async function listApiTokens(userId: string): Promise<ApiTokenSummary[]> {
+export async function listApiTokens(
+  userId: string,
+): Promise<ApiTokenSummary[]> {
   const rows = await prisma.apiToken.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
@@ -40,11 +43,31 @@ export async function listApiTokens(userId: string): Promise<ApiTokenSummary[]> 
 export async function createApiToken(userId: string, name: string) {
   const token = generateApiToken();
   const row = await prisma.apiToken.create({
-    data: { userId, name, tokenHash: hashApiToken(token), tokenHint: tokenHint(token) },
+    data: {
+      userId,
+      name,
+      tokenHash: hashApiToken(token),
+      tokenHint: tokenHint(token),
+    },
+  });
+  await recordAuditEvent({
+    action: "api_token.created",
+    entityId: row.id,
+    entityType: "api_token",
+    userId,
   });
   return { token, apiToken: summary(row) };
 }
 
-export async function revokeApiToken(userId: string, id: string): Promise<void> {
+export async function revokeApiToken(
+  userId: string,
+  id: string,
+): Promise<void> {
   await prisma.apiToken.deleteMany({ where: { id, userId } });
+  await recordAuditEvent({
+    action: "api_token.revoked",
+    entityId: id,
+    entityType: "api_token",
+    userId,
+  });
 }

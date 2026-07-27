@@ -48,7 +48,7 @@ export function ResetPasswordForm() {
       if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
@@ -69,25 +69,26 @@ export function ResetPasswordForm() {
     }
 
     setIsLoading(true);
-    try {
-      const result = await authClient.resetPassword({
+    void authClient
+      .resetPassword({
         newPassword: formData.password,
         token,
-      });
-      if (result.error) {
-        toast.error(
-          result.error.message ||
-            "Could not reset password. The link may have expired.",
-        );
+      })
+      .then((result) => {
         setIsLoading(false);
-        return;
-      }
-      setDone(true);
-    } catch (err) {
-      console.error("Reset password error:", err);
-      toast.error("An unexpected error occurred. Please try again.");
-      setIsLoading(false);
-    }
+        if (result.error) {
+          toast.error(
+            result.error.message ||
+              "Could not reset password. The link may have expired.",
+          );
+          return;
+        }
+        setDone(true);
+      })
+      .catch(() => {
+        toast.error("An unexpected error occurred. Please try again.");
+        setIsLoading(false);
+      });
   };
 
   // Invalid/missing token — dead-end with a path back to request a new link.

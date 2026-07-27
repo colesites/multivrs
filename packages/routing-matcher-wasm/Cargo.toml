@@ -1,0 +1,13 @@
+[package]
+name = "routing-matcher-wasm"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+regex = "1.12.3"
+serde.workspace = true
+serde_json.workspace = true

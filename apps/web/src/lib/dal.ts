@@ -12,6 +12,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { auth } from "@/lib/auth";
+import { logError } from "@/lib/services/logger.service";
 
 /**
  * Verify the current session
@@ -29,27 +30,26 @@ export const verifySession = cache(async () => {
     redirect("/sign-in");
   }
 
-  try {
-    // Verify session with Better Auth
-    const session = await auth.api.getSession({
+  const session = await auth.api
+    .getSession({
       headers: {
         cookie: `multivrs.session_token=${sessionCookie.value}`,
       },
+    })
+    .catch((error: unknown) => {
+      logError("auth.session.verification_failed", error);
+      return null;
     });
 
-    if (!session?.user) {
-      redirect("/login");
-    }
-
-    return {
-      isAuth: true,
-      userId: session.user.id,
-      user: session.user,
-    };
-  } catch (error) {
-    console.error("Session verification failed:", error);
+  if (!session?.user) {
     redirect("/login");
   }
+
+  return {
+    isAuth: true,
+    userId: session.user.id,
+    user: session.user,
+  };
 });
 
 /**
@@ -61,25 +61,14 @@ export const verifySession = cache(async () => {
  * @returns User object or null
  */
 export const getUser = cache(async () => {
-  try {
-    const session = await verifySession();
-
-    if (!session?.user) {
-      return null;
-    }
-
-    // Return only necessary user fields for security
-    return {
-      id: session.user.id,
-      name: session.user.name,
-      email: session.user.email,
-      image: session.user.image,
-      emailVerified: session.user.emailVerified,
-    };
-  } catch (error) {
-    console.error("Failed to fetch user:", error);
-    return null;
-  }
+  const session = await verifySession();
+  return {
+    id: session.user.id,
+    name: session.user.name,
+    email: session.user.email,
+    image: session.user.image,
+    emailVerified: session.user.emailVerified,
+  };
 });
 
 /**

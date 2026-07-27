@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
 import { ALL_PROJECTS_SCOPE } from "@/features/dashboard/constants/navigation";
 
 export interface DashboardScope {
@@ -26,18 +25,14 @@ export interface DashboardScope {
 export function useDashboardScope(): DashboardScope {
   const pathname = usePathname();
 
-  return useMemo(() => {
-    const [username = "", rawScope, rawSlug] = pathname
-      .split("/")
-      .filter(Boolean);
-
-    const scope = rawScope ?? ALL_PROJECTS_SCOPE;
-
-    return {
-      username,
-      scope,
-      activeSlug: rawSlug ?? "",
-      isAllProjects: scope === ALL_PROJECTS_SCOPE,
-    };
-  }, [pathname]);
+  const [username = "", rawScope, rawSlug] = pathname
+    .split("/")
+    .filter(Boolean);
+  const scope = rawScope ?? ALL_PROJECTS_SCOPE;
+  return {
+    username,
+    scope,
+    activeSlug: rawSlug ?? "",
+    isAllProjects: scope === ALL_PROJECTS_SCOPE,
+  };
 }

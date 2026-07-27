@@ -39,15 +39,16 @@ export function WarpStars() {
     return { positions: pos, randoms: ran };
   }, []);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!pointsRef.current || !stRef.current) return;
 
     // Get scroll velocity via GSAP
     const velocity = stRef.current.getVelocity();
+    const damping = 1 - 0.9 ** (delta * 60);
     velocityRef.current = THREE.MathUtils.lerp(
       velocityRef.current,
       Math.abs(velocity) / 200,
-      0.1,
+      damping,
     );
 
     const positionAttr = pointsRef.current.geometry.attributes.position;
@@ -59,7 +60,7 @@ export function WarpStars() {
     for (let i = 0; i < STAR_COUNT; i++) {
       const zi = i * 3 + 2;
       // Move stars forward
-      const z = (positionsArr[zi] ?? 0) + baseSpeed + warpSpeed;
+      const z = (positionsArr[zi] ?? 0) + (baseSpeed + warpSpeed) * delta * 60;
       positionsArr[zi] = z;
 
       // Reset stars to distant background if they pass camera

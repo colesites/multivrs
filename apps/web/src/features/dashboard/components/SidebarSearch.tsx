@@ -2,7 +2,7 @@
 
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   buildNavHref,
   DASHBOARD_NAV_ITEMS,
@@ -25,13 +25,14 @@ export function SidebarSearch() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const items = q
-      ? DASHBOARD_NAV_ITEMS.filter((i) => i.name.toLowerCase().includes(q))
-      : DASHBOARD_NAV_ITEMS;
-    return items.slice(0, 8);
-  }, [query]);
+  const normalized = query.trim().toLowerCase();
+  const results = (
+    normalized
+      ? DASHBOARD_NAV_ITEMS.filter((item) =>
+          item.name.toLowerCase().includes(normalized),
+        )
+      : DASHBOARD_NAV_ITEMS
+  ).slice(0, 8);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

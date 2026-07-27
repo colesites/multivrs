@@ -16,6 +16,23 @@ export const connectDomainSchema = z.object({
   projectId: z.uuid(),
 });
 
+export const assignDomainProjectSchema = z.object({
+  projectId: z.uuid(),
+});
+
+export const updateDomainSchema = z
+  .object({
+    projectId: z.uuid().optional(),
+    autoRenew: z.boolean().optional(),
+  })
+  .refine(
+    (value) =>
+      Number(value.projectId !== undefined) +
+        Number(value.autoRenew !== undefined) ===
+      1,
+    "Provide exactly one domain update",
+  );
+
 export const dnsRecordInputSchema = z
   .object({
     name: z

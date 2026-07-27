@@ -1,6 +1,10 @@
 import "server-only";
-import { LocalArtifactStore, R2ArtifactStore, type ArtifactStore } from "@multivrs/build-utils";
 import { join } from "node:path";
+import {
+  type ArtifactStore,
+  LocalArtifactStore,
+  R2ArtifactStore,
+} from "@multivrs/build-utils/store";
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -14,7 +18,11 @@ export function createArtifactStore(): ArtifactStore {
   if (process.env.MULTIVRS_ARTIFACT_STORE === "local") {
     return new LocalArtifactStore(
       process.env.MULTIVRS_LOCAL_ARTIFACT_DIR ??
-        join(process.cwd(), ".multivrs", "artifacts"),
+        join(
+          /* turbopackIgnore: true */ process.cwd(),
+          ".multivrs",
+          "artifacts",
+        ),
     );
   }
 

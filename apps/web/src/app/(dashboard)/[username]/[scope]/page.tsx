@@ -1,11 +1,10 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
+import { ProjectOverviewPage } from "@/features/dashboard/components/ProjectOverviewPage";
 import { ALL_PROJECTS_SCOPE } from "@/features/dashboard/constants/navigation";
+import { auth } from "@/lib/auth";
+import { getProjectOverview } from "@/lib/services/project-overview.service";
 
-/**
- * Scope root. /c-tech/~ collapses to the account overview (/c-tech); a project
- * slug like /c-tech/kontinue-ai renders that project's overview.
- */
 export default async function ScopeOverviewPage({
   params,
 }: {
@@ -17,13 +16,12 @@ export default async function ScopeOverviewPage({
     redirect(`/${username}`);
   }
 
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) redirect("/login");
   return (
-    <>
-      <DashboardPageHeader title={scope} description="Project overview." />
-      <div className="px-5 py-8 text-[14px] text-muted-foreground">
-        Overview for <span className="text-foreground">{scope}</span> is coming
-        soon.
-      </div>
-    </>
+    <ProjectOverviewPage
+      username={username}
+      data={await getProjectOverview(session.user.id, username, scope)}
+    />
   );
 }

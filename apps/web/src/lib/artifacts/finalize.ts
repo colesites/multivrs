@@ -1,4 +1,4 @@
-import type { Artifact } from "@multivrs/build-utils";
+import type { Artifact } from "@multivrs/build-utils/artifact";
 import { ValidationError } from "@multivrs/error-utils";
 import { createArtifactStore } from "@/lib/artifacts/store";
 import { markDeploymentReady } from "@/lib/services/deployment-lifecycle.service";

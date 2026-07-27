@@ -44,19 +44,20 @@ export function WarpObstacles() {
     return { dummy: dummyObj, obstacles: arr };
   }, []);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!meshRef.current || !stRef.current) return;
 
     const velocity = stRef.current.getVelocity();
+    const damping = 1 - 0.9 ** (delta * 60);
     velocityRef.current = THREE.MathUtils.lerp(
       velocityRef.current,
       Math.abs(velocity) / 150,
-      0.1,
+      damping,
     );
 
     obstacles.forEach((obs, i) => {
       // Speed is base speed + scroll velocity
-      obs.position.z += obs.speed + velocityRef.current;
+      obs.position.z += (obs.speed + velocityRef.current) * delta * 60;
 
       // Reset
       if (obs.position.z > 10) {
@@ -65,8 +66,8 @@ export function WarpObstacles() {
         obs.position.y = (Math.random() - 0.5) * 20;
       }
 
-      obs.rotation.x += 0.01;
-      obs.rotation.y += 0.012;
+      obs.rotation.x += 0.01 * delta * 60;
+      obs.rotation.y += 0.012 * delta * 60;
 
       dummy.position.copy(obs.position);
       dummy.rotation.set(obs.rotation.x, obs.rotation.y, obs.rotation.z);

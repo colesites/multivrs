@@ -1,7 +1,7 @@
 # MULTIVRS Platform — Build & Deploy Engineering Plan
 
-> Status: **Draft v1** · Owner: Cole · Scope: the deployment platform behind the
-> dashboard (`apps/web`). This is the backend/services plan — not the UI.
+> Status: **Phases 0–5 implemented (2026-07-26)** · Owner: Cole · Scope: the
+> complete deployment platform, control plane, integrations, and dashboard UI.
 > Whole-system view (planes, infra, request lifecycle): [`/ARCHITECTURE.md`](../../ARCHITECTURE.md).
 
 Multivrs is a deployment platform in the spirit of Vercel: push a repo, we
@@ -169,31 +169,33 @@ system of record; **Convex (`@repo/backend`)** is a one-way real-time projection
 fed by Better Auth hooks. Both run from the root — `bun dev:web` / `bun dev:convex`
 to run one in isolation.
 
-**Target platform packages** (added across the phases in §6):
+**Implemented platform packages:**
 ```
 packages/
-  build-utils/         (TS)   shared build helpers, artifact packaging
-  fs-detectors/        (TS)   framework / pkg-manager / monorepo detection
-  frameworks/          (TS)   framework preset catalog
-  routing-utils/       (TS)   route/redirect/rewrite/header rule engine
-  config/              (TS)   vercel.json-equivalent schema (zod) + types
-  client/              (TS)   typed platform API client (used by CLI + dashboard)
-  error-utils/         (TS)   typed errors
-  functions-runtime/   (TS)   @multivrs/functions runtime helpers
-  edge/                (TS)   edge middleware primitives
-  builder-next/        (TS)   Next.js builder
-  builder-swift-rust/  (TS)   swift-rust builder (drives the Rust/Bun toolchain)
-  firewall/            (TS)   WAF rule schema + control-plane API
-
-  cli/                 (Rust) native single-binary CLI  (see §5)
-  proxy/               (Go)   request data plane / edge router / TLS  (see §5)
-  builder-core/        (Rust) hashing, upload, sandbox exec, asset optimizer (§2.3)
-  swift-rust/          (Rust+Bun) our framework (separate repo today; vendored target)
+  adapter-h3/ adapter-hono/     framework adapters
+  build-utils/ static-build/    artifact/build primitives
+  builder-next/                 full OpenNext Cloudflare builder
+  builder-swift-rust/           swift-rust artifact mapper
+  builder-runtime/              Node, Go, Python, Ruby, Remix, Hono, h3
+  builder-core/                 Rust hashing + asset optimizer
+  cli/ cli-auth/ cli-config/    native Rust CLI
+  client/ config/ error-utils/  typed API/config/error contracts
+  edge/ functions/ firewall/    runtime and security primitives
+  frameworks/ fs-detectors/     detection and framework catalog
+  routing-utils/                TypeScript routing control logic
+  routing-matcher-wasm/         Rust/WASM hot-path matcher
+  mcp-adapter/                  MCP request adapter
+  backend/                      Convex real-time projection
 ```
 
-`apps/`
 ```
-apps/web/    Next.js dashboard + platform control-plane API (this app)
+apps/
+  web/             Next.js dashboard + authenticated control plane
+  build-worker/    Cloudflare Queue consumer + Sandbox SDK builder
+  compute-worker/  Cloudflare Container runtime for executable artifacts
+  serve-worker/    Cloudflare edge router, assets, WAF, telemetry, dispatch
+  mail-worker/     ✅ Durable outbound mail queue, cron scheduler, and DLQ
+  mail-smtp/       ✅ TLS SMTP submission gateway using tenant-scoped credentials
 ```
 
 ---
@@ -274,95 +276,87 @@ convex together.
 - ✅ Neon schema applied on 2026-07-11; dashboard project/deployment reads now use
   Prisma services instead of the mock-data switch.
 
-**Phase 1 — Deploy loop (Next.js + swift-rust)** — 🚧 static loop complete; compute remains
-- ✅ **detect** — `@multivrs/frameworks` (preset catalog) + `@multivrs/fs-detectors`
-  (`DetectorFilesystem`/`LocalFilesystem`, `detectFramework`/`detectPackageManager`/
-  `detectProject`). Detects nextjs / swift-rust / vite / static + bun/pnpm/yarn/npm.
-- ✅ **artifact** — `@multivrs/build-utils` `createArtifact(dir)` → content-addressed
-  manifest (sha256 per file, deterministic `artifactHash`).
-- ✅ **upload** — `LocalArtifactStore` + production `R2ArtifactStore`; the CLI uses
-  prepare → concurrent missing-blob PUTs → verified completion, so uploads stream
-  per file and dedupe by content hash. Live R2 upload/read/delete smoke test passed.
-- ✅ **runtime model** — `@multivrs/functions`: runtime = **bun (default)** / node /
-  edge (swift-rust uses all three), `resolveRuntime`/`isRuntime`/`toFunctionConfig`;
-  `runtime` added to the `multivrs.json` schema.
-- ✅ **build** — `@multivrs/static-build` (resolve settings + run install/build
-  via injectable runner) and the two framework builders:
-  - `@multivrs/builder-next` — runs `next build`, reads `routes-manifest.json`,
-    maps static routes → CDN, dynamic → one SSR `render` function (node). Bounded
-    v1 mapping.
-  - `@multivrs/builder-swift-rust` — runs the swift-rust toolchain, reads its
-    build manifest (`multivrs-build.json`, a contract we own), maps per-route mode:
-    `wasm` → static (no compute), `ssr*` → invoke the binary (bun default).
-  Both produce the shared `BuildOutput` (`build-utils`); the actual toolchain
-  invocation is injectable, so tests run against fixture outputs (no real build).
-- ✅ **CLI** — Rust workspace (root `Cargo.toml`, crates under `packages/`): `cli`
-  (`multivrs` binary: `login`/`logout`/`whoami`/`link`/`deploy`), `cli-auth`
-  (token store at `~/.multivrs/auth.json`, 0600), `cli-config` (`.multivrs/project.json`
-  linking). `deploy` now creates lifecycle rows before building, records logs/failures,
-  builds, hashes, uploads, and atomically promotes successful `--prod` deployments.
-- ✅ **builder core** — Rust `builder-core` owns parallel SHA-256 hashing and
-  content-addressed packaging. The CLI maps static/Vite/Next exports and
-  `multivrs-build.json` into the shared `BuildOutput` contract.
-- ✅ **static serve** — `apps/serve-worker` resolves preview/project/custom hostnames,
-  reads manifests/blobs through an R2 binding, handles clean paths/SPA fallback and
-  immutable caching, and forwards function routes through a `COMPUTE` service binding.
-  Wrangler dry-run passed (1.59 KiB gzip).
-- ✅ **dashboard/lifecycle** — live projects/deployments, queued → building →
-  ready/error/canceled transitions, build timestamps/errors/logs, log detail page,
-  copy URL and cancel actions, and production-alias status.
-- ✅ **Gate:** 69 Bun tests, 14 Rust tests + clippy, all workspace type checks,
-  production Next build, Worker dry-run, React Doctor 100/100, Neon schema push,
-  live R2 upload/read/delete smoke, auth-page browser smoke, and a reversible full
-  CLI → API → lifecycle/logs → upload → production promotion → served HTML E2E.
-- ⏳ **compute** — provision/deploy the OpenNext Worker for Next SSR/route handlers and
-  define the executable WASM ABI/worker for swift-rust `ssr*`. R2 cannot execute an
-  uploaded worker or native binary; the serve worker's `COMPUTE` binding is the handoff.
-- ✅ **build-time asset optimizer** — Rust `builder-core` creates WebP images in
-  parallel, WebM video through ffmpeg, and WOFF2 fonts through pyftsubset when the
-  optional tools are installed. The CLI logs created/skipped variants before
-  hashing, and the serve Worker negotiates image/video variants via `Accept`.
-  Native image, real ffmpeg, missing-tool, resolver, type-check and Worker dry-run
-  tests pass. On-demand `/_image` resizing remains a Phase 2 edge capability.
+**Phase 1 — Deploy loop (Next.js + swift-rust)** — ✅ implemented
+- ✅ Repository detection, package-manager detection, shared configuration, and
+  content-addressed artifact creation/upload are implemented and tested.
+- ✅ Full Next.js uses `@opennextjs/cloudflare` output, preserving SSR, route
+  handlers, middleware, Server Actions, cookies, assets, and cache behavior.
+- ✅ swift-rust is a first-class target: static/WASM routes go to R2 and SSR modes
+  execute the packaged binary in the Cloudflare compute container.
+- ✅ The Cloudflare build Worker uses Queues + Sandbox SDK containers, carries a
+  Rust/Cargo/Bun toolchain, streams logs, uploads artifacts, retries infrastructure
+  failures, and cleans up sandboxes. Local development keeps a direct runner.
+- ✅ The serve Worker resolves preview/project/custom hostnames, serves R2 assets,
+  and dispatches executable workloads through service/dynamic-dispatch bindings.
+- ✅ The native Rust CLI supports auth, project linking, preview/production deploys,
+  lifecycle/log updates, parallel hashing, deduplicated uploads, and promotion.
+- ✅ Dashboard import/configure/deploy UI is connected to GitHub OAuth or a public
+  repository URL, shows live build logs/status, supports cancellation, and routes
+  successful deployments into the real project dashboard.
 
-> **Infra prerequisite:** R2 is configured and tested. Worker publication and a full
-> E2E against your account requires `CLOUDFLARE_API_TOKEN`,
-> `MULTIVRS_DEPLOYMENT_DOMAIN`, and `MULTIVRS_SERVE_TOKEN`. CLI credentials are
-> user-scoped, hashed database tokens created from dashboard developer settings;
-> no production user ID or shared API token is stored in the environment.
+**Phase 2 — Edge & runtime** — ✅ implemented
+- ✅ Route/redirect/rewrite/header matching exists in TypeScript and in the compiled
+  Rust/WASM hot-path matcher used by the serve Worker.
+- ✅ Edge middleware/runtime helpers, geolocation, R2 static delivery, immutable
+  caching, Cloudflare Images on-demand optimization, and build-time media variants.
+- ✅ Web Vitals injection and collection plus Analytics Engine request telemetry.
+- ✅ Firewall evaluation, attack mode, bot/IP/country/header rules, and Cloudflare
+  rate-limit binding enforcement run before origin/static delivery.
 
-**Phase 2 — Edge & runtime** — 🚧 TS engines done
-- ✅ `@multivrs/functions` (runtime model), `@multivrs/edge` (middleware
-  primitives + geo), `@multivrs/routing-utils` (route/redirect/rewrite/header
-  engine). Tested: `test/routing-utils`, `test/edge`, `test/functions`.
-- ⏳ compile the routing matcher to Rust/WASM for the proxy hot path.
+**Phase 3 — Platform services** — ✅ implemented
+- ✅ Domains are account-owned and optionally connected to projects. Search/pricing,
+  multi-item cart, saved domains, Stripe custom checkout, webhook fulfillment,
+  OpenProvider registration/DNS, renewal dates, and real domain detail routes work.
+- ✅ Cloudflare custom-hostname certificate provisioning and verification details
+  are persisted and exposed in the dashboard.
+- ✅ Logs, Analytics, Speed Insights, and Observability pages read actual deployment
+  and Cloudflare data with loading, empty, success, and error states.
+- ✅ Firewall, CDN/cache, encrypted environment variables, DNS, and Email Routing
+  have authenticated APIs, service layers, validation, and operational dashboard UI.
+- ✅ The missing `saved_domains` migration was added; both configured Neon branches
+  were baselined and all Phase 3–5 migrations were applied successfully on
+  2026-07-26. Prisma CLI now loads `.env.local` first to match Next.js locally.
 
-**Phase 3 — Platform services** — 🚧 firewall control plane done
-- ✅ `@multivrs/firewall` control plane: rule schema + `evaluateFirewall`
-  (allow/deny/challenge/rate_limit; ip/path/method/country/header/user-agent).
-  Tested: `test/firewall` (incl. bot protection + rate-limit modeling).
-- ⏳ Go enforcement; Domains/DNS/certs (pricing engine); Logs, Analytics, Speed
-  Insights, Observability — the sidebar sections, now backed.
-- **Gate (added as each lands):** pricing engine (`retail = roundTo99(...)`) on
-  TLD fixtures; analytics/log ingest round-trips.
+**Phase 4 — Expansion** — ✅ implemented
+- ✅ Framework catalog/build output support covers Next.js, swift-rust, Remix, Hono,
+  h3, Node/Bun, Go, Python, Ruby, Vite, and static sites.
+- ✅ Hono and h3 adapters, MCP adapter, short-lived OIDC project tokens, and
+  Cloudflare Sandbox management APIs/dashboard are implemented.
+- ✅ Container runtime selection and entrypoints are validated at the request
+  boundary; fixture builders produce valid content-addressed artifacts.
 
-**Phase 4 — Expansion**
-- More builders (`node`, `go`, `python`, `ruby`, `remix`…), framework adapters
-  (`hono`, `h3`), OIDC, MCP, Sandboxes.
-- **Gate:** each new builder produces a valid artifact for its fixture app.
+**Phase 5 — Dashboard and production readiness** — ✅ implemented
+- ✅ Responsive desktop/mobile dashboard shell, project search/filter/layout,
+  deployment filtering, live project overview, and framework-aware project settings.
+- ✅ Account profile editing, API tokens, destructive project deletion, account
+  usage, audit activity, persistent notifications, read/archive actions, and health
+  readiness endpoint.
+- ✅ Production project/deployment paths no longer use mock-data switches; structured
+  logging replaces application `console` calls in the implemented control plane.
+- ✅ Zod validates new API/provider boundaries, DB access stays in services, new UI
+  modules comply with the 150-line split rule, and the repository Biome gate is green.
+- ✅ Gates: 96 Bun feature/integration tests, 17 Rust tests, Rust clippy with warnings
+  denied, 24-workspace TypeScript checks, Prisma generation/migration status,
+  React Doctor with zero errors, a 54-page Next.js production build, and
+  serve/build/compute Worker dry-runs.
+- ⏳ **Go-live operations (external, not source-code work):** publish the three
+  Workers and queues/bindings, build/push both container images with Docker running,
+  add production Cloudflare/Stripe/OpenProvider secrets, configure Stripe webhooks,
+  then run one real repository deploy and one low-cost domain purchase smoke test.
 
 ---
 
-## 7. Open decisions
-1. **Repo for `swift-rust`** — vendor as a workspace package vs. consume as an
-   external toolchain the builder shells out to?
-2. **Proxy hosting** — self-managed Go fleet vs. a managed edge (Cloudflare
-   Workers / Fly) for v1?
-3. **Artifact store** — content-addressed blobs in Vercel Blob / S3 / Neon-backed?
-4. **Sandbox** — Firecracker-style microVMs (à la Vercel Sandbox) vs. containers
-   for untrusted builds?
-5. **How much of `routing-utils` runs at the edge** in v1 (TS in proxy vs.
-   Rust/WASM from day one)?
+## 7. Resolved architecture decisions
+
+1. ✅ **swift-rust:** consume its external toolchain and deploy its declared
+   artifact contract; Multivrs owns the builder/runtime integration.
+2. ✅ **Edge/data plane:** Cloudflare Workers, Workers for Platforms dynamic
+   dispatch, service bindings, and Containers instead of a self-managed Go fleet.
+3. ✅ **Artifacts:** content-addressed manifests/blobs in Cloudflare R2.
+4. ✅ **Build isolation:** Cloudflare Sandbox SDK containers with one isolated
+   sandbox per deployment job.
+5. ✅ **Routing:** readable TypeScript control logic plus Rust/WASM matching on the
+   request hot path.
 
 ---
 

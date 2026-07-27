@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { DomainMarketplace } from "@/features/domains/DomainMarketplace";
 import { auth } from "@/lib/auth";
-import { isOpenproviderSandbox } from "@/lib/domains/openprovider-client";
-import { domainProjectOptions } from "@/lib/services/domain.service";
 
 export const metadata: Metadata = {
   title: "Domains | Multivrs",
@@ -16,22 +14,20 @@ export default async function DomainsPage({
   searchParams: Promise<{
     q?: string;
     teamSlug?: string;
+    projectSlug?: string;
     source?: string;
-    checkout?: string;
   }>;
 }) {
   const [params, requestHeaders] = await Promise.all([searchParams, headers()]);
-  const { q = "", teamSlug, source, checkout } = params;
+  const { q = "", teamSlug, projectSlug, source } = params;
   const session = await auth.api.getSession({ headers: requestHeaders });
-  const projects = session ? await domainProjectOptions(session.user.id) : [];
   return (
     <DomainMarketplace
+      key={q}
       query={q}
       teamSlug={teamSlug ?? session?.user.username ?? undefined}
+      projectSlug={projectSlug}
       source={source}
-      projects={projects}
-      sandboxEnabled={isOpenproviderSandbox()}
-      openCheckout={checkout === "1"}
     />
   );
 }

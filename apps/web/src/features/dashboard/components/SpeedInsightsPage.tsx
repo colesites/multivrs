@@ -1,0 +1,95 @@
+import { Activity, CircleGauge, MousePointerClick, Timer } from "lucide-react";
+import type {
+  WebVitalMetric,
+  WebVitalsData,
+} from "@/features/dashboard/types/analytics.types";
+
+const META = {
+  CLS: { description: "Visual stability", icon: Activity, unit: "" },
+  INP: {
+    description: "Interaction responsiveness",
+    icon: MousePointerClick,
+    unit: " ms",
+  },
+  LCP: {
+    description: "Largest content render",
+    icon: CircleGauge,
+    unit: " ms",
+  },
+  TTFB: { description: "Initial server response", icon: Timer, unit: " ms" },
+} as const;
+
+export function SpeedInsightsPage({
+  projectName,
+  vitals,
+}: {
+  projectName: string;
+  vitals: WebVitalsData;
+}) {
+  return (
+    <div className="mx-auto w-full max-w-6xl space-y-8 px-5 py-8">
+      <header>
+        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+          Real-user monitoring
+        </p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+          Speed Insights
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Core Web Vitals collected from real visits to {projectName}.
+        </p>
+      </header>
+      {vitals.state !== "ready" && <InsightState state={vitals.state} />}
+      <section className="grid border-y border-[var(--hairline)] md:grid-cols-2 xl:grid-cols-4">
+        {(Object.keys(META) as WebVitalMetric["name"][]).map((name) => {
+          const metric = vitals.metrics.find((item) => item.name === name);
+          const meta = META[name];
+          return (
+            <article
+              key={name}
+              className="border-b border-[var(--hairline)] p-5 md:border-r xl:border-b-0"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-geist-mono text-xs text-muted-foreground">
+                  {name}
+                </span>
+                <meta.icon className="size-4 text-blue-400" />
+              </div>
+              <p className="mt-6 text-3xl font-semibold tracking-tight">
+                {metric ? `${formatValue(metric)}${meta.unit}` : "—"}
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {meta.description}
+              </p>
+              <p className="mt-5 font-geist-mono text-[10px] uppercase tracking-wider text-emerald-400">
+                {metric
+                  ? `${metric.goodRate.toFixed(0)}% good · ${metric.samples} samples`
+                  : "Waiting for visits"}
+              </p>
+            </article>
+          );
+        })}
+      </section>
+      <p className="text-xs leading-5 text-muted-foreground">
+        Multivrs injects a small first-party measurement script into served
+        HTML. No third-party analytics script or mock data is used.
+      </p>
+    </div>
+  );
+}
+
+function formatValue(metric: WebVitalMetric): string {
+  return metric.name === "CLS"
+    ? metric.value.toFixed(3)
+    : Math.round(metric.value).toLocaleString();
+}
+
+function InsightState({ state }: { state: WebVitalsData["state"] }) {
+  return (
+    <div className="border-y border-amber-400/20 bg-amber-400/[0.04] px-4 py-3 text-xs text-amber-200">
+      {state === "error"
+        ? "Web Vitals could not be loaded from Cloudflare."
+        : "Configure Cloudflare Analytics Engine to collect live Web Vitals."}
+    </div>
+  );
+}

@@ -1,9 +1,11 @@
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { DashboardMobileNavigation } from "@/features/dashboard/components/DashboardMobileNavigation";
 import { DashboardTopbar } from "@/features/dashboard/components/DashboardTopbar";
 import { Sidebar } from "@/features/dashboard/components/Sidebar";
-import { SAMPLE_PROJECTS } from "@/features/dashboard/constants/sample-projects";
 import { auth } from "@/lib/auth";
+import { dashboardProjects } from "@/lib/services/dashboard.service";
+import { listNotifications } from "@/lib/services/notification.service";
 
 /**
  * Account-scoped chrome served around every page under /[username]. Renders the
@@ -23,6 +25,11 @@ export default async function AccountLayout({
   }
 
   const { username } = await params;
+  if (session.user.username !== username) notFound();
+  const [projects, notifications] = await Promise.all([
+    dashboardProjects(username),
+    listNotifications(session.user.id),
+  ]);
 
   return (
     <div className="dashboard-surface min-h-screen bg-[var(--ink)] text-foreground">
@@ -33,10 +40,22 @@ export default async function AccountLayout({
           image: session.user.image,
         }}
         workspaceName={username}
+        notifications={notifications}
       />
-      <div className="pl-[268px]">
+      <div className="lg:pl-[268px]">
         <DashboardTopbar
-          projects={SAMPLE_PROJECTS.map((p) => ({
+          mobileNavigation={
+            <DashboardMobileNavigation
+              notifications={notifications}
+              user={{
+                name: session.user.name,
+                email: session.user.email,
+                image: session.user.image,
+              }}
+              workspaceName={username}
+            />
+          }
+          projects={(projects ?? []).map((p) => ({
             slug: p.slug,
             name: p.name,
           }))}

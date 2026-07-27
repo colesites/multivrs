@@ -10,9 +10,9 @@
  * Uses Prisma 7.x with Neon's serverless driver adapter.
  */
 
+import { neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@prisma/client";
-import { neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 
 neonConfig.webSocketConstructor = ws;
@@ -22,13 +22,16 @@ neonConfig.webSocketConstructor = ws;
  */
 declare global {
   // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
+  var multivrsPrisma: PrismaClient | undefined;
 }
 
 function getDatabaseUrl(): string {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     throw new Error("DATABASE_URL environment variable is required");
+  }
+  if (!URL.canParse(databaseUrl)) {
+    throw new Error("DATABASE_URL must be a valid PostgreSQL URL");
   }
 
   const url = new URL(databaseUrl);
@@ -57,7 +60,7 @@ const adapter = new PrismaNeon({
  * - Development: Reuses instance from globalThis to prevent hot-reload issues
  */
 export const prisma =
-  globalThis.prisma ??
+  globalThis.multivrsPrisma ??
   new PrismaClient({
     adapter,
     log:
@@ -70,7 +73,7 @@ export const prisma =
  * Store instance on globalThis in development to persist across hot-reloads
  */
 if (process.env.NODE_ENV !== "production") {
-  globalThis.prisma = prisma;
+  globalThis.multivrsPrisma = prisma;
 }
 
 /**

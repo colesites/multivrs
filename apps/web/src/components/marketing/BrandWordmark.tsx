@@ -16,7 +16,7 @@ export function BrandWordmark() {
           Software for the next universe
         </p>
       </div>
-      
+
       {/* 3D Particle Text taking full space */}
       <ParticleWordmark />
     </section>

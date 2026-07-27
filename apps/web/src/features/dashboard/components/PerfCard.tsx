@@ -18,7 +18,7 @@ export function PerfCard({
   color,
 }: PerfCardProps) {
   return (
-    <div className="rounded-2xl bg-white/1.5 border border-white/5 p-4 flex items-center gap-4 hover:bg-white/3 hover:border-white/8 transition-all duration-300 group">
+    <div className="group flex items-center gap-4 rounded-2xl border border-white/5 bg-white/1.5 p-4 transition-colors duration-300 hover:border-white/8 hover:bg-white/3">
       <div className="h-10 w-10 rounded-xl bg-white/3 border border-white/6 flex items-center justify-center shrink-0 group-hover:bg-white/6 transition-colors">
         <Icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
       </div>

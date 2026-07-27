@@ -14,15 +14,16 @@ export function SpaceForeground() {
   const groupRef = useRef<Group>(null);
   const { pointer } = useThree();
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!groupRef.current) return;
     // Moving opposite or at different rates to background gives immense parallax depth
     const targetX = pointer.y * 0.05;
     const targetY = pointer.x * 0.07;
+    const damping = 1 - 0.98 ** (delta * 60);
     groupRef.current.rotation.x +=
-      (targetX - groupRef.current.rotation.x) * 0.02;
+      (targetX - groupRef.current.rotation.x) * damping;
     groupRef.current.rotation.y +=
-      (targetY - groupRef.current.rotation.y) * 0.02;
+      (targetY - groupRef.current.rotation.y) * damping;
   });
 
   return (

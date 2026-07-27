@@ -15,14 +15,15 @@ export function SpaceBackground() {
   const groupRef = useRef<Group>(null);
   const { pointer } = useThree();
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!groupRef.current) return;
     const targetX = pointer.y * 0.03;
     const targetY = pointer.x * 0.04;
+    const damping = 1 - 0.98 ** (delta * 60);
     groupRef.current.rotation.x +=
-      (targetX - groupRef.current.rotation.x) * 0.02;
+      (targetX - groupRef.current.rotation.x) * damping;
     groupRef.current.rotation.y +=
-      (targetY - groupRef.current.rotation.y) * 0.02;
+      (targetY - groupRef.current.rotation.y) * damping;
   });
 
   return (

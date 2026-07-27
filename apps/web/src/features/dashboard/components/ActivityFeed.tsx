@@ -32,9 +32,9 @@ export function ActivityFeed({ items }: ActivityFeedProps) {
       </div>
 
       <div className="space-y-1 relative z-10">
-        {items.map((item, i) => (
+        {items.map((item) => (
           <div
-            key={i}
+            key={`${item.action}:${item.target}:${item.time}`}
             className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-white/2 transition-colors group"
           >
             <div

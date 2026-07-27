@@ -42,6 +42,35 @@ const publicPrefixes = [
 
 export default async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
+  const hostname = req.headers.get("host")?.split(":")[0]?.toLowerCase();
+
+  // Local deployment hostnames use wildcard localhost DNS. Keeping the
+  // deployed application on its own origin means Next.js absolute `/_next/*`
+  // assets, route handlers, cookies, and client navigation work exactly as
+  // they do behind the production serve worker.
+  if (hostname?.endsWith(".localhost")) {
+    const deploymentId = hostname.slice(0, -".localhost".length);
+    if (deploymentId) {
+      const destination = req.nextUrl.clone();
+      destination.pathname = `/api/deployments/${deploymentId}/serve${path}`;
+      return NextResponse.rewrite(destination);
+    }
+  }
+
+  // Always pass through Next.js internal static assets, images, and public files.
+  // Never redirect _next assets or static files to authentication.
+  if (
+    path.startsWith("/_next") ||
+    path.startsWith("/api") ||
+    path === "/favicon.ico" ||
+    path.endsWith(".svg") ||
+    path.endsWith(".png") ||
+    path.endsWith(".jpg") ||
+    path.endsWith(".webp") ||
+    path.endsWith(".woff2")
+  ) {
+    return NextResponse.next();
+  }
 
   // Optimistic check: presence of the session cookie. This is NOT a real
   // auth check — the matching page/layout verifies the session server-side.
@@ -74,15 +103,9 @@ export default async function proxy(req: NextRequest) {
 }
 
 export const config = {
+  // Exclude static assets, Next.js internal bundles, and API routes from
+  // protection redirects.
   matcher: [
-    /*
-     * Match all request paths except:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     * - files with extensions (images, etc.)
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2)$).*)",
   ],
 };

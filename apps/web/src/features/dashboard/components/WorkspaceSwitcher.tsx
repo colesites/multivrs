@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown } from "lucide-react";
+import Image from "next/image";
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
 
 interface WorkspaceSwitcherProps {
@@ -21,15 +21,14 @@ export function WorkspaceSwitcher({
   const initial = (name?.[0] ?? "M").toUpperCase();
 
   return (
-    <button
-      type="button"
-      className="group flex h-12 w-full items-center gap-2.5 rounded-lg px-2 text-left transition-colors hover:bg-white/[0.03]"
-    >
+    <div className="flex h-12 w-full items-center gap-2.5 rounded-lg px-2 text-left">
       {image ? (
-        // biome-ignore lint/performance/noImgElement: small avatar, remote provider URL
-        <img
+        <Image
           src={image}
           alt=""
+          width={32}
+          height={32}
+          unoptimized
           className="size-8 shrink-0 rounded-md border border-[var(--hairline-strong)] object-cover"
         />
       ) : (
@@ -45,10 +44,6 @@ export function WorkspaceSwitcher({
           {plan}
         </span>
       </span>
-      <ChevronsUpDown
-        className="size-4 shrink-0 text-muted-foreground/60 transition-colors group-hover:text-muted-foreground"
-        strokeWidth={1.75}
-      />
-    </button>
+    </div>
   );
 }

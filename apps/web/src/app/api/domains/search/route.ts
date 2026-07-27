@@ -7,6 +7,7 @@ import {
   searchOpenproviderCatalog,
   searchOpenproviderExtensions,
 } from "@/lib/domains/openprovider";
+import { logError } from "@/lib/services/logger.service";
 
 export const runtime = "nodejs";
 
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
       total: requestedTld ? 1 : response.catalog.length,
     });
   } catch (error) {
-    console.error("Domain provider request failed", error);
+    logError("domains.search.provider_failed", error);
     return NextResponse.json(
       {
         error: "provider_unavailable",

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { FaqSection } from "@/components/marketing/FaqSection";
 import { PricingSection } from "@/components/marketing/PricingSection";
+import { getPricingPlans } from "@/lib/payments/pricing";
+import { getFaqs } from "@/sanity/lib/faq-service";
 
 export const metadata: Metadata = {
   title: "Pricing | Multivrs",
@@ -8,6 +11,18 @@ export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
 };
 
-export default function PricingPage() {
-  return <PricingSection />;
+export const revalidate = 60;
+
+export default async function PricingPage() {
+  const [plans, faqs] = await Promise.all([
+    getPricingPlans(),
+    getFaqs("pricing"),
+  ]);
+
+  return (
+    <>
+      <PricingSection {...plans} />
+      <FaqSection faqs={faqs} />
+    </>
+  );
 }

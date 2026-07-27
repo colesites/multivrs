@@ -49,7 +49,7 @@ export function Planet({
 
   useFrame(({ clock }) => {
     if (!meshRef.current || !shaderMatRef.current) return;
-    const t = clock.getElapsedTime();
+    const t = clock.elapsedTime;
     // Rotate physically
     meshRef.current.rotation.y = t * speed;
 

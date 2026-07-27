@@ -1,0 +1,23 @@
+name = "multivrs-compute"
+main = "src/index.ts"
+compatibility_date = "2026-07-23"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+
+[[containers]]
+class_name = "SwiftRustContainer"
+image = "./Dockerfile"
+max_instances = 25
+instance_type = "lite"
+
+[[durable_objects.bindings]]
+name = "RUNTIME"
+class_name = "SwiftRustContainer"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SwiftRustContainer"]
+
+[[r2_buckets]]
+binding = "ARTIFACTS"
+bucket_name = "multivrs-artifacts"

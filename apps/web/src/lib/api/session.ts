@@ -5,8 +5,8 @@
 import "server-only";
 import { UnauthorizedError } from "@multivrs/error-utils";
 import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
 import { hashApiToken, isApiToken } from "@/lib/api/api-token";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function requireSessionUserId(): Promise<string> {

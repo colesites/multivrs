@@ -2,10 +2,10 @@
 
 import { useRef } from "react";
 import {
+  gsap,
   revealLines,
   revealUp,
   useGSAP,
-  gsap,
 } from "@/components/marketing/scroll";
 
 type Pillar = {
@@ -59,7 +59,7 @@ export function CapabilitiesSection() {
   const root = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  
+
   // Sticky scroll refs
   const pinWrapperRef = useRef<HTMLDivElement>(null);
   const textsRef = useRef<HTMLDivElement>(null);
@@ -79,7 +79,11 @@ export function CapabilitiesSection() {
       );
 
       // Sticky scroll animation for pillars (Desktop only)
-      if (window.innerWidth >= 768 && pinWrapperRef.current && textsRef.current) {
+      if (
+        window.innerWidth >= 768 &&
+        pinWrapperRef.current &&
+        textsRef.current
+      ) {
         const texts = Array.from(textsRef.current.children);
         const total = PILLARS.length;
 
@@ -205,11 +209,16 @@ export function CapabilitiesSection() {
         ref={pinWrapperRef}
         className="hidden md:flex h-screen w-full relative items-center justify-center pt-0 pb-0"
       >
-        
         {/* Texts container - Centered */}
-        <div ref={textsRef} className="relative w-full max-w-4xl px-6 lg:px-10 h-full flex flex-col justify-center items-center text-center">
+        <div
+          ref={textsRef}
+          className="relative w-full max-w-4xl px-6 lg:px-10 h-full flex flex-col justify-center items-center text-center"
+        >
           {PILLARS.map((pillar) => (
-            <div key={pillar.id} className="absolute inset-0 flex flex-col justify-center items-center pointer-events-none">
+            <div
+              key={pillar.id}
+              className="absolute inset-0 flex flex-col justify-center items-center pointer-events-none"
+            >
               <div className="mb-8 flex flex-col items-center gap-4">
                 <span className="font-mono text-sm tracking-[0.3em] text-white/40">
                   {pillar.index}
@@ -237,7 +246,6 @@ export function CapabilitiesSection() {
           ))}
         </div>
       </div>
-      
     </section>
   );
 }

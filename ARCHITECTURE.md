@@ -356,12 +356,13 @@ What we provision to run all of the above:
 | Customer "connect your own email" | set MX/DKIM DNS → their provider (Google/Zoho). We don't host mailboxes. |
 | Analytics + logs store | **Cloudflare Analytics Engine** or **Tinybird/ClickHouse** |
 | Auth | **Better Auth** (already wired) |
-| CI/build runners | sandboxed workers (Rust `builder-core` + Bun) |
+| CI/build runners | **Cloudflare Queues + Sandbox SDK Containers** (Rust `builder-core` + Bun) |
 
-**Realistic v1:** Cloudflare for the data plane (R2 + Workers + for SaaS +
-Turnstile + WAF), Neon for metadata, Resend for email, and Cloudflare Workers for
-compute — we build the *orchestration* (detect → build → optimize → store →
-alias → serve) on top.
+**Realistic v1:** Cloudflare runs the build and data planes: Queues dispatch
+builds into isolated Sandbox SDK Containers, R2 stores artifacts, and Workers
+serve/execute them. Neon remains the metadata system of record and Resend handles
+transactional email. `apps/web` only validates and enqueues; it never compiles
+untrusted customer repositories inside a Vercel request.
 
 ### 12.1 Starting at $0 (the no-money build)
 
@@ -381,7 +382,7 @@ free plan** instead. Nothing here costs money to start.
 | Email | **Resend** — 3k/mo, 100/day | none |
 | Bot | **Turnstile** | none |
 | Auth | **Better Auth** (self-host) | free |
-| Build/optimize runners | **GitHub Actions** — 2000 min/mo | none |
+| Build/optimize runners | local runner or **GitHub Actions** for development; Cloudflare Sandbox requires Workers Paid for production | Sandbox: yes |
 
 **Why swift-rust is the cheapest target:** `wasm` mode is fully static (free), and
 its Rust core compiles to WASM to run SSR **on Workers** — so swift-rust apps can

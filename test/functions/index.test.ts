@@ -1,6 +1,6 @@
 /**
  * Phase 1 feature test — @multivrs/functions (runtime model).
- * swift-rust runs on bun (default), node, or edge.
+ * Functions can run on the edge or the supported container runtimes.
  */
 import { describe, expect, test } from "bun:test";
 import {
@@ -12,8 +12,8 @@ import {
 } from "@multivrs/functions";
 
 describe("@multivrs/functions runtime model", () => {
-  test("supports bun, node and edge with bun as the default", () => {
-    expect([...RUNTIMES]).toEqual(["bun", "node", "edge"]);
+  test("supports every platform runtime with bun as the default", () => {
+    expect([...RUNTIMES]).toEqual(["bun", "node", "edge", "go", "python", "ruby"]);
     expect(DEFAULT_RUNTIME).toBe("bun");
   });
 

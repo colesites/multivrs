@@ -1,14 +1,22 @@
 import "server-only";
-import { createHmac } from "node:crypto";
 import { ConflictError, NotFoundError } from "@multivrs/error-utils";
-import { z } from "zod";
-import type { connectDomainSchema } from "@/lib/domains/dns.schemas";
+import type { z } from "zod";
+import type {
+  assignDomainProjectSchema,
+  connectDomainSchema,
+} from "@/lib/domains/dns.schemas";
 import type { DomainDetail } from "@/lib/domains/dns.types";
-import { isOpenproviderSandbox } from "@/lib/domains/openprovider-client";
-import { getProviderDns } from "@/lib/domains/openprovider-dns";
+import { setProviderDomainAutoRenew } from "@/lib/domains/openprovider-domain";
 import { prisma } from "@/lib/prisma";
+import {
+  removeDomainCertificate,
+  syncDomainCertificate,
+} from "@/lib/services/domain-certificate.service";
+import { toDomainDetail } from "@/lib/services/domain-record";
+import { hasDomainVerificationRecord } from "@/lib/services/domain-verification.service";
 
 type ConnectDomainInput = z.infer<typeof connectDomainSchema>;
+type AssignDomainProjectInput = z.infer<typeof assignDomainProjectSchema>;
 
 export async function connectDomain(
   userId: string,
@@ -24,7 +32,7 @@ export async function connectDomain(
   });
   if (existing) throw new ConflictError("This domain is already connected");
   const domain = await prisma.domain.create({
-    data: { hostname: input.hostname, projectId: project.id },
+    data: { hostname: input.hostname, projectId: project.id, userId },
     include: { project: { select: { name: true, slug: true, ownerId: true } } },
   });
   return toDomainDetail(domain);
@@ -32,13 +40,19 @@ export async function connectDomain(
 
 export async function getDomainDetail(
   userId: string,
-  domainId: string,
+  domainReference: string,
 ): Promise<DomainDetail> {
-  const domain = await prisma.domain.findUnique({
-    where: { id: domainId },
+  const domain = await prisma.domain.findFirst({
+    where: {
+      userId,
+      OR: [
+        { id: domainReference },
+        { hostname: domainReference.toLowerCase() },
+      ],
+    },
     include: { project: { select: { name: true, slug: true, ownerId: true } } },
   });
-  if (!domain || domain.project.ownerId !== userId) {
+  if (!domain) {
     throw new NotFoundError("Domain not found");
   }
   return toDomainDetail(domain);
@@ -49,7 +63,55 @@ export async function removeDomain(
   domainId: string,
 ): Promise<void> {
   await getDomainDetail(userId, domainId);
+  const domain = await prisma.domain.findUnique({
+    where: { id: domainId },
+    select: { edgeHostnameId: true },
+  });
+  await removeDomainCertificate(domain?.edgeHostnameId);
   await prisma.domain.delete({ where: { id: domainId } });
+}
+
+export async function assignDomainProject(
+  userId: string,
+  domainId: string,
+  input: AssignDomainProjectInput,
+): Promise<DomainDetail> {
+  const [domain, project] = await Promise.all([
+    prisma.domain.findFirst({
+      where: { id: domainId, userId },
+      select: { id: true },
+    }),
+    prisma.project.findFirst({
+      where: { id: input.projectId, ownerId: userId },
+      select: { id: true },
+    }),
+  ]);
+  if (!domain) throw new NotFoundError("Domain not found");
+  if (!project) throw new NotFoundError("Project not found");
+  const updated = await prisma.domain.update({
+    where: { id: domain.id },
+    data: { projectId: project.id },
+    include: { project: { select: { name: true, slug: true, ownerId: true } } },
+  });
+  if (updated.verified) await syncDomainCertificate(updated.id);
+  return getDomainDetail(userId, updated.id);
+}
+
+export async function updateDomainAutoRenew(
+  userId: string,
+  domainId: string,
+  autoRenew: boolean,
+): Promise<DomainDetail> {
+  const domain = await getDomainDetail(userId, domainId);
+  if (domain.managed) {
+    await setProviderDomainAutoRenew(domain.hostname, autoRenew);
+  }
+  const updated = await prisma.domain.update({
+    where: { id: domain.id },
+    data: { autoRenew },
+    include: { project: { select: { name: true, slug: true, ownerId: true } } },
+  });
+  return toDomainDetail(updated);
 }
 
 export async function markDomainVerified(
@@ -57,86 +119,20 @@ export async function markDomainVerified(
   domainId: string,
 ): Promise<boolean> {
   const domain = await getDomainDetail(userId, domainId);
-  const verified = isOpenproviderSandbox()
-    ? await hasSandboxVerificationRecord(domain)
-    : await hasPublicVerificationRecord(domain);
+  const verified = await hasDomainVerificationRecord(domain);
   if (verified) {
     await prisma.domain.update({
       where: { id: domainId },
       data: { verified: true },
     });
+    try {
+      await syncDomainCertificate(domainId);
+    } catch {
+      await prisma.domain.update({
+        where: { id: domainId },
+        data: { certStatus: "error" },
+      });
+    }
   }
   return verified;
-}
-
-async function hasSandboxVerificationRecord(
-  domain: DomainDetail,
-): Promise<boolean> {
-  const overview = await getProviderDns(domain.hostname);
-  return overview.records.some(
-    (record) =>
-      record.type === "TXT" &&
-      record.name === domain.verificationName &&
-      record.value.includes(domain.verificationValue),
-  );
-}
-
-async function hasPublicVerificationRecord(
-  domain: DomainDetail,
-): Promise<boolean> {
-  const answers = await lookupTxt(domain.verificationName);
-  return answers.some((answer) =>
-    answer.replace(/^"|"$/g, "").includes(domain.verificationValue),
-  );
-}
-
-function toDomainDetail(domain: {
-  id: string;
-  hostname: string;
-  projectId: string;
-  verified: boolean;
-  certStatus: string;
-  project: { name: string; slug: string; ownerId: string };
-}): DomainDetail {
-  const verificationName = `_multivrs.${domain.hostname}`;
-  return {
-    id: domain.id,
-    hostname: domain.hostname,
-    projectId: domain.projectId,
-    projectName: domain.project.name,
-    projectSlug: domain.project.slug,
-    verified: domain.verified,
-    certStatus: domain.certStatus,
-    verificationName,
-    verificationValue: verificationValue(domain.id, domain.hostname),
-  };
-}
-
-function verificationValue(domainId: string, hostname: string): string {
-  const secret = process.env.BETTER_AUTH_SECRET;
-  if (!secret) throw new Error("BETTER_AUTH_SECRET is required");
-  const signature = createHmac("sha256", secret)
-    .update(`${domainId}:${hostname}`)
-    .digest("hex")
-    .slice(0, 32);
-  return `multivrs-domain-verification=${signature}`;
-}
-
-const dnsAnswerSchema = z.object({
-  Answer: z
-    .array(z.object({ data: z.string() }))
-    .optional()
-    .default([]),
-});
-
-async function lookupTxt(hostname: string): Promise<string[]> {
-  const query = new URLSearchParams({ name: hostname, type: "TXT" });
-  const response = await fetch(
-    `https://cloudflare-dns.com/dns-query?${query}`,
-    { headers: { accept: "application/dns-json" }, cache: "no-store" },
-  );
-  if (!response.ok) return [];
-  return dnsAnswerSchema
-    .parse(await response.json())
-    .Answer.map((answer) => answer.data);
 }

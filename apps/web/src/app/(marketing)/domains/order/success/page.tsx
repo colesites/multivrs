@@ -1,6 +1,7 @@
 import { CircleCheck, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ClearPurchasedDomainCart } from "@/features/domains/ClearPurchasedDomainCart";
 import { fulfillDomainCheckout } from "@/lib/services/domain-fulfillment.service";
 
 interface SuccessPageProps {
@@ -17,25 +18,40 @@ export default async function DomainOrderSuccessPage({
       <section className="w-full max-w-lg border border-white/10 bg-white/[0.025] p-8">
         {result.ok ? (
           <>
+            <ClearPurchasedDomainCart />
             <CircleCheck className="size-10 text-emerald-300" />
             <h1 className="mt-5 font-clash text-3xl font-semibold">
-              {result.value.hostname} is yours
+              {result.value.length === 1
+                ? `${result.value[0]?.hostname} is yours`
+                : `${result.value.length} domains are yours`}
             </h1>
             <p className="mt-3 text-sm leading-6 text-white/50">
               Payment was confirmed and registration completed. Configure its
               DNS records from the domain dashboard.
             </p>
-            <Button
-              className="mt-7"
-              render={
-                <Link
-                  href={`/${result.value.username}/${result.value.projectSlug}/domains/${result.value.domainId}`}
-                />
-              }
-              nativeButton={false}
-            >
-              Configure DNS
-            </Button>
+            {result.value.length === 1 ? (
+              <Button
+                className="mt-7"
+                render={
+                  <Link
+                    href={`/${result.value[0]?.username}/~/domains/${result.value[0]?.hostname}`}
+                  />
+                }
+                nativeButton={false}
+              >
+                Configure DNS
+              </Button>
+            ) : (
+              <Button
+                className="mt-7"
+                render={
+                  <Link href={`/${result.value[0]?.username}/~/domains`} />
+                }
+                nativeButton={false}
+              >
+                Manage domains
+              </Button>
+            )}
           </>
         ) : (
           <>

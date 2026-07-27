@@ -12,10 +12,11 @@ export const domainSearchResultSchema = z.object({
 
 export const savedDomainsSchema = z.array(domainSearchResultSchema);
 
-export function parseStoredDomain(
-  value: string | null,
-): DomainSearchResult | null {
-  return parseStoredValue(value, domainSearchResultSchema) ?? null;
+export function parseStoredCart(value: string | null): DomainSearchResult[] {
+  const items = parseStoredValue(value, savedDomainsSchema);
+  if (items) return items;
+  const legacyItem = parseStoredValue(value, domainSearchResultSchema);
+  return legacyItem ? [legacyItem] : [];
 }
 
 export function parseStoredDomains(value: string | null): DomainSearchResult[] {
@@ -34,4 +35,19 @@ function parseStoredValue<T>(
   } catch {
     return undefined;
   }
+}
+
+export function readDomainApiError(body: unknown): string {
+  if (
+    body &&
+    typeof body === "object" &&
+    "error" in body &&
+    body.error &&
+    typeof body.error === "object" &&
+    "message" in body.error &&
+    typeof body.error.message === "string"
+  ) {
+    return body.error.message;
+  }
+  return "Unable to update saved domains";
 }

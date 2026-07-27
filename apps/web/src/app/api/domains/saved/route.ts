@@ -1,8 +1,11 @@
-import { headers } from "next/headers";
+import { isMultivrsError } from "@multivrs/error-utils";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { domainSearchResultSchema } from "@/features/domains/domain-commerce.schemas";
-import { auth } from "@/lib/auth";
+import { parseBody } from "@/lib/api/parse-body";
+import { fail, ok } from "@/lib/api/respond";
+import { requireUserId } from "@/lib/api/session";
 import {
   listSavedDomains,
   removeSavedDomain,
@@ -10,53 +13,49 @@ import {
 } from "@/lib/services/saved-domain.service";
 
 const removeSavedDomainSchema = z.object({
-  hostname: z.string().trim().min(3).max(253),
+  hostname: z.string().trim().toLowerCase().min(3).max(253),
 });
 
 export async function GET() {
-  const userId = await authenticatedUserId();
-  if (!userId) return unauthorized();
-  return NextResponse.json({ domains: await listSavedDomains(userId) });
-}
-
-export async function POST(request: Request) {
-  const userId = await authenticatedUserId();
-  if (!userId) return unauthorized();
-  const parsed = domainSearchResultSchema.safeParse(await readJson(request));
-  if (!parsed.success || !parsed.data.available) {
-    return NextResponse.json({ error: "Invalid domain" }, { status: 400 });
-  }
-  await saveDomain(userId, parsed.data);
-  return NextResponse.json({ saved: true });
-}
-
-export async function DELETE(request: Request) {
-  const userId = await authenticatedUserId();
-  if (!userId) return unauthorized();
-  const parsed = removeSavedDomainSchema.safeParse(await readJson(request));
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid domain" }, { status: 400 });
-  }
-  await removeSavedDomain(userId, parsed.data.hostname);
-  return NextResponse.json({ removed: true });
-}
-
-async function authenticatedUserId(): Promise<string | null> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  return session?.user.id ?? null;
-}
-
-function unauthorized() {
-  return NextResponse.json(
-    { error: "Authentication required" },
-    { status: 401 },
-  );
-}
-
-async function readJson(request: Request): Promise<unknown> {
   try {
-    return await request.json();
-  } catch {
-    return null;
+    return ok({ domains: await listSavedDomains(await requireUserId()) });
+  } catch (error) {
+    return savedDomainFailure(error);
   }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const userId = await requireUserId();
+    const input = await parseBody(request, domainSearchResultSchema);
+    if (!input.available) {
+      return ok({ saved: false, reason: "Domain is unavailable" }, 409);
+    }
+    await saveDomain(userId, input);
+    return ok({ saved: true }, 201);
+  } catch (error) {
+    return savedDomainFailure(error);
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const userId = await requireUserId();
+    const input = await parseBody(request, removeSavedDomainSchema);
+    await removeSavedDomain(userId, input.hostname);
+    return ok({ removed: true });
+  } catch (error) {
+    return savedDomainFailure(error);
+  }
+}
+
+function savedDomainFailure(error: unknown) {
+  if (isMultivrsError(error)) return fail(error);
+  if (process.env.NODE_ENV === "development" && error instanceof Error) {
+    return NextResponse.json(
+      { error: { code: "saved_domain_error", message: error.message } },
+      { status: 500 },
+    );
+  }
+  return fail(error);
 }

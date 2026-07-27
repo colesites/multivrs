@@ -1,8 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  resolveRequest,
-  selectAssetVariant,
-} from "../../apps/serve-worker/src/resolve";
+import { resolveRequest, selectAssetVariant } from "../../apps/serve-worker/src/resolve";
 import type { ArtifactManifest } from "../../apps/serve-worker/src/types";
 
 const manifest: ArtifactManifest = {

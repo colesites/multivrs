@@ -22,7 +22,7 @@ export function StarCard({
   return (
     <Link
       href={href}
-      className="group relative overflow-hidden rounded-[24px] border border-white/6 bg-background p-0 flex flex-col transition-all duration-500 hover:border-white/12 hover:scale-[1.02] card-grain inner-glow"
+      className="group card-grain inner-glow relative flex flex-col overflow-hidden rounded-[24px] border border-white/6 bg-background p-0 transition-[border-color,transform] duration-500 hover:scale-[1.02] hover:border-white/12"
       style={
         {
           "--glow-color": glowColor,
@@ -49,7 +49,7 @@ export function StarCard({
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/6 transition-all duration-500 group-hover:scale-110 group-hover:border-white/12"
+              className="flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/6 transition-[border-color,transform] duration-500 group-hover:scale-110 group-hover:border-white/12"
               style={{ backgroundColor: `${accentColor}10` }}
             >
               <Icon className="h-4.5 w-4.5 text-foreground/70 group-hover:text-foreground transition-colors" />
@@ -63,7 +63,7 @@ export function StarCard({
               </h4>
             </div>
           </div>
-          <ArrowUpRight className="h-4 w-4 text-muted-foreground/20 group-hover:text-foreground/60 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          <ArrowUpRight className="h-4 w-4 text-muted-foreground/20 transition-[color,transform] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground/60" />
         </div>
 
         {/* Metric */}

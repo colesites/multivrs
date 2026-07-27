@@ -1,4 +1,5 @@
 import type { ArtifactManifest, ResolvedRequest } from "./types";
+import { matchesRoute } from "./wasm-matcher";
 
 function candidates(pathname: string, staticDir = "."): string[] {
   const path = pathname.replace(/^\/+/, "");
@@ -12,17 +13,6 @@ function candidates(pathname: string, staticDir = "."): string[] {
     : [`${prefix}${path}`, `${prefix}${path}.html`, `${prefix}${path}/index.html`];
 }
 
-function matches(pattern: string, pathname: string): boolean {
-  if (pattern === pathname) {
-    return true;
-  }
-  try {
-    return new RegExp(`^(?:${pattern})$`).test(pathname);
-  } catch {
-    return false;
-  }
-}
-
 export function resolveRequest(
   manifest: ArtifactManifest,
   pathname: string,
@@ -34,7 +24,7 @@ export function resolveRequest(
       return { type: "static", file };
     }
   }
-  const route = manifest.output?.routes.find((item) => matches(item.src, pathname));
+  const route = manifest.output?.routes.find((item) => matchesRoute(item.src, pathname));
   const target = route?.target;
   if (target?.type === "function") {
     const fn = manifest.output?.functions.find((item) => item.name === target.function);

@@ -9,13 +9,11 @@ import {
 import Link from "next/link";
 import { MultivrsMark } from "@/components/brand/Logo";
 import type { NavColumn } from "@/components/nav/navigation";
+import SpecularButton from "@/components/SpecularButton";
 import {
   FOOTER_GROUPS_PRIMARY,
   FOOTER_GROUPS_SECONDARY,
 } from "@/lib/marketing/footer";
-import Image from "next/image";
-
-import SpecularButton from "@/components/SpecularButton";
 
 /**
  * Site footer, modeled on Vercel's: a split "for humans / for agents" call to

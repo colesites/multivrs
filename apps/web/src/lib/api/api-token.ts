@@ -15,5 +15,7 @@ export function tokenHint(token: string): string {
 }
 
 export function isApiToken(token: string): boolean {
-  return token.startsWith(TOKEN_PREFIX) && token.length > TOKEN_PREFIX.length + 32;
+  return (
+    token.startsWith(TOKEN_PREFIX) && token.length > TOKEN_PREFIX.length + 32
+  );
 }

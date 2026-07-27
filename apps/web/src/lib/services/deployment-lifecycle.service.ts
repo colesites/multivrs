@@ -3,6 +3,7 @@ import type { Deployment } from "@multivrs/client";
 import { ConflictError } from "@multivrs/error-utils";
 import { prisma } from "@/lib/prisma";
 import { getDeployment, toDeployment } from "@/lib/services/deployment.service";
+import { notifyDeploymentStatus } from "@/lib/services/deployment-notification.service";
 
 export async function markDeploymentBuilding(
   ownerId: string,
@@ -43,6 +44,7 @@ export async function markDeploymentReady(
     }
     return deployment;
   });
+  await notifyDeploymentStatus(ownerId, projectId, deploymentId, "ready");
   return toDeployment(row);
 }
 
@@ -61,6 +63,7 @@ export async function markDeploymentError(
       errorMessage: message ?? null,
     },
   });
+  await notifyDeploymentStatus(ownerId, projectId, deploymentId, "error");
   return toDeployment(row);
 }
 
@@ -93,5 +96,8 @@ export async function transitionDeployment(
       errorMessage: status === "error" ? (message ?? null) : undefined,
     },
   });
+  if (terminal) {
+    await notifyDeploymentStatus(ownerId, projectId, deploymentId, status);
+  }
   return toDeployment(row);
 }

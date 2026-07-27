@@ -75,9 +75,8 @@ describe("domain marketplace", () => {
   test("requires explicit confirmation for sandbox registration", () => {
     const order = {
       hostname: "hello.com",
-      projectId: "a9dca88a-0c1a-4dfa-8bb8-b79b9b65a0ab",
     };
-    expect(domainCheckoutSchema.safeParse(order).success).toBe(true);
+    expect(domainCheckoutSchema.safeParse({ hostnames: [order.hostname] }).success).toBe(true);
     expect(sandboxDomainOrderSchema.safeParse(order).success).toBe(false);
     expect(
       sandboxDomainOrderSchema.safeParse({

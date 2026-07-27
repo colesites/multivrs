@@ -1,5 +1,5 @@
-import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
-import { useEffect, useRef } from 'react';
+import { Color, Mesh, Program, Renderer, Triangle } from "ogl";
+import { useEffect, useRef } from "react";
 
 const vertexShader = `
 attribute vec2 uv;
@@ -218,7 +218,7 @@ export default function Galaxy({
     const ctn = ctnDom.current;
     const renderer = new Renderer({
       alpha: transparent,
-      premultipliedAlpha: false
+      premultipliedAlpha: false,
     });
     const gl = renderer.gl;
 
@@ -239,11 +239,11 @@ export default function Galaxy({
         program.uniforms.uResolution.value = new Color(
           gl.canvas.width,
           gl.canvas.height,
-          gl.canvas.width / gl.canvas.height
+          gl.canvas.width / gl.canvas.height,
         );
       }
     }
-    window.addEventListener('resize', resize, false);
+    window.addEventListener("resize", resize, false);
     resize();
 
     const geometry = new Triangle(gl);
@@ -253,7 +253,11 @@ export default function Galaxy({
       uniforms: {
         uTime: { value: 0 },
         uResolution: {
-          value: new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height)
+          value: new Color(
+            gl.canvas.width,
+            gl.canvas.height,
+            gl.canvas.width / gl.canvas.height,
+          ),
         },
         uFocal: { value: new Float32Array(focal) },
         uRotation: { value: new Float32Array(rotation) },
@@ -262,7 +266,10 @@ export default function Galaxy({
         uHueShift: { value: hueShift },
         uSpeed: { value: speed },
         uMouse: {
-          value: new Float32Array([smoothMousePos.current.x, smoothMousePos.current.y])
+          value: new Float32Array([
+            smoothMousePos.current.x,
+            smoothMousePos.current.y,
+          ]),
         },
         uGlowIntensity: { value: glowIntensity },
         uSaturation: { value: saturation },
@@ -272,8 +279,8 @@ export default function Galaxy({
         uRepulsionStrength: { value: repulsionStrength },
         uMouseActiveFactor: { value: 0.0 },
         uAutoCenterRepulsion: { value: autoCenterRepulsion },
-        uTransparent: { value: transparent }
-      }
+        uTransparent: { value: transparent },
+      },
     });
 
     const mesh = new Mesh(gl, { geometry, program });
@@ -287,10 +294,13 @@ export default function Galaxy({
       }
 
       const lerpFactor = 0.05;
-      smoothMousePos.current.x += (targetMousePos.current.x - smoothMousePos.current.x) * lerpFactor;
-      smoothMousePos.current.y += (targetMousePos.current.y - smoothMousePos.current.y) * lerpFactor;
+      smoothMousePos.current.x +=
+        (targetMousePos.current.x - smoothMousePos.current.x) * lerpFactor;
+      smoothMousePos.current.y +=
+        (targetMousePos.current.y - smoothMousePos.current.y) * lerpFactor;
 
-      smoothMouseActive.current += (targetMouseActive.current - smoothMouseActive.current) * lerpFactor;
+      smoothMouseActive.current +=
+        (targetMouseActive.current - smoothMouseActive.current) * lerpFactor;
 
       program.uniforms.uMouse.value[0] = smoothMousePos.current.x;
       program.uniforms.uMouse.value[1] = smoothMousePos.current.y;
@@ -314,19 +324,19 @@ export default function Galaxy({
     }
 
     if (mouseInteraction) {
-      ctn.addEventListener('mousemove', handleMouseMove);
-      ctn.addEventListener('mouseleave', handleMouseLeave);
+      ctn.addEventListener("mousemove", handleMouseMove);
+      ctn.addEventListener("mouseleave", handleMouseLeave);
     }
 
     return () => {
       cancelAnimationFrame(animateId);
-      window.removeEventListener('resize', resize);
+      window.removeEventListener("resize", resize);
       if (mouseInteraction) {
-        ctn.removeEventListener('mousemove', handleMouseMove);
-        ctn.removeEventListener('mouseleave', handleMouseLeave);
+        ctn.removeEventListener("mousemove", handleMouseMove);
+        ctn.removeEventListener("mouseleave", handleMouseLeave);
       }
       ctn.removeChild(gl.canvas);
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
   }, [
     focal,
@@ -344,7 +354,7 @@ export default function Galaxy({
     rotationSpeed,
     repulsionStrength,
     autoCenterRepulsion,
-    transparent
+    transparent,
   ]);
 
   return <div ref={ctnDom} className="w-full h-full relative" {...rest} />;

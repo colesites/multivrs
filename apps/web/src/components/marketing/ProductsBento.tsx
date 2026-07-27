@@ -1,11 +1,16 @@
 "use client";
 
-import { useRef } from "react";
-import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
-import { revealLines, revealUp, useGSAP, gsap, ScrollTrigger } from "@/components/marketing/scroll";
-import { PRODUCTS, type Product } from "@/lib/marketing/products";
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { useRef } from "react";
+import {
+  gsap,
+  revealLines,
+  revealUp,
+  ScrollTrigger,
+  useGSAP,
+} from "@/components/marketing/scroll";
+import { PRODUCTS } from "@/lib/marketing/products";
 
 export function ProductsBento() {
   const root = useRef<HTMLElement>(null);
@@ -34,7 +39,7 @@ export function ProductsBento() {
           const wrapperWidth = cardsRef.current?.offsetWidth || 0;
           const viewportWidth = window.innerWidth;
           // Ensure we only scroll enough to see the end of the cards
-          return -(wrapperWidth - viewportWidth); 
+          return -(wrapperWidth - viewportWidth);
         };
 
         const tween = gsap.to(cardsRef.current, {
@@ -85,14 +90,17 @@ export function ProductsBento() {
         </p>
       </div>
 
-      <div ref={galleryRef} className="h-screen w-full flex items-center overflow-hidden">
-        <div 
-          ref={cardsRef} 
+      <div
+        ref={galleryRef}
+        className="h-screen w-full flex items-center overflow-hidden"
+      >
+        <div
+          ref={cardsRef}
           className="flex w-max h-full items-center pl-10 lg:pl-40 pr-[50vw] gap-10"
           style={{ perspective: "1000px" }}
         >
           {PRODUCTS.map((product) => (
-            <div 
+            <div
               key={product.name}
               className="flex-shrink-0 w-[85vw] max-w-[600px] aspect-[4/5] relative rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl overflow-hidden p-10 flex flex-col justify-between group transition-colors hover:border-white/20"
               style={{ transformStyle: "preserve-3d" }}
@@ -111,8 +119,8 @@ export function ProductsBento() {
               </div>
 
               {/* Minimalist Tech Ring representation instead of mouse planet */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-white/5 rounded-full pointer-events-none opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000 ease-out" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-white/10 rounded-full pointer-events-none opacity-50 group-hover:opacity-100 group-hover:-rotate-90 transition-all duration-1000 ease-out border-t-transparent" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-white/5 rounded-full pointer-events-none opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-[opacity,transform] duration-1000 ease-out" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-white/10 rounded-full pointer-events-none opacity-50 group-hover:opacity-100 group-hover:-rotate-90 transition-[opacity,transform] duration-1000 ease-out border-t-transparent" />
 
               <div className="mt-auto">
                 <Link

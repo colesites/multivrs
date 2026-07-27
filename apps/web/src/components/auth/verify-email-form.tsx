@@ -27,24 +27,26 @@ export function VerifyEmailForm() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
 
-  const verify = async (code: string) => {
+  const verify = (code: string) => {
     if (!email) {
       toast.error("Missing email address. Please sign in again.");
       return;
     }
+    if (isVerifying) return;
     setIsVerifying(true);
-    const { error } = await authClient.emailOtp.verifyEmail({
-      email,
-      otp: code,
-    });
-    if (error) {
-      toast.error(error.message || "Invalid or expired code. Try again.");
-      setOtp("");
-      setIsVerifying(false);
-      return;
-    }
-    toast.success("Email verified.");
-    router.push("/dashboard");
+    void authClient.emailOtp
+      .verifyEmail({ email, otp: code })
+      .then(({ error }) => {
+        if (error) {
+          toast.error(error.message || "Invalid or expired code. Try again.");
+          setOtp("");
+          return;
+        }
+        toast.success("Email verified.");
+        router.push("/dashboard");
+      })
+      .catch(() => toast.error("Email verification failed. Try again."))
+      .finally(() => setIsVerifying(false));
   };
 
   const handleChange = (value: string) => {
@@ -54,22 +56,24 @@ export function VerifyEmailForm() {
     }
   };
 
-  const handleResend = async () => {
+  const handleResend = () => {
     if (!email) {
       toast.error("Missing email address. Please sign in again.");
       return;
     }
+    if (isResending) return;
     setIsResending(true);
-    const { error } = await authClient.emailOtp.sendVerificationOtp({
-      email,
-      type: "email-verification",
-    });
-    setIsResending(false);
-    if (error) {
-      toast.error(error.message || "Could not resend the code.");
-      return;
-    }
-    toast.success("A new code is on its way.");
+    void authClient.emailOtp
+      .sendVerificationOtp({ email, type: "email-verification" })
+      .then(({ error }) => {
+        if (error) {
+          toast.error(error.message || "Could not resend the code.");
+          return;
+        }
+        toast.success("A new code is on its way.");
+      })
+      .catch(() => toast.error("Could not resend the code."))
+      .finally(() => setIsResending(false));
   };
 
   return (

@@ -1,11 +1,13 @@
 "use client";
 
 import { Bell, MoreHorizontal } from "lucide-react";
+import Image from "next/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { DashboardNotification } from "@/features/dashboard/types/notification.types";
 import { AccountMenu } from "./AccountMenu";
 import { NotificationsPanel } from "./NotificationsPanel";
 
@@ -13,18 +15,26 @@ interface SidebarFooterProps {
   name: string;
   email: string;
   image?: string | null;
+  notifications: DashboardNotification[];
 }
 
-export function SidebarFooter({ name, email, image }: SidebarFooterProps) {
+export function SidebarFooter({
+  name,
+  email,
+  image,
+  notifications,
+}: SidebarFooterProps) {
   const initial = (name?.[0] ?? "U").toUpperCase();
 
   return (
     <div className="flex items-center gap-2 border-t border-[var(--hairline)] px-4 py-3">
       {image ? (
-        // biome-ignore lint/performance/noImgElement: small avatar, remote provider URL
-        <img
+        <Image
           src={image}
           alt=""
+          height={28}
+          unoptimized
+          width={28}
           className="size-7 shrink-0 rounded-full border border-[var(--hairline-strong)] object-cover"
         />
       ) : (
@@ -59,7 +69,9 @@ export function SidebarFooter({ name, email, image }: SidebarFooterProps) {
           className="relative flex size-8 items-center justify-center rounded-full border border-[var(--hairline)] text-muted-foreground transition-colors hover:border-[var(--hairline-strong)] hover:text-foreground"
         >
           <Bell className="size-4" strokeWidth={1.75} />
-          <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-accent ring-2 ring-[var(--ink)]" />
+          {notifications.some((item) => !item.read) ? (
+            <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-accent ring-2 ring-[var(--ink)]" />
+          ) : null}
         </DropdownMenuTrigger>
         <DropdownMenuContent
           side="top"
@@ -67,7 +79,7 @@ export function SidebarFooter({ name, email, image }: SidebarFooterProps) {
           sideOffset={10}
           className="w-[340px] overflow-hidden rounded-2xl p-0 font-hanken dashboard-surface"
         >
-          <NotificationsPanel />
+          <NotificationsPanel initialNotifications={notifications} />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

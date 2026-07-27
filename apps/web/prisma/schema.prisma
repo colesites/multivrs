@@ -18,13 +18,39 @@ model User {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  sessions      Session[]
-  accounts      Account[]
-  projects      Project[]
-  apiTokens     ApiToken[]
-  domainOrders  DomainOrder[]
-  savedDomains  SavedDomain[]
-  subscriptions BillingSubscription[]
+  sessions             Session[]
+  accounts             Account[]
+  projects             Project[]
+  domains              Domain[]
+  apiTokens            ApiToken[]
+  domainOrders         DomainOrder[]
+  savedDomains         SavedDomain[]
+  subscriptions        BillingSubscription[]
+  emailRoutes          EmailRoute[]
+  notifications        Notification[]
+  auditEvents          AuditEvent[]
+  mailDomains          MailDomain[]
+  mailboxes            Mailbox[]
+  mailboxMemberships   MailboxMember[]
+  mailThreads          MailThread[]          @relation("MailThreadOwner")
+  assignedMailThreads  MailThread[]          @relation("MailThreadAssignee")
+  mailMessages         MailMessage[]
+  mailAliases          MailAlias[]
+  mailContacts         MailContact[]
+  mailAudiences        MailAudience[]
+  mailSuppressions     MailSuppression[]
+  mailTemplates        MailTemplate[]
+  mailBroadcasts       MailBroadcast[]
+  mailAutomations      MailAutomation[]
+  mailCredentials      MailCredential[]
+  mailWebhooks         MailWebhookEndpoint[]
+  mailInternalNotes    MailInternalNote[]
+  mailThreadActivities MailThreadActivity[]
+  mailLabels           MailLabel[]
+  mailEvents           MailEvent[]
+  mailRoutingRules     MailRoutingRule[]
+  mailSavedReplies     MailSavedReply[]
+  mailIdempotencyKeys  MailIdempotency[]
 
   @@index([email])
   @@index([username])
@@ -105,7 +131,7 @@ model Verification {
 model Project {
   id                     String   @id @default(uuid())
   name                   String
-  slug                   String   @unique
+  slug                   String
   framework              String? // "nextjs" | "swift-rust" | "vite" | "static" | null (auto)
   ownerId                String
   // The production alias pointer: which deployment production serves.
@@ -113,12 +139,25 @@ model Project {
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
-  owner                User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  deployments          Deployment[]  @relation("ProjectDeployments")
-  productionDeployment Deployment?   @relation("ProductionDeployment", fields: [productionDeploymentId], references: [id], onDelete: SetNull)
+  owner                User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  deployments          Deployment[]          @relation("ProjectDeployments")
+  productionDeployment Deployment?           @relation("ProductionDeployment", fields: [productionDeploymentId], references: [id], onDelete: SetNull)
   domains              Domain[]
   domainOrders         DomainOrder[]
+  edgeSettings         ProjectEdgeSettings?
+  environmentVariables EnvironmentVariable[]
+  firewallRules        FirewallRule[]
+  emailRoutes          EmailRoute[]
+  auditEvents          AuditEvent[]
+  mailDomains          MailDomain[]
+  mailboxes            Mailbox[]
+  mailTemplates        MailTemplate[]
+  mailBroadcasts       MailBroadcast[]
+  mailAutomations      MailAutomation[]
+  mailCredentials      MailCredential[]
+  mailWebhooks         MailWebhookEndpoint[]
 
+  @@unique([ownerId, slug])
   @@index([ownerId])
   @@map("projects")
 }
@@ -161,18 +200,28 @@ model DeploymentLog {
   @@map("deployment_logs")
 }
 
-// Domain model - a hostname aliased to a project (TLS/verification state)
+// Domain model - an account-owned hostname that can optionally connect to a project.
 model Domain {
-  id         String   @id @default(uuid())
-  projectId  String
-  hostname   String   @unique
-  verified   Boolean  @default(false)
-  certStatus String   @default("pending") // pending|active|error
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                    String    @id @default(uuid())
+  userId                String
+  projectId             String?
+  hostname              String    @unique
+  managed               Boolean   @default(false)
+  autoRenew             Boolean   @default(false)
+  expiresAt             DateTime?
+  providerDomainId      String?
+  verified              Boolean   @default(false)
+  certStatus            String    @default("pending") // pending|active|error
+  edgeHostnameId        String?   @unique
+  certVerificationName  String?
+  certVerificationValue String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
+  @@index([userId, createdAt])
   @@index([projectId])
   @@map("domains")
 }
@@ -180,7 +229,7 @@ model Domain {
 model DomainOrder {
   id               String   @id @default(uuid())
   userId           String
-  projectId        String
+  projectId        String?
   hostname         String
   amount           Int
   currency         String
@@ -191,8 +240,8 @@ model DomainOrder {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([hostname, status])
@@ -245,4 +294,667 @@ model StripeWebhookEvent {
   processedAt DateTime @default(now())
 
   @@map("stripe_webhook_events")
+}
+
+model ProjectEdgeSettings {
+  projectId            String   @id
+  cacheMode            String   @default("smart") // smart|bypass|aggressive
+  browserTtl           Int      @default(0)
+  edgeTtl              Int      @default(3600)
+  analyticsEnabled     Boolean  @default(true)
+  speedInsightsEnabled Boolean  @default(true)
+  attackMode           Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_edge_settings")
+}
+
+model FirewallRule {
+  id         String   @id @default(uuid())
+  projectId  String
+  name       String
+  action     String
+  conditions Json
+  enabled    Boolean  @default(true)
+  priority   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, priority])
+  @@map("firewall_rules")
+}
+
+model EnvironmentVariable {
+  id             String   @id @default(uuid())
+  projectId      String
+  key            String
+  encryptedValue String   @db.Text
+  iv             String
+  authTag        String
+  targets        String[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, key])
+  @@index([projectId, createdAt])
+  @@map("environment_variables")
+}
+
+model EmailRoute {
+  id             String   @id @default(uuid())
+  userId         String
+  projectId      String?
+  source         String
+  destination    String
+  enabled        Boolean  @default(true)
+  providerRuleId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, source])
+  @@index([projectId, createdAt])
+  @@map("email_routes")
+}
+
+model Notification {
+  id         String    @id @default(uuid())
+  userId     String
+  type       String
+  title      String
+  message    String
+  href       String?
+  readAt     DateTime?
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, archivedAt, createdAt])
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model AuditEvent {
+  id         String   @id @default(uuid())
+  userId     String
+  projectId  String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([projectId, createdAt])
+  @@map("audit_events")
+}
+
+model MailDomain {
+  id                    String    @id @default(uuid())
+  userId                String
+  projectId             String?
+  domain                String
+  kind                  String    @default("sending")
+  status                String    @default("pending")
+  region                String    @default("auto")
+  provider              String?
+  providerDomainId      String?
+  verificationCheckedAt DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project    Project?          @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  dnsRecords MailDnsRecord[]
+  mailboxes  Mailbox[]
+  aliases    MailAlias[]
+  rules      MailRoutingRule[]
+
+  @@unique([userId, domain])
+  @@index([userId, status])
+  @@index([projectId])
+  @@map("mail_domains")
+}
+
+model MailDnsRecord {
+  id        String   @id @default(uuid())
+  domainId  String
+  purpose   String
+  type      String
+  name      String
+  value     String   @db.Text
+  priority  Int?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  domain MailDomain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  @@unique([domainId, purpose, name])
+  @@index([domainId, status])
+  @@map("mail_dns_records")
+}
+
+model Mailbox {
+  id        String   @id @default(uuid())
+  userId    String
+  projectId String?
+  domainId  String?
+  address   String
+  name      String
+  kind      String   @default("personal")
+  status    String   @default("active")
+  signature String?  @db.Text
+  catchAll  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project      Project?          @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  domain       MailDomain?       @relation(fields: [domainId], references: [id], onDelete: SetNull)
+  members      MailboxMember[]
+  aliases      MailAlias[]
+  threads      MailThread[]
+  messages     MailMessage[]
+  rules        MailRoutingRule[]
+  savedReplies MailSavedReply[]
+
+  @@unique([userId, address])
+  @@index([projectId])
+  @@index([domainId])
+  @@map("mailboxes")
+}
+
+model MailboxMember {
+  id        String   @id @default(uuid())
+  mailboxId String
+  userId    String
+  role      String   @default("agent")
+  createdAt DateTime @default(now())
+
+  mailbox Mailbox @relation(fields: [mailboxId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([mailboxId, userId])
+  @@index([userId])
+  @@map("mailbox_members")
+}
+
+model MailAlias {
+  id          String   @id @default(uuid())
+  userId      String
+  domainId    String?
+  mailboxId   String?
+  address     String
+  destination String
+  kind        String   @default("alias")
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domain  MailDomain? @relation(fields: [domainId], references: [id], onDelete: SetNull)
+  mailbox Mailbox?    @relation(fields: [mailboxId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, address])
+  @@index([mailboxId])
+  @@map("mail_aliases")
+}
+
+model MailThread {
+  id                String    @id @default(uuid())
+  userId            String
+  mailboxId         String
+  subject           String
+  normalizedSubject String
+  status            String    @default("open")
+  assignedToId      String?
+  replyingUserId    String?
+  replyingSince     DateTime?
+  snoozedUntil      DateTime?
+  lastMessageAt     DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user       User                 @relation("MailThreadOwner", fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo User?                @relation("MailThreadAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  mailbox    Mailbox              @relation(fields: [mailboxId], references: [id], onDelete: Cascade)
+  messages   MailMessage[]
+  notes      MailInternalNote[]
+  activities MailThreadActivity[]
+
+  @@index([userId, mailboxId, lastMessageAt])
+  @@index([assignedToId, status])
+  @@map("mail_threads")
+}
+
+model MailMessage {
+  id                  String    @id @default(uuid())
+  userId              String
+  mailboxId           String
+  threadId            String
+  providerMessageId   String?
+  messageId           String
+  inReplyTo           String?
+  references          String[]
+  direction           String
+  status              String    @default("queued")
+  folder              String    @default("inbox")
+  fromName            String?
+  fromAddress         String
+  toAddresses         String[]
+  ccAddresses         String[]
+  bccAddresses        String[]
+  replyTo             String?
+  subject             String
+  textBody            String?   @db.Text
+  htmlBody            String?   @db.Text
+  sanitizedHtml       String?   @db.Text
+  headers             Json?
+  tags                Json?
+  rawMimeKey          String?
+  hasAttachments      Boolean   @default(false)
+  isRead              Boolean   @default(false)
+  isStarred           Boolean   @default(false)
+  remoteImagesBlocked Boolean   @default(true)
+  scheduledAt         DateTime?
+  sentAt              DateTime?
+  receivedAt          DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mailbox     Mailbox            @relation(fields: [mailboxId], references: [id], onDelete: Cascade)
+  thread      MailThread         @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  attachments MailAttachment[]
+  labels      MailMessageLabel[]
+  events      MailEvent[]
+
+  @@unique([userId, messageId])
+  @@index([userId, mailboxId, folder, createdAt])
+  @@index([threadId, createdAt])
+  @@index([providerMessageId])
+  @@map("mail_messages")
+}
+
+model MailAttachment {
+  id          String   @id @default(uuid())
+  messageId   String
+  filename    String
+  contentType String
+  size        Int
+  storageKey  String
+  inline      Boolean  @default(false)
+  contentId   String?
+  createdAt   DateTime @default(now())
+
+  message MailMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@map("mail_attachments")
+}
+
+model MailLabel {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  color     String
+  createdAt DateTime @default(now())
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages MailMessageLabel[]
+
+  @@unique([userId, name])
+  @@map("mail_labels")
+}
+
+model MailMessageLabel {
+  messageId String
+  labelId   String
+
+  message MailMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  label   MailLabel   @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, labelId])
+  @@index([labelId])
+  @@map("mail_message_labels")
+}
+
+model MailInternalNote {
+  id        String   @id @default(uuid())
+  threadId  String
+  userId    String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  thread MailThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+  @@map("mail_internal_notes")
+}
+
+model MailThreadActivity {
+  id        String   @id @default(uuid())
+  threadId  String
+  userId    String
+  type      String
+  data      Json?
+  createdAt DateTime @default(now())
+
+  thread MailThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+  @@map("mail_thread_activities")
+}
+
+model MailContact {
+  id            String    @id @default(uuid())
+  userId        String
+  email         String
+  firstName     String?
+  lastName      String?
+  properties    Json?
+  tags          String[]
+  status        String    @default("subscribed")
+  consentAt     DateTime?
+  source        String    @default("manual")
+  lastEngagedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  audiences MailAudienceMember[]
+
+  @@unique([userId, email])
+  @@index([userId, status])
+  @@map("mail_contacts")
+}
+
+model MailAudience {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  description String?
+  kind        String   @default("static")
+  filter      Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members    MailAudienceMember[]
+  broadcasts MailBroadcast[]
+
+  @@unique([userId, name])
+  @@index([userId, createdAt])
+  @@map("mail_audiences")
+}
+
+model MailAudienceMember {
+  audienceId        String
+  contactId         String
+  subscriptionState String   @default("subscribed")
+  joinedAt          DateTime @default(now())
+
+  audience MailAudience @relation(fields: [audienceId], references: [id], onDelete: Cascade)
+  contact  MailContact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@id([audienceId, contactId])
+  @@index([contactId])
+  @@map("mail_audience_members")
+}
+
+model MailSuppression {
+  id        String   @id @default(uuid())
+  userId    String
+  email     String
+  type      String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, email, type])
+  @@index([userId, createdAt])
+  @@map("mail_suppressions")
+}
+
+model MailTemplate {
+  id             String   @id @default(uuid())
+  userId         String
+  projectId      String?
+  name           String
+  status         String   @default("draft")
+  currentVersion Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project?              @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  versions MailTemplateVersion[]
+
+  @@unique([userId, name])
+  @@index([projectId])
+  @@map("mail_templates")
+}
+
+model MailTemplateVersion {
+  id          String   @id @default(uuid())
+  templateId  String
+  version     Int
+  subject     String
+  previewText String?
+  html        String   @db.Text
+  text        String?  @db.Text
+  variables   String[]
+  testData    Json?
+  createdAt   DateTime @default(now())
+
+  template   MailTemplate    @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  broadcasts MailBroadcast[]
+
+  @@unique([templateId, version])
+  @@map("mail_template_versions")
+}
+
+model MailBroadcast {
+  id                String    @id @default(uuid())
+  userId            String
+  projectId         String?
+  audienceId        String?
+  templateVersionId String?
+  name              String
+  subject           String
+  fromAddress       String
+  status            String    @default("draft")
+  scheduledAt       DateTime?
+  sentAt            DateTime?
+  stats             Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project         Project?             @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  audience        MailAudience?        @relation(fields: [audienceId], references: [id], onDelete: SetNull)
+  templateVersion MailTemplateVersion? @relation(fields: [templateVersionId], references: [id], onDelete: SetNull)
+  events          MailEvent[]
+
+  @@index([userId, status, createdAt])
+  @@index([projectId])
+  @@map("mail_broadcasts")
+}
+
+model MailAutomation {
+  id        String   @id @default(uuid())
+  userId    String
+  projectId String?
+  name      String
+  status    String   @default("draft")
+  trigger   Json
+  steps     Json
+  version   Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([projectId])
+  @@map("mail_automations")
+}
+
+model MailCredential {
+  id             String    @id @default(uuid())
+  userId         String
+  projectId      String?
+  kind           String
+  mode           String    @default("live")
+  name           String
+  prefix         String
+  secretHash     String
+  secretHint     String
+  permissions    String[]
+  ipRestrictions String[]
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@unique([secretHash])
+  @@index([userId, kind, createdAt])
+  @@index([projectId])
+  @@map("mail_credentials")
+}
+
+model MailWebhookEndpoint {
+  id         String   @id @default(uuid())
+  userId     String
+  projectId  String?
+  url        String
+  events     String[]
+  secretHash String
+  secretHint String
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project    Project?              @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  deliveries MailWebhookDelivery[]
+
+  @@index([userId, createdAt])
+  @@index([projectId])
+  @@map("mail_webhook_endpoints")
+}
+
+model MailWebhookDelivery {
+  id            String    @id @default(uuid())
+  endpointId    String
+  eventId       String
+  status        String    @default("pending")
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime?
+  responseCode  Int?
+  error         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  endpoint MailWebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@unique([endpointId, eventId])
+  @@index([status, nextAttemptAt])
+  @@map("mail_webhook_deliveries")
+}
+
+model MailEvent {
+  id              String   @id @default(uuid())
+  userId          String
+  messageId       String?
+  broadcastId     String?
+  type            String
+  providerEventId String?
+  payload         Json?
+  occurredAt      DateTime
+  createdAt       DateTime @default(now())
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   MailMessage?   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  broadcast MailBroadcast? @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, providerEventId])
+  @@index([userId, type, occurredAt])
+  @@index([messageId, occurredAt])
+  @@map("mail_events")
+}
+
+model MailRoutingRule {
+  id         String   @id @default(uuid())
+  userId     String
+  domainId   String?
+  mailboxId  String?
+  name       String
+  priority   Int      @default(0)
+  conditions Json
+  actions    Json
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domain  MailDomain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  mailbox Mailbox?    @relation(fields: [mailboxId], references: [id], onDelete: Cascade)
+
+  @@index([userId, priority])
+  @@map("mail_routing_rules")
+}
+
+model MailSavedReply {
+  id        String   @id @default(uuid())
+  userId    String
+  mailboxId String?
+  name      String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mailbox Mailbox? @relation(fields: [mailboxId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@index([mailboxId])
+  @@map("mail_saved_replies")
+}
+
+model MailIdempotency {
+  id        String   @id @default(uuid())
+  userId    String
+  scope     String
+  key       String
+  response  Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, scope, key])
+  @@index([expiresAt])
+  @@map("mail_idempotency")
 }

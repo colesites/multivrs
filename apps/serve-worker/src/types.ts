@@ -7,7 +7,7 @@ export interface ArtifactFile {
 export interface BuildFunction {
   name: string;
   entrypoint: string;
-  runtime: "bun" | "node" | "edge";
+  runtime: "bun" | "node" | "edge" | "go" | "python" | "ruby";
 }
 
 export interface ArtifactManifest {
@@ -24,10 +24,16 @@ export interface ArtifactManifest {
 }
 
 export interface Env {
+  ANALYTICS?: AnalyticsEngineDataset;
   ARTIFACTS: R2Bucket;
   CONTROL_PLANE_URL: string;
   CONTROL_PLANE_TOKEN?: string;
   COMPUTE?: Fetcher;
+  DISPATCHER?: {
+    get(name: string): Fetcher;
+  };
+  IMAGES?: ImagesBinding;
+  RATE_LIMITER?: RateLimit;
 }
 
 export type ResolvedRequest =

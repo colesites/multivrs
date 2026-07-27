@@ -15,8 +15,13 @@ import { useResponsiveSheetSide } from "./use-responsive-sheet-side";
 
 export function SavedDomainsSheet() {
   const side = useResponsiveSheetSide();
-  const { savedDomains, savedOpen, setSavedOpen, toggleSaved, addToCart } =
-    useDomainCommerce();
+  const {
+    moveSavedToCart,
+    savedDomains,
+    savedOpen,
+    setSavedOpen,
+    toggleSaved,
+  } = useDomainCommerce();
 
   return (
     <Sheet open={savedOpen} onOpenChange={setSavedOpen}>
@@ -29,7 +34,7 @@ export function SavedDomainsSheet() {
             Saved domains
           </SheetTitle>
           <SheetDescription className="sr-only">
-            Review domains saved to your account on this device.
+            Review domains saved to your account.
           </SheetDescription>
         </SheetHeader>
         {savedDomains.length ? (
@@ -48,11 +53,16 @@ export function SavedDomainsSheet() {
                 <button
                   type="button"
                   onClick={() => {
-                    addToCart(result);
-                    setSavedOpen(false);
+                    void moveSavedToCart(result)
+                      .then(() =>
+                        toast.success(`${result.domain} moved to cart`),
+                      )
+                      .catch(() =>
+                        toast.error("The domain could not be moved to cart."),
+                      );
                   }}
                   className="grid size-9 place-items-center border border-white/12 text-white/65 hover:bg-white hover:text-black"
-                  aria-label={`Add ${result.domain} to cart`}
+                  aria-label={`Move ${result.domain} to cart`}
                 >
                   <ShoppingCart className="size-4" />
                 </button>

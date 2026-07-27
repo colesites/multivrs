@@ -10,6 +10,7 @@
 
 import type { BetterAuthOptions } from "better-auth";
 import { deleteUserFromConvex, syncUserToConvex } from "@/lib/convex-sync";
+import { logError } from "@/lib/services/logger.service";
 
 /**
  * Database hooks configuration
@@ -30,14 +31,10 @@ export const databaseHooks: BetterAuthOptions["databaseHooks"] = {
             name: user.name,
             image: user.image || undefined,
           });
-          console.log(
-            `[Database Hook] User ${user.id} synced to Convex after creation`,
-          );
         } catch (error) {
-          console.error(
-            `[Database Hook] Failed to sync user ${user.id} to Convex:`,
-            error instanceof Error ? error.message : String(error),
-          );
+          logError("auth.user.created_convex_sync_failed", error, {
+            userId: user.id,
+          });
           // Don't throw - allow user creation to succeed even if Convex sync fails
           // The retry logic in convex-sync.ts will handle retries
         }
@@ -57,14 +54,10 @@ export const databaseHooks: BetterAuthOptions["databaseHooks"] = {
             name: user.name,
             image: user.image || undefined,
           });
-          console.log(
-            `[Database Hook] User ${user.id} synced to Convex after update`,
-          );
         } catch (error) {
-          console.error(
-            `[Database Hook] Failed to sync user ${user.id} update to Convex:`,
-            error instanceof Error ? error.message : String(error),
-          );
+          logError("auth.user.updated_convex_sync_failed", error, {
+            userId: user.id,
+          });
           // Don't throw - allow update to succeed even if Convex sync fails
         }
       },
@@ -78,12 +71,10 @@ export const databaseHooks: BetterAuthOptions["databaseHooks"] = {
       after: async (user) => {
         try {
           await deleteUserFromConvex(user.id);
-          console.log(`[Database Hook] User ${user.id} deleted from Convex`);
         } catch (error) {
-          console.error(
-            `[Database Hook] Failed to delete user ${user.id} from Convex:`,
-            error instanceof Error ? error.message : String(error),
-          );
+          logError("auth.user.deleted_convex_sync_failed", error, {
+            userId: user.id,
+          });
           // Don't throw - allow deletion to succeed even if Convex sync fails
         }
       },

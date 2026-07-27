@@ -3,22 +3,22 @@ import { mutation } from "./_generated/server";
 
 /**
  * Convex Mutations for User Synchronization
- * 
+ *
  * These mutations are called from Better Auth hooks to keep Convex
  * in sync with the Neon Postgres database.
- * 
+ *
  * Requirements: 9.1, 9.2, 9.3
  */
 
 /**
  * Sync user data from Neon to Convex
  * Creates a new user record or updates an existing one
- * 
+ *
  * @param authId - User ID from Neon Postgres (primary identity)
  * @param email - User email address
  * @param name - User display name
  * @param image - Optional profile image URL
- * 
+ *
  * Requirements: 9.1 (User Creation), 9.2 (User Updates)
  */
 export const syncUser = mutation({
@@ -42,7 +42,7 @@ export const syncUser = mutation({
         name: args.name,
         image: args.image,
       });
-      
+
       return { success: true, userId: existingUser._id, action: "updated" };
     }
 
@@ -63,9 +63,9 @@ export const syncUser = mutation({
 /**
  * Delete user from Convex
  * Removes user record and all associated data
- * 
+ *
  * @param authId - User ID from Neon Postgres
- * 
+ *
  * Requirements: 9.3 (User Deletion)
  */
 export const deleteUser = mutation({
@@ -104,18 +104,14 @@ export const deleteUser = mutation({
 /**
  * Update user presence status
  * Updates real-time presence indicator
- * 
+ *
  * @param authId - User ID from Neon Postgres
  * @param presence - Presence status: "online" | "away" | "offline"
  */
 export const updatePresence = mutation({
   args: {
     authId: v.string(),
-    presence: v.union(
-      v.literal("online"),
-      v.literal("away"),
-      v.literal("offline")
-    ),
+    presence: v.union(v.literal("online"), v.literal("away"), v.literal("offline")),
   },
   handler: async (ctx, args) => {
     const user = await ctx.db

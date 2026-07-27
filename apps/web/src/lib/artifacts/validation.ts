@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Artifact } from "@multivrs/build-utils";
+import type { Artifact } from "@multivrs/build-utils/artifact";
 import type { ArtifactMetadataInput } from "@multivrs/client";
 import { ValidationError } from "@multivrs/error-utils";
 

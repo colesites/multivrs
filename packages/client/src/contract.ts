@@ -14,6 +14,19 @@ export type DeploymentStatus = (typeof DEPLOYMENT_STATUSES)[number];
 export const DEPLOYMENT_TARGETS = ["preview", "production"] as const;
 export type DeploymentTarget = (typeof DEPLOYMENT_TARGETS)[number];
 
+const repositoryUrlSchema = z.url().refine((value) => {
+  const url = new URL(value);
+  return url.protocol === "https:" && url.hostname === "github.com";
+}, "repoUrl must be an HTTPS GitHub repository URL");
+
+const repositoryPathSchema = z
+  .string()
+  .max(500)
+  .refine((value) => {
+    const segments = value.split("/");
+    return !value.startsWith("/") && !segments.includes("..");
+  }, "path must stay inside the repository");
+
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const projectSchema = z.object({
@@ -35,6 +48,12 @@ export const createProjectInputSchema = z.object({
 });
 export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
 
+export const updateProjectInputSchema = z.object({
+  framework: z.enum(FRAMEWORK_IDS).nullable(),
+  name: z.string().trim().min(1).max(100),
+});
+export type UpdateProjectInput = z.infer<typeof updateProjectInputSchema>;
+
 export const deploymentSchema = z.object({
   id: z.string(),
   projectId: z.string(),
@@ -54,12 +73,29 @@ export const deploymentSchema = z.object({
 export type Deployment = z.infer<typeof deploymentSchema>;
 
 export const createDeploymentInputSchema = z.object({
-  branch: z.string().optional(),
-  commitSha: z.string().optional(),
+  branch: z.string().min(1).max(255).optional(),
+  commitSha: z.string().min(1).max(255).optional(),
   renderMode: z.enum(RENDER_MODES).optional(),
   target: z.enum(DEPLOYMENT_TARGETS).default("preview"),
+  repoUrl: repositoryUrlSchema.optional(),
+  rootDirectory: repositoryPathSchema.optional(),
+  buildCommand: z.string().max(2_000).optional(),
+  installCommand: z.string().max(2_000).optional(),
+  outputDirectory: repositoryPathSchema.optional(),
+  env: z.record(z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/), z.string().max(20_000)).optional(),
 });
 export type CreateDeploymentInput = z.infer<typeof createDeploymentInputSchema>;
+
+export const buildJobSchema = z.object({
+  deploymentId: z.string().regex(/^[a-z0-9][a-z0-9-_]{0,62}$/),
+  projectId: z.string().min(1),
+  apiUrl: z.url(),
+  apiToken: z.string().startsWith("mvrs_"),
+  repositoryToken: z.string().min(1).optional(),
+  framework: z.enum(FRAMEWORK_IDS).nullable(),
+  input: createDeploymentInputSchema.extend({ repoUrl: repositoryUrlSchema }),
+});
+export type BuildJob = z.infer<typeof buildJobSchema>;
 
 export const updateDeploymentStatusInputSchema = z.object({
   status: z.enum(["building", "error", "canceled"]),

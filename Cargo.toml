@@ -3,7 +3,13 @@
 # package.json, so bun/turbo ignore them. See ARCHITECTURE.md §13.
 [workspace]
 resolver = "2"
-members = ["packages/builder-core", "packages/cli", "packages/cli-auth", "packages/cli-config"]
+members = [
+  "packages/builder-core",
+  "packages/cli",
+  "packages/cli-auth",
+  "packages/cli-config",
+  "packages/routing-matcher-wasm",
+]
 
 [workspace.package]
 edition = "2024"

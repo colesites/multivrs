@@ -5,11 +5,9 @@
  * later Cloudflare Worker/Go proxy can reuse the same manifest/blob layout.
  */
 import { resolveArtifactRequest } from "@multivrs/build-utils";
-import {
-  ComputeNotConfiguredError,
-  NotFoundError,
-} from "@multivrs/error-utils";
+import { NotFoundError } from "@multivrs/error-utils";
 import { fail } from "@/lib/api/respond";
+import { invokeNodeCompute } from "@/lib/artifacts/node-compute";
 import { createArtifactStore } from "@/lib/artifacts/store";
 import { getPublicDeployment } from "@/lib/services/deployment.service";
 
@@ -37,12 +35,12 @@ function contentType(path: string): string {
   return CONTENT_TYPES[path.slice(dot)] ?? "application/octet-stream";
 }
 
-export async function GET(_req: Request, { params }: RouteParams) {
+async function serve(req: Request, { params }: RouteParams) {
   try {
     const { deploymentId, path } = await params;
     const deployment = await getPublicDeployment(deploymentId);
     if (deployment.status !== "ready" || !deployment.artifactHash) {
-      throw new NotFoundError("Deployment artifact not found");
+      throw new NotFoundError("Ready deployment not found");
     }
 
     const store = createArtifactStore();
@@ -59,7 +57,13 @@ export async function GET(_req: Request, { params }: RouteParams) {
       throw new NotFoundError("Artifact file not found");
     }
     if (resolved.type === "function") {
-      throw new ComputeNotConfiguredError("Deployment requires compute");
+      return invokeNodeCompute({
+        request: req,
+        artifactHash: deployment.artifactHash,
+        manifest,
+        fn: resolved.function,
+        pathname: `/${path?.join("/") ?? ""}`,
+      });
     }
 
     const bytes = await store.get(resolved.file.hash);
@@ -77,3 +81,11 @@ export async function GET(_req: Request, { params }: RouteParams) {
     return fail(err);
   }
 }
+
+export const GET = serve;
+export const POST = serve;
+export const PUT = serve;
+export const PATCH = serve;
+export const DELETE = serve;
+export const OPTIONS = serve;
+export const HEAD = serve;

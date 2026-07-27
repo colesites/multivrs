@@ -35,8 +35,11 @@ custom domains are resolved through the same control-plane endpoint.
 ## Compute binding
 
 R2 only stores deployment files. Dynamic routes are forwarded to a separately
-deployed Worker through Cloudflare's `COMPUTE` service binding. The target Worker
-must exist before adding this binding to `wrangler.toml`:
+deployed Worker through Cloudflare's `COMPUTE` service binding. Without that
+binding, standalone Next.js Node deployments use the control plane's compute
+fallback, which keeps SSR and route handlers functional during local testing
+and initial production rollout. The dedicated binding remains the scale-out
+path. Its target Worker must exist before adding this binding to `wrangler.toml`:
 
 ```toml
 [[services]]

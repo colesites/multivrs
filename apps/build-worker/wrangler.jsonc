@@ -1,0 +1,50 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "multivrs-build",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-26",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "SANDBOX_TRANSPORT": "rpc",
+    "DISPATCH_NAMESPACE": "multivrs-deployments"
+  },
+  "containers": [
+    {
+      "class_name": "Sandbox",
+      "image": "./Dockerfile",
+      "image_build_context": "../..",
+      "max_instances": 5
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "Sandbox",
+        "class_name": "Sandbox"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["Sandbox"]
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "BUILD_QUEUE",
+        "queue": "multivrs-builds"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "multivrs-builds",
+        "max_batch_size": 1,
+        "max_batch_timeout": 1,
+        "max_concurrency": 5,
+        "dead_letter_queue": "multivrs-builds-dead"
+      }
+    ]
+  }
+}

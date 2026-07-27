@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { DomainVerificationValue } from "@/features/dashboard/components/DomainVerificationValue";
 import type { DomainDetail } from "@/lib/domains/dns.types";
-import { DomainVerificationValue } from "./DomainVerificationValue";
 
 interface DomainVerificationCardProps {
   domain: DomainDetail;

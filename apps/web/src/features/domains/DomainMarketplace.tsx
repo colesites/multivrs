@@ -3,9 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { DomainProjectOption } from "@/lib/services/domain.service";
 import { DomainCartSheet } from "./DomainCartSheet";
-import { DomainCheckoutDialog } from "./DomainCheckoutDialog";
 import { useDomainCommerce } from "./DomainCommerceProvider";
 import {
   type AvailabilityFilter,
@@ -29,20 +27,15 @@ type SearchState = "idle" | "loading" | "ready" | "not-configured" | "error";
 export function DomainMarketplace({
   query,
   teamSlug,
+  projectSlug,
   source,
-  projects,
-  sandboxEnabled,
-  openCheckout,
 }: {
   query: string;
   teamSlug?: string;
+  projectSlug?: string;
   source?: string;
-  projects: DomainProjectOption[];
-  sandboxEnabled: boolean;
-  openCheckout: boolean;
 }) {
-  const { cartItem, hydrated, setCartOpen } = useDomainCommerce();
-  const [value, setValue] = useState(query);
+  const [editedValue, setEditedValue] = useState<string>();
   const [results, setResults] = useState<DomainSearchResult[]>([]);
   const [state, setState] = useState<SearchState>(query ? "loading" : "idle");
   const [message, setMessage] = useState("");
@@ -53,23 +46,14 @@ export function DomainMarketplace({
   const [availability, setAvailability] = useState<AvailabilityFilter>("all");
   const [sort, setSort] = useState<DomainSort>("relevance");
   const [limit, setLimit] = useState(60);
-  const [checkoutDomain, setCheckoutDomain] =
-    useState<DomainSearchResult | null>(null);
+  const value = editedValue ?? query;
   const searching = normalizeDomainQuery(value).length >= 2;
-
-  useEffect(() => {
-    if (!openCheckout || !hydrated || !cartItem) return;
-    setCartOpen(true);
-    const url = new URL(window.location.href);
-    url.searchParams.delete("checkout");
-    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
-  }, [cartItem, hydrated, openCheckout, setCartOpen]);
 
   function updateValue(nextValue: string) {
     if (!searching && normalizeDomainQuery(nextValue).length >= 2) {
       window.scrollTo({ top: 0 });
     }
-    setValue(nextValue);
+    setEditedValue(nextValue);
   }
 
   useEffect(() => {
@@ -93,6 +77,7 @@ export function DomainMarketplace({
     const timer = window.setTimeout(async () => {
       const params = new URLSearchParams({ q: name });
       if (teamSlug) params.set("teamSlug", teamSlug);
+      if (projectSlug) params.set("projectSlug", projectSlug);
       if (source) params.set("source", source);
       window.history.replaceState(null, "", `/domains?${params}`);
       try {
@@ -210,7 +195,7 @@ export function DomainMarketplace({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [limit, source, teamSlug, tld, value]);
+  }, [limit, projectSlug, source, teamSlug, tld, value]);
 
   const visibleResults = sortResults(
     availability === "available"
@@ -293,16 +278,7 @@ export function DomainMarketplace({
           </section>
         ) : null}
       </div>
-      {checkoutDomain ? (
-        <DomainCheckoutDialog
-          result={checkoutDomain}
-          projects={projects}
-          teamSlug={teamSlug}
-          sandboxEnabled={sandboxEnabled}
-          onClose={() => setCheckoutDomain(null)}
-        />
-      ) : null}
-      <DomainCartSheet onCheckout={setCheckoutDomain} />
+      <DomainCartSheet />
       <SavedDomainsSheet />
     </main>
   );
@@ -335,7 +311,8 @@ function Results({
   canLoadMore: boolean;
   onLoadMore: () => void;
 }) {
-  const { addToCart, isSignedIn, isSaved, toggleSaved } = useDomainCommerce();
+  const { isInCart, isSignedIn, isSaved, toggleCart, toggleSaved } =
+    useDomainCommerce();
   const actions = {
     onSave: async (result: DomainSearchResult) => {
       const saved = isSaved(result.domain);
@@ -346,11 +323,15 @@ function Results({
             ? `${result.domain} removed from saved`
             : `${result.domain} saved`,
         );
-      } catch {
-        toast.error("Saved domains could not be updated.");
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Saved domains could not be updated.",
+        );
       }
     },
-    onAdd: addToCart,
+    onAdd: toggleCart,
   };
   const byExtension = new Map(
     results.map((result) => [domainExtension(result.domain), result]),
@@ -386,6 +367,7 @@ function Results({
               featured
               canSave={isSignedIn}
               saved={isSaved(result.domain)}
+              inCart={isInCart(result.domain)}
               {...actions}
             />
           ) : (
@@ -425,6 +407,7 @@ function Results({
               result={result}
               canSave={isSignedIn}
               saved={isSaved(result.domain)}
+              inCart={isInCart(result.domain)}
               {...actions}
             />
           ) : (
