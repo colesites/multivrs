@@ -8,6 +8,7 @@ COPY packages/builder-core packages/builder-core
 COPY packages/cli packages/cli
 COPY packages/cli-auth packages/cli-auth
 COPY packages/cli-config packages/cli-config
+COPY packages/routing-matcher-wasm packages/routing-matcher-wasm
 RUN cargo build --locked --release -p cli
 
 FROM docker.io/cloudflare/sandbox:0.10.3

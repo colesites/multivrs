@@ -10,7 +10,7 @@ function parseEmail(str: string): { name?: string; address: string } {
   const match = str.match(/(?:(.*?)<)?([^>]+)>?/);
   if (match) {
     const name = match[1]?.trim().replace(/^["']|["']$/g, '');
-    const address = match[2]?.trim();
+    const address = match[2]?.trim() ?? str.trim();
     return { name: name || undefined, address };
   }
   return { address: str.trim() };

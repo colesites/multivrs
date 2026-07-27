@@ -4,6 +4,6 @@ compatibility_date = "2024-03-20"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-CONTROL_PLANE_URL = "http://localhost:3000"
+CONTROL_PLANE_URL = "https://multivrs.space"
 # RESEND_WEBHOOK_SECRET = ""
 # MAIL_INBOUND_WEBHOOK_SECRET = ""
