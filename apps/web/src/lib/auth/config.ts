@@ -106,6 +106,10 @@ export const authConfig = {
   // Requirements: 3.7, 4.7 (OAuth token encryption)
   account: {
     encryptOAuthTokens: true, // Use AES-256-GCM encryption for OAuth tokens
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["github", "google"],
+    },
   },
 
   // Security settings

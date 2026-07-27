@@ -58,7 +58,7 @@ export function NewProjectFlow({ username }: { username?: string }) {
 
   async function connect() {
     try {
-      await authClient.signIn.social({
+      await authClient.linkSocial({
         callbackURL: "/new",
         provider: "github",
       });
