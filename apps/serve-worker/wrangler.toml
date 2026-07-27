@@ -8,9 +8,9 @@ compatibility_date = "2026-07-10"
 binding = "ARTIFACTS"
 bucket_name = "multivrs-artifacts"
 
-[[dispatch_namespaces]]
-binding = "DISPATCHER"
-namespace = "multivrs-deployments"
+# [[dispatch_namespaces]]
+# binding = "DISPATCHER"
+# namespace = "multivrs-deployments"
 
 [[services]]
 binding = "COMPUTE"
