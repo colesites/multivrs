@@ -32,3 +32,14 @@ export async function createMailbox(userId: string, input: MailboxInput) {
     data: { ...input, userId, domainId: domain?.id },
   });
 }
+
+export async function deleteMailbox(userId: string, mailboxId: string) {
+  const mailbox = await prisma.mailbox.findFirst({
+    where: { id: mailboxId, userId },
+  });
+  if (!mailbox) throw new Error("Mailbox not found");
+
+  return prisma.mailbox.delete({
+    where: { id: mailboxId },
+  });
+}

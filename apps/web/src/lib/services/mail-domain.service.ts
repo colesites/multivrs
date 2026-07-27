@@ -132,3 +132,14 @@ export async function verifyMailDomain(userId: string, domainId: string) {
   ]);
   return { verified };
 }
+
+export async function deleteMailDomain(userId: string, domainId: string) {
+  const domain = await prisma.mailDomain.findFirst({
+    where: { id: domainId, userId },
+  });
+  if (!domain) throw new Error("Mail domain not found");
+  
+  return prisma.mailDomain.delete({
+    where: { id: domainId },
+  });
+}
