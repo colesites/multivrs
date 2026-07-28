@@ -10,13 +10,13 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "svix": "^1.21.0"
+    "svix": "^1.21.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250201.0",
     "@repo/typescript-config": "*",
     "typescript": "^5.9.2",
-    "wrangler": "^4.0.0",
-    "zod": "^4.4.3"
+    "wrangler": "^4.0.0"
   }
 }

@@ -3,6 +3,7 @@ import { sanitizeMailHtml } from "@/lib/mail/sanitize-html";
 import { prisma } from "@/lib/prisma";
 import type { InboundMailInput } from "@/lib/schemas/mail-message.schemas";
 import { ownedMailMessage } from "@/lib/services/mail-access.service";
+import { repairInboundBody } from "@/lib/services/mail-inbound-repair.service";
 import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.service";
 
 const ACTIONS = {
@@ -43,8 +44,16 @@ export async function receiveMail(input: InboundMailInput) {
   if (!mailbox) throw new Error("Inbound mailbox not found");
   const existing = await prisma.mailEvent.findFirst({
     where: { userId: mailbox.userId, providerEventId: input.providerEventId },
+    select: { messageId: true },
   });
-  if (existing) return { duplicate: true };
+  if (existing) {
+    const repaired = await repairInboundBody(
+      mailbox.userId,
+      existing.messageId,
+      input,
+    );
+    return { duplicate: true, repaired };
+  }
   const reply = input.inReplyTo
     ? await prisma.mailMessage.findFirst({
         where: { userId: mailbox.userId, messageId: input.inReplyTo },
