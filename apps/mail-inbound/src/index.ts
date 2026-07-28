@@ -55,28 +55,33 @@ export default {
     let textBody = data.text || "";
     let htmlBody = data.html || "";
     
-    if (!env.RESEND_API_KEY) {
-      textBody = "[DEBUG] env.RESEND_API_KEY is missing in worker.";
-    } else if (!resendEmailId) {
-      textBody = "[DEBUG] resendEmailId is missing in webhook payload.";
-    } else {
+    if (env.RESEND_API_KEY && resendEmailId) {
       try {
-        const res = await fetch(`https://api.resend.com/emails/${resendEmailId}`, {
-          headers: {
-            "Authorization": `Bearer ${env.RESEND_API_KEY}`,
-            "Content-Type": "application/json"
+        let res: Response | null = null;
+        // Resend webhooks can fire before the email is fully indexed, causing a 404.
+        // We retry up to 3 times with a 1.5s delay if we get a 404.
+        for (let i = 0; i < 3; i++) {
+          res = await fetch(`https://api.resend.com/emails/${resendEmailId}`, {
+            headers: {
+              "Authorization": `Bearer ${env.RESEND_API_KEY}`,
+              "Content-Type": "application/json"
+            }
+          });
+          if (res.ok || res.status !== 404) {
+            break;
           }
-        });
-        if (res.ok) {
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+
+        if (res && res.ok) {
           const emailData = await res.json<any>();
-          textBody = emailData.text || textBody || "[DEBUG] Fetch succeeded but text is empty";
+          textBody = emailData.text || textBody;
           htmlBody = emailData.html || htmlBody;
-        } else {
-          const errText = await res.text();
-          textBody = `[DEBUG] Fetch failed. Status: ${res.status}. Body: ${errText}`;
+        } else if (res) {
+          console.error("Failed to fetch full email after retries:", await res.text());
         }
       } catch (err: any) {
-        textBody = `[DEBUG] Fetch threw an error: ${err.message}`;
+        console.error("Error fetching full email:", err.message);
       }
     }
 
