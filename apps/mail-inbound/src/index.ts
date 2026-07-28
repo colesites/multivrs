@@ -4,6 +4,7 @@ export interface Env {
   CONTROL_PLANE_URL: string;
   RESEND_WEBHOOK_SECRET: string;
   MAIL_INBOUND_WEBHOOK_SECRET: string;
+  RESEND_API_KEY: string;
 }
 
 function parseEmail(str: string): { name?: string; address: string } {
@@ -47,6 +48,32 @@ export default {
     }
 
     const data = event.data;
+    
+    // The Resend webhook payload doesn't contain the email body (text or html).
+    // We must fetch the full email using the Resend API.
+    let textBody = data.text || "";
+    let htmlBody = data.html || "";
+    
+    if (env.RESEND_API_KEY && data.id) {
+      try {
+        const res = await fetch(`https://api.resend.com/emails/${data.id}`, {
+          headers: {
+            "Authorization": `Bearer ${env.RESEND_API_KEY}`,
+            "Content-Type": "application/json"
+          }
+        });
+        if (res.ok) {
+          const emailData = await res.json<any>();
+          textBody = emailData.text || textBody;
+          htmlBody = emailData.html || htmlBody;
+        } else {
+          console.error("Failed to fetch full email:", await res.text());
+        }
+      } catch (err) {
+        console.error("Error fetching full email:", err);
+      }
+    }
+
     const fromParsed = parseEmail(data.from || "");
     
     // Convert to InboundMailInput format
@@ -61,8 +88,8 @@ export default {
       to: extractEmailAddresses(data.to || []),
       cc: extractEmailAddresses(data.cc || []),
       subject: data.subject || "(no subject)",
-      text: data.text || "",
-      html: data.html || "",
+      text: textBody,
+      html: htmlBody,
       headers: data.headers || {},
     });
 
