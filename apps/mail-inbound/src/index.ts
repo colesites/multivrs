@@ -48,15 +48,16 @@ export default {
     }
 
     const data = event.data;
+    const resendEmailId = data.email_id || data.id;
     
     // The Resend webhook payload doesn't contain the email body (text or html).
     // We must fetch the full email using the Resend API.
     let textBody = data.text || "";
     let htmlBody = data.html || "";
     
-    if (env.RESEND_API_KEY && data.id) {
+    if (env.RESEND_API_KEY && resendEmailId) {
       try {
-        const res = await fetch(`https://api.resend.com/emails/${data.id}`, {
+        const res = await fetch(`https://api.resend.com/emails/${resendEmailId}`, {
           headers: {
             "Authorization": `Bearer ${env.RESEND_API_KEY}`,
             "Content-Type": "application/json"
@@ -78,7 +79,7 @@ export default {
     
     // Convert to InboundMailInput format
     const inboundBody = JSON.stringify({
-      providerEventId: data.id || `resend_${data.created_at}`,
+      providerEventId: resendEmailId || `resend_${data.created_at}`,
       mailbox: extractEmailAddresses(data.to || [])[0],
       messageId: data.headers?.["Message-Id"] || data.headers?.["message-id"] || crypto.randomUUID(),
       inReplyTo: data.headers?.["In-Reply-To"] || data.headers?.["in-reply-to"],
