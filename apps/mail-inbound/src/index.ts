@@ -55,7 +55,11 @@ export default {
     let textBody = data.text || "";
     let htmlBody = data.html || "";
     
-    if (env.RESEND_API_KEY && resendEmailId) {
+    if (!env.RESEND_API_KEY) {
+      textBody = "[DEBUG] env.RESEND_API_KEY is missing in worker.";
+    } else if (!resendEmailId) {
+      textBody = "[DEBUG] resendEmailId is missing in webhook payload.";
+    } else {
       try {
         const res = await fetch(`https://api.resend.com/emails/${resendEmailId}`, {
           headers: {
@@ -65,13 +69,14 @@ export default {
         });
         if (res.ok) {
           const emailData = await res.json<any>();
-          textBody = emailData.text || textBody;
+          textBody = emailData.text || textBody || "[DEBUG] Fetch succeeded but text is empty";
           htmlBody = emailData.html || htmlBody;
         } else {
-          console.error("Failed to fetch full email:", await res.text());
+          const errText = await res.text();
+          textBody = `[DEBUG] Fetch failed. Status: ${res.status}. Body: ${errText}`;
         }
-      } catch (err) {
-        console.error("Error fetching full email:", err);
+      } catch (err: any) {
+        textBody = `[DEBUG] Fetch threw an error: ${err.message}`;
       }
     }
 
