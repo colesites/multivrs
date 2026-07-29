@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { acari, clashDisplay } from "@/lib/marketing-fonts";
 
 export default function AuthLayout({
@@ -5,7 +6,7 @@ export default function AuthLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className={`${acari.variable} ${clashDisplay.variable}`}>
-      {children}
+      <Suspense fallback={null}>{children}</Suspense>
     </div>
   );
 }

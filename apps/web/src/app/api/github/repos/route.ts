@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { githubRepositorySchema } from "@/lib/schemas/github.schemas";
@@ -88,6 +89,7 @@ export async function GET(req: NextRequest) {
       owner: targetUser,
     });
   } catch (err: unknown) {
+    unstable_rethrow(err);
     logError("github.repositories.fetch_failed", err);
     const message =
       err instanceof Error

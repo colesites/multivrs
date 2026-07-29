@@ -6,11 +6,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { mkdir, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
 import type { Artifact } from "@multivrs/build-utils/artifact";
-import { uploadArtifact } from "@multivrs/build-utils/store";
 import { uploadDeploymentArtifactInputSchema } from "@multivrs/client";
 import { parseBody } from "@/lib/api/parse-body";
 import { fail, ok } from "@/lib/api/respond";
@@ -46,7 +42,6 @@ function assertSafePath(path: string): void {
 }
 
 export async function POST(req: Request, { params }: RouteParams) {
-  let tempDir: string | null = null;
   let userId: string | null = null;
   let projectId: string | null = null;
   let deploymentId: string | null = null;
@@ -58,20 +53,16 @@ export async function POST(req: Request, { params }: RouteParams) {
     deploymentId = resolvedParams.deploymentId;
     await markDeploymentBuilding(userId, projectId, deploymentId);
     const input = await parseBody(req, uploadDeploymentArtifactInputSchema);
-    tempDir = join(tmpdir(), `multivrs-upload-${deploymentId}`);
-    await mkdir(tempDir, { recursive: true });
-
     const files: Artifact["files"] = [];
+    const uploads: Array<{ bytes: Uint8Array; hash: string }> = [];
     for (const file of input.files) {
       assertSafePath(file.path);
       const bytes = Buffer.from(file.contentsBase64, "base64");
       if (hashBytes(bytes) !== file.hash || bytes.byteLength !== file.size) {
         throw new Error(`Artifact file integrity check failed: ${file.path}`);
       }
-      const target = join(tempDir, file.path);
-      await mkdir(dirname(target), { recursive: true });
-      await writeFile(target, bytes);
       files.push({ path: file.path, hash: file.hash, size: file.size });
+      uploads.push({ bytes, hash: file.hash });
     }
 
     files.sort((a, b) => a.path.localeCompare(b.path));
@@ -84,7 +75,13 @@ export async function POST(req: Request, { params }: RouteParams) {
       throw new Error("Artifact manifest hash mismatch");
     }
 
-    await uploadArtifact(createArtifactStore(), tempDir, artifact);
+    const store = createArtifactStore();
+    await Promise.all(
+      uploads.map(async ({ bytes, hash }) => {
+        if (!(await store.has(hash))) await store.put(hash, bytes);
+      }),
+    );
+    await store.putManifest(artifact);
     const url = deploymentUrl(deploymentId);
     return ok(
       await markDeploymentReady(userId, projectId, deploymentId, {
@@ -102,9 +99,5 @@ export async function POST(req: Request, { params }: RouteParams) {
       ).catch(() => undefined);
     }
     return fail(err);
-  } finally {
-    if (tempDir) {
-      await rm(tempDir, { recursive: true, force: true });
-    }
   }
 }
