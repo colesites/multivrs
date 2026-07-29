@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "convex dev",
+    "deploy": "convex deploy",
     "lint": "biome check .",
     "format": "biome check --fix .",
     "check-types": "tsc --noEmit"

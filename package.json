@@ -18,6 +18,7 @@
     "deploy:compute": "bun run --cwd apps/compute-worker deploy",
     "deploy:mail-worker": "bun run --cwd apps/mail-worker deploy",
     "deploy:mail-inbound": "bun run --cwd apps/mail-inbound deploy",
+    "deploy:convex": "bun run --cwd packages/backend deploy",
     "deploy:build-worker:dry": "bun run --cwd apps/build-worker deploy:dry",
     "deploy:compute:dry": "bun run --cwd apps/compute-worker deploy:dry",
     "deploy:mail-worker:dry": "bun run --cwd apps/mail-worker deploy:dry",

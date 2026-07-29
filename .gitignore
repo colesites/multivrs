@@ -37,6 +37,11 @@ yarn-error.log*
 .DS_Store
 *.pem
 
+# Markdown documentation (keep repository readmes)
+*.md
+!README.md
+!**/README.md
+
 # Rust (Cargo workspace for cli / builder-core)
 /target
 **/*.rs.bk
