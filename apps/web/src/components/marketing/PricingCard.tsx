@@ -36,11 +36,11 @@ export function PricingCard({
   return (
     <div
       className={`relative flex flex-col justify-between p-8 lg:p-10 ${
-        featured ? "bg-foreground/[0.015]" : "bg-foreground/[0.005]"
+        featured ? "bg-foreground/1.5" : "bg-foreground/0.5"
       }`}
     >
       <div>
-        <div className="flex min-h-[170px] flex-col justify-between lg:h-[210px]">
+        <div className="flex min-h-42.5 flex-col justify-between lg:h-52.5">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-medium text-foreground/90">
               {title}

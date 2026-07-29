@@ -292,7 +292,7 @@ export function Navbar() {
                     lineColor="#ffffff"
                     textColor="currentColor"
                     forceTheme={isOverDarkSection ? "dark" : undefined}
-                    className="!px-2.5 !py-2"
+                    className="px-2.5! py-2!"
                     aria-label="Saved domains"
                     onClick={() => setSavedOpen(true)}
                   >
@@ -315,7 +315,7 @@ export function Navbar() {
                   lineColor="#ffffff"
                   textColor="currentColor"
                   forceTheme={isOverDarkSection ? "dark" : undefined}
-                  className="!px-2.5 !py-2"
+                  className="px-2.5! py-2!"
                   aria-label="Shopping cart"
                   onClick={() => setCartOpen(true)}
                 >

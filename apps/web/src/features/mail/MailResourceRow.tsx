@@ -88,7 +88,7 @@ export function MailResourceRow({
   return (
     <div
       {...interactiveProps}
-      className={`grid grid-cols-[1.4fr_.9fr_.45fr_32px] items-center gap-3 border-b border-white/[0.055] px-4 py-3.5 text-xs last:border-0 ${view === "domains" ? "cursor-pointer hover:bg-white/[0.02]" : ""}`}
+      className={`grid grid-cols-[1.4fr_.9fr_.45fr_32px] items-center gap-3 border-b border-white/5.5 px-4 py-3.5 text-xs last:border-0 ${view === "domains" ? "cursor-pointer hover:bg-white/2" : ""}`}
     >
       <div className="min-w-0">
         <p className="truncate text-white/75">{item.name}</p>
