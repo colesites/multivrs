@@ -8,6 +8,7 @@ import { MailThreadList } from "@/features/mail/MailThreadList";
 import type {
   MailDashboardData,
   MailMessageDetail,
+  MailThreadSummary,
 } from "@/features/mail/mail.types";
 import type { MailView } from "@/features/mail/mail-navigation";
 
@@ -36,20 +37,26 @@ export function MailboxView({
   view: MailView;
 }) {
   const router = useRouter();
-  const threads = data.threads.filter((thread) => {
+  const [locallyReadThreadIds, setLocallyReadThreadIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const threads = data.threads.reduce<MailThreadSummary[]>((matches, item) => {
+    const thread = locallyReadThreadIds.has(item.id)
+      ? { ...item, unread: false }
+      : item;
     const messages = data.messages[thread.id] ?? [];
     const folder = folderByView[view];
     const matchesFolder =
       view === "starred"
         ? thread.starred
         : !folder || messages.some((message) => message.folder === folder);
-    return (
-      matchesFolder &&
+    const matchesQuery =
       `${thread.subject} ${thread.correspondent} ${thread.preview}`
         .toLowerCase()
-        .includes(query.toLowerCase())
-    );
-  });
+        .includes(query.toLowerCase());
+    if (matchesFolder && matchesQuery) matches.push(thread);
+    return matches;
+  }, []);
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const selected = threads.find((thread) => thread.id === selectedId);
   const action = async (
@@ -70,7 +77,19 @@ export function MailboxView({
     const thread = threads.find((item) => item.id === threadId);
     const latest = data.messages[threadId]?.at(-1);
     if (!thread?.unread || !latest) return;
-    void action(latest.id, "read", true);
+    setLocallyReadThreadIds((current) => {
+      const next = new Set(current);
+      next.add(threadId);
+      return next;
+    });
+    void updateMessage(latest.id, "read").catch(() => {
+      setLocallyReadThreadIds((current) => {
+        const next = new Set(current);
+        next.delete(threadId);
+        return next;
+      });
+      toast.error("Email action failed");
+    });
   };
 
   async function emptyTrash() {
@@ -94,7 +113,7 @@ export function MailboxView({
     router.refresh();
   }
   return (
-    <div className="flex min-h-[calc(100vh-7.5rem)]">
+    <div className="flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden">
       <MailThreadList
         onEmptyTrash={
           view === "trash" && threads.length ? emptyTrash : undefined

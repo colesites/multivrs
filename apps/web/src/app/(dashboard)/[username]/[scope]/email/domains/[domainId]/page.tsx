@@ -133,29 +133,27 @@ export default async function MailDomainDnsPage({
         </div>
 
         <div className="overflow-x-auto rounded-xl border border-white/[0.08] bg-[#090a0d]">
-          <div className="min-w-[760px]">
-            <div className="grid grid-cols-[90px_1fr_1.5fr_110px] border-b border-white/[0.08] bg-white/[0.025] px-4 py-3 font-geist-mono text-[10px] uppercase tracking-[0.13em] text-white/40">
+          <div className="min-w-[1040px]">
+            <div className="grid grid-cols-[72px_minmax(220px,1fr)_minmax(300px,1.5fr)_80px_80px_110px] gap-4 border-b border-white/[0.08] bg-white/[0.025] px-4 py-3 font-geist-mono text-[10px] uppercase tracking-[0.13em] text-white/40">
               <span>Type</span>
               <span>Name</span>
               <span>Value</span>
+              <span>TTL</span>
+              <span>Priority</span>
               <span>Status</span>
             </div>
             {domain.dnsRecords.map((record) => (
               <div
                 key={record.id}
-                className="grid grid-cols-[90px_1fr_1.5fr_110px] items-center gap-4 border-b border-white/[0.055] px-4 py-4 text-sm last:border-0"
+                className="grid grid-cols-[72px_minmax(220px,1fr)_minmax(300px,1.5fr)_80px_80px_110px] items-center gap-4 border-b border-white/[0.055] px-4 py-4 text-sm last:border-0"
               >
                 <span className="w-fit rounded-md border border-white/10 bg-white/5 px-2 py-1 font-geist-mono text-[11px] font-semibold text-white/70">
                   {record.type}
                 </span>
                 <RecordValue value={record.name} />
-                <RecordValue
-                  value={
-                    record.priority === null
-                      ? record.value
-                      : `${record.priority} ${record.value}`
-                  }
-                />
+                <RecordValue value={record.value} />
+                <RecordMetadata value={record.ttl} />
+                <RecordMetadata value={record.priority?.toString() ?? "—"} />
                 <RecordStatus
                   automatic={automatic && record.managedByMultivrs}
                   status={record.status}
@@ -173,6 +171,14 @@ export default async function MailDomainDnsPage({
         damaging your domain reputation.
       </div>
     </div>
+  );
+}
+
+function RecordMetadata({ value }: { value: string }) {
+  return (
+    <span className="font-geist-mono text-[12px] tabular-nums text-white/55">
+      {value}
+    </span>
   );
 }
 

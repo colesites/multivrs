@@ -31,14 +31,14 @@ export function MailReader({
 }) {
   if (!thread)
     return (
-      <div className="hidden flex-1 place-items-center bg-[#07080a] text-xs text-white/30 md:grid">
+      <div className="hidden h-full min-h-0 flex-1 place-items-center bg-[#07080a] text-xs text-white/30 md:grid">
         Select a conversation to read it.
       </div>
     );
   const latest = messages.at(-1);
   return (
-    <section className="min-w-0 flex-1 bg-[#07080a]">
-      <div className="flex min-h-14 items-center gap-2 border-b border-white/[0.07] px-4">
+    <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-[#07080a]">
+      <div className="flex min-h-14 shrink-0 items-center gap-2 border-b border-white/[0.07] px-4">
         <h2 className="min-w-0 flex-1 truncate text-sm font-medium">
           {thread.subject}
         </h2>
@@ -97,7 +97,7 @@ export function MailReader({
           </>
         ) : null}
       </div>
-      <div className="max-h-[calc(100vh-10.5rem)] overflow-y-auto p-4 md:p-7">
+      <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-7">
         <div className="mx-auto max-w-3xl space-y-4">
           {messages.map((message) => (
             <article

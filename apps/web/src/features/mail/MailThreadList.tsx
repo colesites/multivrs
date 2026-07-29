@@ -19,8 +19,8 @@ export function MailThreadList({
   threads: MailThreadSummary[];
 }) {
   return (
-    <div className="border-r border-white/[0.07] bg-[#090a0d] md:w-[340px] md:shrink-0">
-      <div className="flex h-12 items-center justify-between border-b border-white/[0.07] px-4">
+    <div className="flex h-full min-h-0 w-full flex-col border-r border-white/[0.07] bg-[#090a0d] md:w-[340px] md:shrink-0">
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-white/[0.07] px-4">
         <p className="text-xs font-medium">Conversations</p>
         <div className="flex items-center gap-1">
           <span className="mr-1 font-mono text-[10px] text-white/30">
@@ -46,7 +46,7 @@ export function MailThreadList({
           ) : null}
         </div>
       </div>
-      <div className="max-h-[calc(100vh-10.5rem)] overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {threads.map((thread) => (
           <button
             className={cn(

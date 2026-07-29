@@ -3,7 +3,7 @@ export function MailPageSkeleton() {
     <div
       aria-label="Loading mail"
       role="status"
-      className="flex min-h-[calc(100vh-3.5rem)] animate-pulse"
+      className="flex h-[calc(100dvh-3.5rem)] min-h-0 animate-pulse overflow-hidden"
     >
       <div className="hidden w-[340px] shrink-0 border-r border-[var(--hairline)] p-4 md:block">
         <div className="mb-5 h-8 rounded-lg bg-white/[0.045]" />

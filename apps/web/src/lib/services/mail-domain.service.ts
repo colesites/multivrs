@@ -338,6 +338,7 @@ async function removeManagedDns(
   records: Array<{
     name: string;
     priority: number | null;
+    ttl: string;
     type: string;
     value: string;
   }>,
@@ -366,6 +367,7 @@ function toDnsInput(
   record: {
     name: string;
     priority: number | null;
+    ttl: string;
     type: string;
     value: string;
   },
@@ -376,10 +378,15 @@ function toDnsInput(
   return {
     name: relativeMailDnsName(zone, record.name),
     priority: record.priority,
-    ttl: 3600,
+    ttl: numericMailDnsTtl(record.ttl),
     type: record.type as DnsRecordType,
     value: normalizeMailDnsValue(record.value),
   };
+}
+
+function numericMailDnsTtl(ttl: string) {
+  const parsed = Number(ttl);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 3600;
 }
 
 function sameDnsRecord(

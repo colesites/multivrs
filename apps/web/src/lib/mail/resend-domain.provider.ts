@@ -16,6 +16,7 @@ export interface ProviderDomainRecord {
   priority: number | null;
   purpose: string;
   status: string;
+  ttl: string;
   type: string;
   value: string;
 }
@@ -152,6 +153,7 @@ function snapshot(domain: {
         priority: null,
         purpose: "dmarc",
         status: "pending",
+        ttl: "Auto",
         type: "TXT",
         value: "v=DMARC1; p=none;",
       },
@@ -170,6 +172,7 @@ function providerRecord(
     priority: "priority" in record ? (record.priority ?? null) : null,
     purpose: `${record.record.toLowerCase()}-${record.type.toLowerCase()}`,
     status: record.status,
+    ttl: record.ttl || "Auto",
     type: record.type,
     value: normalizeMailDnsValue(record.value),
   };
