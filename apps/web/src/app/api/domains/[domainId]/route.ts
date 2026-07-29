@@ -10,7 +10,6 @@ import {
   updateDomainAutoRenew,
 } from "@/lib/services/domain-management.service";
 
-
 interface RouteParams {
   params: Promise<{ domainId: string }>;
 }

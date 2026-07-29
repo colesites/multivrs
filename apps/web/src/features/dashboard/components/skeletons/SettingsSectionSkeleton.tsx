@@ -1,4 +1,5 @@
-import { SectionSkeletonHeader, SKELETON_ROWS } from "./SectionSkeletonParts";
+import { SectionSkeletonHeader } from "./SectionSkeletonParts";
+import { SKELETON_ROWS } from "./skeleton.constants";
 
 export function SettingsSectionSkeleton({ account }: { account: boolean }) {
   if (!account)
@@ -11,9 +12,9 @@ export function SettingsSectionSkeleton({ account }: { account: boolean }) {
           <div className="h-10 w-32 rounded-lg bg-white/10" />
         </section>
         <section className="mt-10 h-36 border border-red-400/15 bg-red-400/3 p-5">
-          <div className="h-4 w-28 rounded bg-red-300/10" />
-          <div className="mt-4 h-3 w-3/4 rounded bg-white/4" />
-          <div className="mt-6 h-9 w-32 rounded bg-red-400/10" />
+          <div className="h-4 w-28 rounded-sm bg-red-300/10" />
+          <div className="mt-4 h-3 w-3/4 rounded-sm bg-white/4" />
+          <div className="mt-6 h-9 w-32 rounded-sm bg-red-400/10" />
         </section>
       </main>
     );

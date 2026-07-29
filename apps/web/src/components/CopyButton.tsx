@@ -5,7 +5,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export function CopyButton({ text, className }: { text: string; className?: string }) {
+export function CopyButton({
+  text,
+  className,
+}: {
+  text: string;
+  className?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -27,7 +33,7 @@ export function CopyButton({ text, className }: { text: string; className?: stri
       className={cn(
         "rounded-md p-1.5 text-white/30 transition-colors hover:bg-white/10 hover:text-white/70",
         copied && "text-emerald-400 hover:text-emerald-400",
-        className
+        className,
       )}
     >
       {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}

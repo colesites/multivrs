@@ -46,7 +46,7 @@ export function AssignDomainNameStep({
             value={subdomain}
             onChange={(event) => onSubdomainChange(event.target.value)}
             placeholder="subdomain"
-            className="w-full bg-transparent text-white outline-none placeholder:text-white/30"
+            className="w-full bg-transparent text-white outline-hidden placeholder:text-white/30"
           />
           <span className="shrink-0 select-none text-sm text-white/40">
             .{hostname}

@@ -7,7 +7,6 @@ import {
   updateAccountProfile,
 } from "@/lib/services/account.service";
 
-
 export async function GET() {
   try {
     return ok(await getAccountProfile(await requireSessionUserId()));

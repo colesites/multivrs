@@ -3,7 +3,6 @@ import { fail, ok } from "@/lib/api/respond";
 import { requireUserId } from "@/lib/api/session";
 import { markDomainVerified } from "@/lib/services/domain-management.service";
 
-
 interface RouteParams {
   params: Promise<{ domainId: string }>;
 }

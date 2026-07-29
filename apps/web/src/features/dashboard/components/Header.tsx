@@ -32,7 +32,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-border bg-background/60 px-8 py-4 backdrop-blur-xl shadow-sm">
+    <header className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-border bg-background/60 px-8 py-4 backdrop-blur-xl shadow-xs">
       {/* Page Title & Breadcrumb feel */}
       <div className="flex flex-col">
         <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/60 mb-0.5">

@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-
-export const SKELETON_ROWS = ["one", "two", "three", "four", "five"];
+import { SKELETON_ROWS } from "./skeleton.constants";
 
 export function SectionLoadingHeader({
   description,
@@ -43,9 +42,9 @@ export function SectionSkeletonHeader({
   return (
     <header className="flex items-start justify-between gap-6">
       <div>
-        <div className="h-2.5 w-28 rounded bg-blue-400/15" />
-        <div className={`mt-3 h-7 rounded bg-white/8 ${titleWidth}`} />
-        <div className="mt-3 h-3 w-80 max-w-full rounded bg-white/4" />
+        <div className="h-2.5 w-28 rounded-sm bg-blue-400/15" />
+        <div className={`mt-3 h-7 rounded-sm bg-white/8 ${titleWidth}`} />
+        <div className="mt-3 h-3 w-80 max-w-full rounded-sm bg-white/4" />
       </div>
       {action ? (
         <div className="size-10 rounded-xl border border-blue-400/15 bg-blue-400/5" />
@@ -65,8 +64,8 @@ export function ProjectPickerSkeleton() {
             key={row}
           >
             <div className="size-9 rounded-lg bg-white/7" />
-            <div className="mt-5 h-4 w-1/2 rounded bg-white/7" />
-            <div className="mt-3 h-3 w-3/4 rounded bg-white/4" />
+            <div className="mt-5 h-4 w-1/2 rounded-sm bg-white/7" />
+            <div className="mt-3 h-3 w-3/4 rounded-sm bg-white/4" />
           </div>
         ))}
       </div>

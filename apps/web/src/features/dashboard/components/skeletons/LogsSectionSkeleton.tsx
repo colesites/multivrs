@@ -1,5 +1,5 @@
 import { Circle, RefreshCcw, Search } from "lucide-react";
-import { SKELETON_ROWS } from "./SectionSkeletonParts";
+import { SKELETON_ROWS } from "./skeleton.constants";
 
 export function LogsSectionSkeleton() {
   return (
@@ -41,7 +41,11 @@ export function LogsSectionSkeleton() {
       </div>
       <div className="overflow-hidden rounded-xl border border-white/8">
         <div className="grid h-10 grid-cols-[9rem_5rem_7rem_10rem_1fr] items-center gap-3 border-white/8 border-b px-4 font-geist-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-          <span>Time</span><span>Level</span><span>Source</span><span>Deployment</span><span>Message</span>
+          <span>Time</span>
+          <span>Level</span>
+          <span>Source</span>
+          <span>Deployment</span>
+          <span>Message</span>
         </div>
         {SKELETON_ROWS.map((row) => (
           <div

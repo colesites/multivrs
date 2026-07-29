@@ -3,7 +3,8 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
 import {
   useGlobalMailStore,

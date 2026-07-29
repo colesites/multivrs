@@ -29,7 +29,7 @@ export function DomainList({
           className="group flex cursor-pointer select-none items-center gap-3"
         >
           <span
-            className={`flex size-4 items-center justify-center rounded border transition-colors ${allSelected ? "border-white bg-white text-black" : "border-white/20 bg-transparent group-hover:border-white/40"}`}
+            className={`flex size-4 items-center justify-center rounded-sm border transition-colors ${allSelected ? "border-white bg-white text-black" : "border-white/20 bg-transparent group-hover:border-white/40"}`}
           >
             {allSelected ? <Check className="size-3 stroke-[3]" /> : null}
           </span>

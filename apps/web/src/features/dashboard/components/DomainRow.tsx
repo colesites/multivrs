@@ -29,7 +29,7 @@ export function DomainRow({
           className="sr-only"
         />
         <span
-          className={`size-4 rounded flex items-center justify-center border transition-colors ${
+          className={`size-4 rounded-sm flex items-center justify-center border transition-colors ${
             selected
               ? "border-white bg-white text-black"
               : "border-white/20 bg-transparent hover:border-white/40"

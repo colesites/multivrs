@@ -42,7 +42,9 @@ export function PricingCard({
       <div>
         <div className="flex min-h-[170px] flex-col justify-between lg:h-[210px]">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-medium text-foreground/90">{title}</h3>
+            <h3 className="text-base font-medium text-foreground/90">
+              {title}
+            </h3>
             {eyebrow ? (
               <span className="border border-foreground/40 bg-foreground/5 px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-foreground/90">
                 {eyebrow}

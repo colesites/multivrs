@@ -7,7 +7,6 @@ import {
   mutateNotification,
 } from "@/lib/services/notification.service";
 
-
 export async function GET() {
   try {
     return ok(await listNotifications(await requireSessionUserId()));

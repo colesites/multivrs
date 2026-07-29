@@ -77,6 +77,13 @@ export async function addLocalSandboxRecord(
   await changeRecords(hostname, (records) => records.push(record));
 }
 
+export async function addLocalSandboxRecords(
+  hostname: string,
+  additions: DnsRecordInput[],
+): Promise<void> {
+  await changeRecords(hostname, (records) => records.push(...additions));
+}
+
 export async function updateLocalSandboxRecord(
   hostname: string,
   original: DnsRecordInput,
@@ -97,6 +104,18 @@ export async function removeLocalSandboxRecord(
     const index = records.findIndex((item) => sameRecord(item, record));
     if (index < 0) throw new Error("DNS record not found");
     records.splice(index, 1);
+  });
+}
+
+export async function removeLocalSandboxRecords(
+  hostname: string,
+  removals: DnsRecordInput[],
+): Promise<void> {
+  await changeRecords(hostname, (records) => {
+    for (const removal of removals) {
+      const index = records.findIndex((item) => sameRecord(item, removal));
+      if (index >= 0) records.splice(index, 1);
+    }
   });
 }
 

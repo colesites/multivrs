@@ -35,10 +35,10 @@ export function ObservabilitySectionSkeleton() {
             className="min-h-60 animate-pulse rounded-xl border border-[var(--hairline)] bg-white/[0.012] p-4"
             key={key}
           >
-            <div className="h-3 w-32 rounded bg-white/[0.075]" />
-            <div className="mt-4 h-2.5 w-20 rounded bg-white/[0.04]" />
-            <div className="mt-2 h-4 w-16 rounded bg-white/[0.07]" />
-            <div className="mt-6 h-24 rounded bg-white/[0.025]" />
+            <div className="h-3 w-32 rounded-sm bg-white/[0.075]" />
+            <div className="mt-4 h-2.5 w-20 rounded-sm bg-white/[0.04]" />
+            <div className="mt-2 h-4 w-16 rounded-sm bg-white/[0.07]" />
+            <div className="mt-6 h-24 rounded-sm bg-white/[0.025]" />
           </div>
         ))}
       </section>
@@ -59,8 +59,8 @@ export function ObservabilitySectionSkeleton() {
               className="grid min-h-12 grid-cols-[minmax(0,1fr)_8rem] items-center border-b border-[var(--hairline)] px-4 last:border-b-0"
               key={key}
             >
-              <div className="h-3 w-36 rounded bg-white/[0.055]" />
-              <div className="h-3 w-12 rounded bg-white/[0.04]" />
+              <div className="h-3 w-36 rounded-sm bg-white/[0.055]" />
+              <div className="h-3 w-12 rounded-sm bg-white/[0.04]" />
             </div>
           ))}
         </div>

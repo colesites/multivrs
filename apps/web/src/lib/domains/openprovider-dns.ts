@@ -5,9 +5,11 @@ import { OPENPROVIDER_NAMESERVERS } from "@/lib/domains/dns.types";
 import { lookupDnsDelegation } from "@/lib/domains/dns-delegation";
 import {
   addLocalSandboxRecord,
+  addLocalSandboxRecords,
   createLocalSandboxZone,
   getLocalSandboxDns,
   removeLocalSandboxRecord,
+  removeLocalSandboxRecords,
   updateLocalSandboxRecord,
 } from "@/lib/domains/local-sandbox-provider";
 import {
@@ -101,6 +103,18 @@ export async function addProviderRecord(
   await modifyZone(hostname, { add: [toProviderRecord(record)] });
 }
 
+export async function addProviderRecords(
+  hostname: string,
+  records: DnsRecordInput[],
+): Promise<void> {
+  if (!records.length) return;
+  if (isLocalOpenproviderSandbox()) {
+    await addLocalSandboxRecords(hostname, records);
+    return;
+  }
+  await modifyZone(hostname, { add: records.map(toProviderRecord) });
+}
+
 export async function updateProviderRecord(
   hostname: string,
   original: DnsRecordInput,
@@ -129,6 +143,18 @@ export async function removeProviderRecord(
     return;
   }
   await modifyZone(hostname, { remove: [toProviderRecord(record)] });
+}
+
+export async function removeProviderRecords(
+  hostname: string,
+  records: DnsRecordInput[],
+): Promise<void> {
+  if (!records.length) return;
+  if (isLocalOpenproviderSandbox()) {
+    await removeLocalSandboxRecords(hostname, records);
+    return;
+  }
+  await modifyZone(hostname, { remove: records.map(toProviderRecord) });
 }
 
 async function modifyZone(hostname: string, records: object): Promise<void> {

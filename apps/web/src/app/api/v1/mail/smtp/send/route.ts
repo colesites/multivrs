@@ -20,16 +20,21 @@ export async function POST(request: Request) {
       },
       select: { id: true },
     });
-    if (!mailbox) throw new Error("The SMTP sender is outside this credential scope");
+    if (!mailbox)
+      throw new Error("The SMTP sender is outside this credential scope");
     const message = await composeMail(credential.userId, {
       ...input,
       mailboxId: mailbox.id,
     });
     if (credential.mode === "test") {
-      await prisma.mailMessage.update({ where: { id: message.id }, data: { status: "test" } });
+      await prisma.mailMessage.update({
+        where: { id: message.id },
+        data: { status: "test" },
+      });
       return ok({ id: message.id, status: "test" }, 202);
     }
-    if (!message.scheduledAt) after(() => dispatchMailDelivery(credential.userId, message.id));
+    if (!message.scheduledAt)
+      after(() => dispatchMailDelivery(credential.userId, message.id));
     return ok({ id: message.id, status: message.status }, 202);
   } catch (error) {
     return fail(error);

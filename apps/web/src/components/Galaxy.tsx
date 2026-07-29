@@ -359,5 +359,11 @@ export default function Galaxy({
     transparent,
   ]);
 
-  return <div ref={ctnDom} className={cn("w-full h-full relative", className)} {...rest} />;
+  return (
+    <div
+      ref={ctnDom}
+      className={cn("w-full h-full relative", className)}
+      {...rest}
+    />
+  );
 }

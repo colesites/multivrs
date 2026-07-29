@@ -38,7 +38,7 @@ export function MailComposeFields({
       ) : null}
       <ComposeField label="From">
         <select
-          className="h-10 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm outline-none"
+          className="h-10 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm outline-hidden"
           defaultValue={mailboxes[0]?.id}
           name="mailboxId"
           required

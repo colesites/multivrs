@@ -1,4 +1,5 @@
 import "server-only";
+import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
 import { prisma } from "@/lib/prisma";
 import { resource } from "@/lib/services/mail-dashboard-mappers";
 
@@ -53,12 +54,22 @@ export async function mailDashboardResources(
     }),
   ]);
   return {
-    verifiedDomains: domains.filter((item) => item.status === "verified")
-      .length,
+    verifiedDomains: domains.filter(isAuthenticatedSendingDomain).length,
     resources: {
-      domains: domains.map((item) =>
-        resource(item.id, item.domain, item.kind, item.status, item.createdAt),
-      ),
+      domains: domains.map((item) => {
+        const status = isAuthenticatedSendingDomain(item)
+          ? "verified"
+          : item.status === "failed"
+            ? "failed"
+            : "pending";
+        return resource(
+          item.id,
+          item.domain,
+          item.kind,
+          status,
+          item.createdAt,
+        );
+      }),
       contacts: contacts.map((item) =>
         resource(
           item.id,

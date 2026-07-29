@@ -4,7 +4,6 @@ import { getSubscriptionWebhookSecret } from "@/lib/payments/stripe-client";
 import { verifyStripeWebhook } from "@/lib/payments/stripe-webhook";
 import { handleSubscriptionEvent } from "@/lib/services/subscription-webhook.service";
 
-
 export async function POST(request: Request) {
   let event: Stripe.Event;
   try {

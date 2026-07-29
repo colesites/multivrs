@@ -109,7 +109,7 @@ export function DomainActions({
             aria-label={`Turn auto renewal ${autoRenew ? "off" : "on"} for ${hostname}`}
             disabled={renewPending}
             onClick={toggleAutoRenew}
-            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
               autoRenew ? "bg-blue-600" : "bg-white/20"
             }`}
           >

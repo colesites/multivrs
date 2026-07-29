@@ -18,7 +18,10 @@ export default function Home() {
       <DeferredUniverseCanvas />
 
       {/* The DOM overlays */}
-      <div id="dark-marketing-header" className="relative z-10 dark text-foreground">
+      <div
+        id="dark-marketing-header"
+        className="relative z-10 dark text-foreground"
+      >
         <HeroSection />
         <CapabilitiesSection />
       </div>

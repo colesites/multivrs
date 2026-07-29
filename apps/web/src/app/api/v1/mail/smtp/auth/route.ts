@@ -7,7 +7,8 @@ export async function POST(request: Request) {
   try {
     const credential = await authenticateMailCredential(request, "smtp");
     const { username } = await parseBody(request, smtpAuthSchema);
-    if (username !== `mlv_${credential.id}`) throw new Error("Invalid SMTP username");
+    if (username !== `mlv_${credential.id}`)
+      throw new Error("Invalid SMTP username");
     return ok({ authorized: true });
   } catch (error) {
     return fail(error);

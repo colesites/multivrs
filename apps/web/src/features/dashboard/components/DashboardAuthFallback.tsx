@@ -78,8 +78,8 @@ function SidebarHeaderIdentitySkeleton() {
     <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-[var(--hairline)] px-5">
       <span className="size-8 animate-pulse rounded-md bg-white/[0.07]" />
       <span className="min-w-0 flex-1 space-y-2">
-        <span className="block h-3 w-24 animate-pulse rounded bg-white/[0.08]" />
-        <span className="block h-2 w-12 animate-pulse rounded bg-white/[0.045]" />
+        <span className="block h-3 w-24 animate-pulse rounded-sm bg-white/[0.08]" />
+        <span className="block h-2 w-12 animate-pulse rounded-sm bg-white/[0.045]" />
       </span>
     </div>
   );
@@ -89,7 +89,7 @@ function SidebarFooterIdentitySkeleton() {
   return (
     <div className="flex items-center gap-2 border-t border-[var(--hairline)] px-4 py-3">
       <span className="size-7 animate-pulse rounded-full bg-white/[0.07]" />
-      <span className="h-3 flex-1 animate-pulse rounded bg-white/[0.07]" />
+      <span className="h-3 flex-1 animate-pulse rounded-sm bg-white/[0.07]" />
       <button
         type="button"
         disabled

@@ -7,7 +7,6 @@ import {
   fulfillDomainCheckout,
 } from "@/lib/services/domain-fulfillment.service";
 
-
 export async function POST(request: Request) {
   let event: Stripe.Event;
   try {

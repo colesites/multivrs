@@ -5,7 +5,6 @@ import { requireUserId } from "@/lib/api/session";
 import { connectDomainSchema } from "@/lib/domains/dns.schemas";
 import { connectDomain } from "@/lib/services/domain-management.service";
 
-
 export async function POST(request: NextRequest) {
   try {
     const userId = await requireUserId();

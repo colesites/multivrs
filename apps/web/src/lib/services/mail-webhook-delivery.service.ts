@@ -9,7 +9,8 @@ export async function enqueueMailWebhooks(eventId: string) {
     include: { message: { include: { mailbox: true } }, broadcast: true },
   });
   if (!event) return;
-  const projectId = event.message?.mailbox.projectId ?? event.broadcast?.projectId;
+  const projectId =
+    event.message?.mailbox.projectId ?? event.broadcast?.projectId;
   const endpoints = await prisma.mailWebhookEndpoint.findMany({
     where: {
       userId: event.userId,
@@ -28,19 +29,36 @@ export async function enqueueMailWebhooks(eventId: string) {
 }
 
 async function deliver(id: string) {
-  const delivery = await prisma.mailWebhookDelivery.findUnique({ where: { id }, include: { endpoint: true } });
-  if (!delivery || !delivery.endpoint.enabled) return;
-  const event = await prisma.mailEvent.findUnique({ where: { id: delivery.eventId } });
+  const delivery = await prisma.mailWebhookDelivery.findUnique({
+    where: { id },
+    include: { endpoint: true },
+  });
+  if (!delivery?.endpoint.enabled) return;
+  const event = await prisma.mailEvent.findUnique({
+    where: { id: delivery.eventId },
+  });
   if (!event) return;
-  const body = JSON.stringify({ id: event.id, type: event.type, createdAt: event.occurredAt.toISOString(), data: event.payload ?? {} });
+  const body = JSON.stringify({
+    id: event.id,
+    type: event.type,
+    createdAt: event.occurredAt.toISOString(),
+    data: event.payload ?? {},
+  });
   const timestamp = Math.floor(Date.now() / 1_000).toString();
-  const signature = createHmac("sha256", mailWebhookSecret(delivery.endpointId)).update(`${timestamp}.${body}`).digest("hex");
+  const signature = createHmac("sha256", mailWebhookSecret(delivery.endpointId))
+    .update(`${timestamp}.${body}`)
+    .digest("hex");
   let responseCode: number | undefined;
   let error: string | undefined;
   try {
     const response = await fetch(delivery.endpoint.url, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-multivrs-event": event.id, "x-multivrs-timestamp": timestamp, "x-multivrs-signature": signature },
+      headers: {
+        "content-type": "application/json",
+        "x-multivrs-event": event.id,
+        "x-multivrs-timestamp": timestamp,
+        "x-multivrs-signature": signature,
+      },
       body,
       signal: AbortSignal.timeout(10_000),
     });
@@ -59,14 +77,22 @@ async function deliver(id: string) {
       responseCode,
       error: error?.slice(0, 1_000),
       status: delivered ? "delivered" : exhausted ? "dead" : "failed",
-      nextAttemptAt: delivered || exhausted ? null : new Date(Date.now() + Math.min(3_600, 2 ** attempts * 15) * 1_000),
+      nextAttemptAt:
+        delivered || exhausted
+          ? null
+          : new Date(Date.now() + Math.min(3_600, 2 ** attempts * 15) * 1_000),
     },
   });
 }
 
 export async function deliverWebhookBatch() {
   const due = await prisma.mailWebhookDelivery.findMany({
-    where: { OR: [{ status: "pending" }, { status: "failed", nextAttemptAt: { lte: new Date() } }] },
+    where: {
+      OR: [
+        { status: "pending" },
+        { status: "failed", nextAttemptAt: { lte: new Date() } },
+      ],
+    },
     orderBy: { createdAt: "asc" },
     select: { id: true },
     take: 100,

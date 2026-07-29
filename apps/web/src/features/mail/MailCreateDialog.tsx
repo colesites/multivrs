@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ export function MailCreateDialog({
   view: CreateMailView;
 }) {
   const router = useRouter();
+  const params = useParams<{ username?: string; scope?: string }>();
   const [saving, setSaving] = useState(false);
   const [secret, setSecret] = useState<string>();
   const [connection, setConnection] = useState<SmtpConnection>();
@@ -57,7 +58,24 @@ export function MailCreateDialog({
         setSecret(result.secret);
         setConnection(result.connection);
         toast.info("Copy this secret now. It will not be shown again.");
-      } else onOpenChange(false);
+      } else {
+        onOpenChange(false);
+        if (
+          view === "domains" &&
+          result.id &&
+          params.username &&
+          params.scope
+        ) {
+          if (result.setupError) {
+            toast.warning("Domain added, but automatic DNS needs attention");
+          } else if (result.dnsMode === "automatic") {
+            toast.info("Multivrs added the required DNS records automatically");
+          }
+          router.push(
+            `/${params.username}/${params.scope}/email/domains/${result.id}`,
+          );
+        }
+      }
       router.refresh();
     });
   }

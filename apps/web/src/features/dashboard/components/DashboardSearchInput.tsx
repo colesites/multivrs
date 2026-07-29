@@ -61,7 +61,7 @@ export const DashboardSearchInput = forwardRef<
         value={value}
         onChange={(event) => onValueChange(event.target.value)}
         placeholder={placeholder}
-        className="min-w-0 flex-1 appearance-none bg-transparent text-inherit text-foreground caret-accent outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
+        className="min-w-0 flex-1 appearance-none bg-transparent text-inherit text-foreground caret-accent outline-hidden placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
       />
       {trailing}
       {clearable && value ? (

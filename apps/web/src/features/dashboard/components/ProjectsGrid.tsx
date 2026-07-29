@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Suspense, use, useState } from "react";
+import { Suspense, useState } from "react";
 import { ProjectCardsList } from "@/features/dashboard/components/ProjectCardsList";
 import {
   type ProjectFilter,

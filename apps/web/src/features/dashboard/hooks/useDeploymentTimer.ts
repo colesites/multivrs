@@ -13,7 +13,7 @@ export function useDeploymentTimer() {
   }
 
   function start() {
-    stop();
+    if (interval.current) clearInterval(interval.current);
     startedAt.current = Date.now();
     setSeconds(0);
     interval.current = setInterval(() => {
@@ -21,6 +21,11 @@ export function useDeploymentTimer() {
     }, 1_000);
   }
 
-  useEffect(() => stop, []);
+  useEffect(
+    () => () => {
+      if (interval.current) clearInterval(interval.current);
+    },
+    [],
+  );
   return { seconds, start, stop };
 }

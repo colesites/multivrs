@@ -1,4 +1,5 @@
 import "server-only";
+import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
 import { configuredMailProvider } from "@/lib/mail/resend-mail.provider";
 import { prisma } from "@/lib/prisma";
 import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.service";
@@ -19,8 +20,12 @@ export async function deliverMailMessage(userId: string, messageId: string) {
     await markFailed(message.id, userId, "A recipient is suppressed");
     return;
   }
-  if (message.mailbox.domain?.status !== "verified") {
-    await markFailed(message.id, userId, "The sending domain is not verified");
+  if (!isAuthenticatedSendingDomain(message.mailbox.domain)) {
+    await markFailed(
+      message.id,
+      userId,
+      "The sending domain is not authenticated with the delivery provider",
+    );
     return;
   }
   await prisma.mailMessage.update({

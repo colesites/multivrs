@@ -20,6 +20,7 @@ export async function ownedMailbox(userId: string, mailboxId: string) {
       id: mailboxId,
       OR: [{ userId }, { members: { some: { userId } } }],
     },
+    include: { domain: true },
   });
   if (!mailbox) throw new NotFoundError("Mailbox not found");
   return mailbox;

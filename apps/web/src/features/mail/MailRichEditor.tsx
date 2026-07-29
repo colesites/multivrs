@@ -115,7 +115,7 @@ export function MailRichEditor({ initialHtml = "" }: { initialHtml?: string }) {
       </div>
       {/* biome-ignore lint/a11y/useSemanticElements: contentEditable is required for rich-text authoring. */}
       <div
-        className="min-h-56 px-4 py-3 text-sm leading-6 text-white/80 outline-none [&_a]:text-cyan-300 [&_a]:underline [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg"
+        className="min-h-56 px-4 py-3 text-sm leading-6 text-white/80 outline-hidden [&_a]:text-cyan-300 [&_a]:underline [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg"
         contentEditable
         aria-label="Message body"
         onBlur={syncHtml}

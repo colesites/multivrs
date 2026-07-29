@@ -1,5 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { ConflictError } from "@multivrs/error-utils";
+import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
 import { sanitizeOutboundMailHtml } from "@/lib/mail/sanitize-html";
 import { prisma } from "@/lib/prisma";
 import type { ComposeMailInput } from "@/lib/schemas/mail-message.schemas";
@@ -19,6 +21,11 @@ export async function composeMail(
   broadcastId?: string,
 ) {
   const mailbox = await ownedMailbox(userId, input.mailboxId);
+  if (!isAuthenticatedSendingDomain(mailbox.domain)) {
+    throw new ConflictError(
+      "Verify this mailbox's sending domain before sending email",
+    );
+  }
   const reply = input.replyToMessageId
     ? await prisma.mailMessage.findFirst({
         where: { id: input.replyToMessageId, userId },
@@ -27,6 +34,7 @@ export async function composeMail(
     : null;
   const scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null;
   const safeHtml = sanitizeOutboundMailHtml(input.html);
+  const messageIdDomain = mailbox.address.split("@").at(-1) ?? "multivrs.space";
   const result = await prisma.$transaction(async (tx) => {
     const thread = reply
       ? await tx.mailThread.findUniqueOrThrow({ where: { id: reply.threadId } })
@@ -43,7 +51,7 @@ export async function composeMail(
         userId,
         mailboxId: mailbox.id,
         threadId: thread.id,
-        messageId: `<${randomUUID()}@multivrs.mail>`,
+        messageId: `<${randomUUID()}@${messageIdDomain}>`,
         inReplyTo: reply?.messageId,
         references: reply ? [...reply.references, reply.messageId] : [],
         direction: "outbound",

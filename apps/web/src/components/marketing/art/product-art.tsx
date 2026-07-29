@@ -1,4 +1,3 @@
-import type { ProductArtKey } from "@/lib/marketing/products";
 import { cn } from "@/lib/utils";
 
 /**
@@ -308,15 +307,3 @@ export function KontinueArt({ className }: ArtProps) {
     </svg>
   );
 }
-
-/** Lookup used by the bento to render the right art for a product. */
-export const PRODUCT_ART: Record<
-  ProductArtKey,
-  (props: ArtProps) => React.ReactElement
-> = {
-  "swift-rust": SwiftRustArt,
-  "swift-rust-ui": SwiftRustUiArt,
-  domains: DomainsArt,
-  email: EmailArt,
-  kontinue: KontinueArt,
-};

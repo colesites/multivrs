@@ -10,7 +10,6 @@ import { fail, ok } from "@/lib/api/respond";
 import { requireUserId } from "@/lib/api/session";
 import { createProject, listProjects } from "@/lib/services/project.service";
 
-
 export async function GET() {
   try {
     const userId = await requireUserId();

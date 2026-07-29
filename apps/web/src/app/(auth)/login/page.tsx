@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthLayout } from "@/components/auth/auth-layout";
 import { SignInForm } from "@/components/auth/sign-in-form";
+import { redirectAuthenticatedUser } from "@/lib/auth/redirect-authenticated";
 import { normalizeAuthReturnPath } from "@/lib/auth/return-path";
 
 export const metadata: Metadata = {
@@ -9,11 +10,13 @@ export const metadata: Metadata = {
   description: "Sign in to your Multivrs account.",
 };
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ from?: string }>;
 }) {
+  await redirectAuthenticatedUser();
+
   return (
     <AuthLayout>
       <Suspense fallback={null}>

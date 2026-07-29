@@ -18,13 +18,15 @@ export function MailCreateFields({
 }) {
   if (view === "domains")
     return (
-      <>
-        <FormField name="domain" placeholder="mail.example.com" />
-        <FormChoice
-          name="kind"
-          options={["mailbox", "sending", "tracking", "return-path"]}
-        />
-      </>
+      <div className="space-y-4">
+        <FormField name="domain" placeholder="example.com" />
+        <input name="kind" type="hidden" value="sending" />
+        <div className="rounded-xl border border-blue-400/15 bg-blue-400/[0.045] px-4 py-3 text-xs leading-5 text-white/50">
+          If Multivrs manages this domain, email DNS records are installed
+          automatically. Otherwise, you will receive records to add at your
+          current DNS provider.
+        </div>
+      </div>
     );
   if (view === "mailboxes")
     return (

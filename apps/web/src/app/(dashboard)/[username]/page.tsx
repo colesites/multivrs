@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { ProjectsGrid } from "@/features/dashboard/components/ProjectsGrid";
 import { getServerSession } from "@/lib/auth/session";
-import { dashboardProjects } from "@/lib/services/dashboard.service";
 import { getAccountUsage } from "@/lib/services/account-usage.service";
+import { dashboardProjects } from "@/lib/services/dashboard.service";
 
 /**
  * Account overview (all-projects scope) — served at /[username].

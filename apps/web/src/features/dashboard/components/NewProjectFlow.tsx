@@ -93,7 +93,7 @@ export function NewProjectFlow({ username }: { username?: string }) {
               value={repositoryUrl}
               onChange={(event) => setRepositoryUrl(event.target.value)}
               placeholder="https://github.com/owner/repository"
-              className="min-w-0 flex-1 bg-transparent text-xs outline-none"
+              className="min-w-0 flex-1 bg-transparent text-xs outline-hidden"
             />
           </label>
           <button

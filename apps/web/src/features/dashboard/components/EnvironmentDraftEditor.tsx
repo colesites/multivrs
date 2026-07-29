@@ -47,7 +47,7 @@ export function EnvironmentDraftEditor({
                     update(item.id, { key: event.target.value })
                   }
                   placeholder="EXAMPLE_KEY"
-                  className="h-9 w-full rounded-md border border-white/10 bg-black px-3 font-mono text-xs outline-none"
+                  className="h-9 w-full rounded-md border border-white/10 bg-black px-3 font-mono text-xs outline-hidden"
                 />
               </label>
               <label className="min-w-0 flex-1">
@@ -58,7 +58,7 @@ export function EnvironmentDraftEditor({
                     update(item.id, { value: event.target.value })
                   }
                   placeholder="value"
-                  className="h-9 w-full rounded-md border border-white/10 bg-black px-3 font-mono text-xs outline-none"
+                  className="h-9 w-full rounded-md border border-white/10 bg-black px-3 font-mono text-xs outline-hidden"
                 />
               </label>
               <button

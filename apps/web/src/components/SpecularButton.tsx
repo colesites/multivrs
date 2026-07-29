@@ -1,9 +1,9 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { Color, Mesh, Program, Renderer, Triangle } from "ogl";
 import type { CSSProperties, MouseEventHandler, ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
-import { useTheme } from "next-themes";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 
 type ButtonSize = "sm" | "md" | "lg";
 
@@ -47,6 +47,9 @@ interface ShaderProps {
 }
 
 const PAD = 20;
+const subscribeToClient = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 const SIZES: Record<ButtonSize, string> = {
   sm: "text-[0.85rem] px-[22px] py-[10px]",
@@ -141,28 +144,38 @@ const SpecularButton = ({
   forceTheme,
 }: SpecularButtonProps) => {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isLight = (forceTheme || (mounted && resolvedTheme)) === "light";
+  const isClient = useSyncExternalStore(
+    subscribeToClient,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
+  const isLight = (forceTheme || (isClient && resolvedTheme)) === "light";
 
   // Smart Light/Dark Mode Color Adaptation
   // We determine if it's a "primary" (solid) or "secondary" (translucent) button based on tintOpacity
   const isPrimary = tintOpacity > 0.5;
 
-  const activeTint = isLight ? "#000000" : (tint || "#ffffff");
-  const activeBaseColor = isLight 
-    ? (isPrimary ? "#000000" : "#e5e5e5") 
-    : (baseColor || (isPrimary ? "#ffffff" : "#333333"));
-  const activeLineColor = isLight 
-    ? (isPrimary ? "#ffffff" : "#000000") 
-    : (lineColor || "#ffffff");
-  const activeTextColor = textColor === "currentColor" 
-    ? "currentColor" 
-    : (isLight ? (isPrimary ? "#ffffff" : "#000000") : (isPrimary ? "#000000" : "#ffffff"));
+  const activeTint = isLight ? "#000000" : tint || "#ffffff";
+  const activeBaseColor = isLight
+    ? isPrimary
+      ? "#000000"
+      : "#e5e5e5"
+    : baseColor || (isPrimary ? "#ffffff" : "#333333");
+  const activeLineColor = isLight
+    ? isPrimary
+      ? "#ffffff"
+      : "#000000"
+    : lineColor || "#ffffff";
+  const activeTextColor =
+    textColor === "currentColor"
+      ? "currentColor"
+      : isLight
+        ? isPrimary
+          ? "#ffffff"
+          : "#000000"
+        : isPrimary
+          ? "#000000"
+          : "#ffffff";
 
   const btnRef = useRef<HTMLButtonElement>(null);
   const fxRef = useRef<HTMLSpanElement>(null);
@@ -363,7 +376,7 @@ const SpecularButton = ({
       type={type}
       disabled={disabled}
       onClick={onClick}
-      className={`relative m-0 inline-flex cursor-pointer items-center justify-center border-none font-medium leading-none tracking-[0.01em] outline-none transition-transform duration-150 active:scale-[0.97] disabled:cursor-default disabled:opacity-55 disabled:active:scale-100 [color:var(--sb-text-color)] [border-radius:var(--sb-radius)] [background:color-mix(in_srgb,var(--sb-tint)_calc(var(--sb-tint-opacity)*100%),transparent)] [backdrop-filter:blur(var(--sb-blur))] shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(0,0,0,0.25)] focus-visible:outline-2 focus-visible:outline-offset-[3px] ${SIZES[size] || SIZES.md}${className ? ` ${className}` : ""}`}
+      className={`relative m-0 inline-flex cursor-pointer items-center justify-center border-none font-medium leading-none tracking-[0.01em] outline-hidden transition-transform duration-150 active:scale-[0.97] disabled:cursor-default disabled:opacity-55 disabled:active:scale-100 [color:var(--sb-text-color)] [border-radius:var(--sb-radius)] [background:color-mix(in_srgb,var(--sb-tint)_calc(var(--sb-tint-opacity)*100%),transparent)] [backdrop-filter:blur(var(--sb-blur))] shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(0,0,0,0.25)] focus-visible:outline-2 focus-visible:outline-offset-[3px] ${SIZES[size] || SIZES.md}${className ? ` ${className}` : ""}`}
       style={
         {
           "--sb-radius": `${radius}px`,

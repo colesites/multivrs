@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth";
 import { githubRepositorySchema } from "@/lib/schemas/github.schemas";
 import { logError } from "@/lib/services/logger.service";
 
-
 export async function GET(req: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: req.headers });

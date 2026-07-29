@@ -3,7 +3,7 @@
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
-import { PRODUCT_ART } from "@/components/marketing/art/product-art";
+import { PRODUCT_ART } from "@/components/marketing/art/product-art-map";
 import { floaty, tilt, useGSAP } from "@/components/marketing/scroll";
 import type { Product } from "@/lib/marketing/products";
 import { cn } from "@/lib/utils";
@@ -73,7 +73,7 @@ export function ProductCard({ product }: { product: Product }) {
       <Link
         {...linkProps}
         aria-label={`${product.name} - ${product.external ? "visit site" : "learn more"}`}
-        className="absolute inset-0 z-20 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb]/60"
+        className="absolute inset-0 z-20 rounded-2xl outline-hidden focus-visible:ring-2 focus-visible:ring-[#2563eb]/60"
       />
 
       {/* Art */}

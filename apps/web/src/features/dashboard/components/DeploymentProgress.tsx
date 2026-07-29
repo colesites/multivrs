@@ -34,7 +34,10 @@ export function DeploymentProgress({
         </div>
       ) : (
         <div className="mt-4 space-y-4">
-          <div className="flex items-center gap-2 text-xs text-white/60" aria-live="polite">
+          <div
+            className="flex items-center gap-2 text-xs text-white/60"
+            aria-live="polite"
+          >
             {status === "building" ? (
               <Loader2 className="size-4 animate-spin text-blue-400" />
             ) : status === "ready" ? (

@@ -158,4 +158,4 @@ function BillingField({
 }
 
 const inputClass =
-  "h-11 w-full rounded-md border border-white/12 bg-[#0b0b0b] px-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/35 focus:ring-2 focus:ring-white/5";
+  "h-11 w-full rounded-md border border-white/12 bg-[#0b0b0b] px-3 text-sm text-white outline-hidden transition placeholder:text-white/25 focus:border-white/35 focus:ring-2 focus:ring-white/5";

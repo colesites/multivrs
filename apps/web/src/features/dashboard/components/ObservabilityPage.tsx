@@ -108,7 +108,7 @@ export function ObservabilityPage({
         <Search className="size-4" />
         <span className="sr-only">Search projects</span>
         <input
-          className="w-full bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground"
+          className="w-full bg-transparent text-xs text-foreground outline-hidden placeholder:text-muted-foreground"
           placeholder="Search"
           type="search"
         />
@@ -167,6 +167,7 @@ function SignalChart({ active }: { active: boolean }) {
         <span className="border-b border-white/[0.045]" />
       </div>
       <svg
+        aria-hidden="true"
         className="absolute inset-0 size-full"
         preserveAspectRatio="none"
         viewBox="0 0 600 120"

@@ -96,7 +96,7 @@ function ScopeRow({
         selected ? "text-foreground" : "text-muted-foreground",
       )}
     >
-      <span className="flex size-5 shrink-0 items-center justify-center rounded border border-[var(--hairline)] font-geist-mono text-[11px]">
+      <span className="flex size-5 shrink-0 items-center justify-center rounded-sm border border-[var(--hairline)] font-geist-mono text-[11px]">
         {Icon ? (
           <Icon className="size-3" strokeWidth={1.75} />
         ) : (

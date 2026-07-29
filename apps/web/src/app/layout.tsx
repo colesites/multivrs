@@ -91,7 +91,11 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} h-full antialiased`}
+    >
       <head>
         <meta name="theme-color" content="#030303" />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>

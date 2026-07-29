@@ -14,9 +14,12 @@ export class ResendMailProvider implements OutboundMailProvider {
   }
 
   async send(message: OutboundMailMessage): Promise<ProviderSendResult> {
-    const content = message.html
-      ? { html: message.html }
-      : { text: message.text ?? "" };
+    const content =
+      message.html && message.text
+        ? { html: message.html, text: message.text }
+        : message.html
+          ? { html: message.html }
+          : { text: message.text ?? "" };
     const response = await this.client.emails.send({
       from: message.from,
       to: message.to,

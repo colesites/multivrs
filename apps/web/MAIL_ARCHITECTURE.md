@@ -39,10 +39,19 @@ five-minute replay window.
 
 ## DNS and domain truth
 
-Creating a domain returns the required ownership, SPF, DKIM, DMARC, MX,
-tracking, and return-path records. Verification performs actual DNS resolution;
-the UI cannot mark a domain verified by itself. Production must provision the
-targets under `MULTIVRS_MAIL_DNS_DOMAIN` and connect provider-issued DKIM keys.
+Creating a sending domain provisions the domain in Resend and stores the exact
+SPF, DKIM, DMARC, MX, tracking, and return-path records returned by the
+provider. If the domain is DNS-managed by Multivrs, those records are installed
+automatically. For external DNS, the dashboard displays the same records for
+the customer to add at their existing provider.
+
+Resend verification starts automatically. `domain.updated` events sent to
+`/api/mail/resend-events` refresh provider truth in Neon, and the minute mail
+worker reconciles pending and legacy domains as a fallback. The UI cannot mark
+a domain verified by itself, and outbound mail remains blocked until Resend
+reports the domain as verified. The webhook's signing secret is configured as
+`RESEND_DOMAIN_WEBHOOK_SECRET` in the web application; it is separate from the
+inbound worker's `RESEND_WEBHOOK_SECRET`.
 
 ## Secrets and credentials
 
@@ -71,7 +80,8 @@ project scope.
 ## Operations still requiring infrastructure
 
 Deploy the Cloudflare worker, both queues, and the TLS SMTP gateway; provision
-the receiving MX gateway and private MIME storage; configure provider webhooks;
-and operate the DNS targets.
+the receiving MX gateway and private MIME storage; register the Resend
+`domain.updated` webhook at `/api/mail/resend-events`; and operate the DNS
+provider integration.
 The application deliberately fails closed when production worker or provider
 credentials are absent; it does not generate fake delivery activity.

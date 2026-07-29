@@ -49,7 +49,7 @@ export function DomainFilters({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search TLDs"
-              className="h-9 w-full bg-transparent pl-9 text-sm outline-none"
+              className="h-9 w-full bg-transparent pl-9 text-sm outline-hidden"
             />
           </label>
           <div className="max-h-72 overflow-y-auto p-1">

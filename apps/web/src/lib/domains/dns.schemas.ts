@@ -4,15 +4,15 @@ import { DNS_RECORD_TYPES, DNS_TTL_OPTIONS } from "@/lib/domains/dns.types";
 const hostnamePattern =
   /^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 
+export const hostnameSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .transform((value) => value.replace(/^https?:\/\//, "").replace(/\/.*$/, ""))
+  .pipe(z.string().regex(hostnamePattern, "Enter a valid domain name"));
+
 export const connectDomainSchema = z.object({
-  hostname: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .transform((value) =>
-      value.replace(/^https?:\/\//, "").replace(/\/.*$/, ""),
-    )
-    .pipe(z.string().regex(hostnamePattern, "Enter a valid domain name")),
+  hostname: hostnameSchema,
   projectId: z.uuid(),
 });
 

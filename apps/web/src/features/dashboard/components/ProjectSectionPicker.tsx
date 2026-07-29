@@ -21,9 +21,7 @@ const SECTION_ICONS = new Map(
     ] as const;
   }),
 );
-const FALLBACK_SECTION_ICON = (
-  <Activity className="size-4" strokeWidth={1.7} />
-);
+const FALLBACK_SECTION_ICON = <Activity className="size-4" strokeWidth={1.7} />;
 
 export function ProjectSectionPicker({
   username,
@@ -59,7 +57,7 @@ export function ProjectSectionPicker({
               <Link
                 key={project.slug}
                 href={`/${username}/${project.slug}/${section}`}
-                className="group flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-white/[0.07] focus-visible:bg-white/[0.07] focus-visible:outline-none"
+                className="group flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-white/[0.07] focus-visible:bg-white/[0.07] focus-visible:outline-hidden"
               >
                 <span className="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-md bg-black ring-1 ring-white/5">
                   <ProjectFavicon
@@ -109,7 +107,7 @@ export function ProjectSectionPickerSkeleton({
             key={key}
           >
             <span className="size-5 rounded-md bg-white/[0.07]" />
-            <span className="h-3 w-2/5 rounded bg-white/[0.055]" />
+            <span className="h-3 w-2/5 rounded-sm bg-white/[0.055]" />
           </div>
         ))}
       </div>

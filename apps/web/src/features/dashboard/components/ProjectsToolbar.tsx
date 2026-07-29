@@ -2,7 +2,8 @@
 
 import { BarChart3, Grid2X2, LayoutGrid, List, ListFilter } from "lucide-react";
 import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import {
   DropdownMenu,
   DropdownMenuContent,

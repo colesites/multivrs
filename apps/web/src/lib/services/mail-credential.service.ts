@@ -1,9 +1,9 @@
 import "server-only";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { mailWebhookSecret } from "@/lib/mail/mail-webhook-secret";
 import { assertPublicWebhookUrl } from "@/lib/mail/webhook-url";
+import { prisma } from "@/lib/prisma";
 import type {
   createMailCredentialSchema,
   createMailWebhookSchema,

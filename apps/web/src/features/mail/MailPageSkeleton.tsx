@@ -9,8 +9,8 @@ export function MailPageSkeleton() {
         <div className="mb-5 h-8 rounded-lg bg-white/[0.045]" />
         {["one", "two", "three", "four", "five", "six", "seven"].map((key) => (
           <div className="mb-3 space-y-2" key={key}>
-            <div className="h-3 w-2/3 rounded bg-white/[0.055]" />
-            <div className="h-2.5 rounded bg-white/[0.03]" />
+            <div className="h-3 w-2/3 rounded-sm bg-white/[0.055]" />
+            <div className="h-2.5 rounded-sm bg-white/[0.03]" />
           </div>
         ))}
       </div>

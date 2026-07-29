@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ArrowUpRight,
-  ChevronDown,
-  Copy,
-  Monitor,
-  Moon,
-  Sun,
-} from "lucide-react";
+import { ArrowUpRight, ChevronDown, Copy } from "lucide-react";
 import Link from "next/link";
 import { MultivrsMark } from "@/components/brand/Logo";
 import type { NavColumn } from "@/components/nav/navigation";
@@ -26,7 +19,6 @@ import {
  * Server component — pure markup, no client interactivity needed.
  */
 export default function Footer() {
-
   return (
     <footer className="relative z-20 border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-20">
@@ -34,8 +26,8 @@ export default function Footer() {
         <div className="grid gap-12 border-b border-border pb-16 md:grid-cols-2">
           <div>
             <p className="max-w-sm font-acari text-sm leading-relaxed text-muted-foreground">
-              <span className="font-semibold text-foreground">For humans.</span> Get
-              started with Swift Rust and Multivrs in seconds.
+              <span className="font-semibold text-foreground">For humans.</span>{" "}
+              Get started with Swift Rust and Multivrs in seconds.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/signup">
@@ -148,4 +140,3 @@ function FooterColumn({ group }: { group: NavColumn }) {
     </div>
   );
 }
-

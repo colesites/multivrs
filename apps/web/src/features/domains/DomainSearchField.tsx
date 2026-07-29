@@ -16,7 +16,7 @@ export function DomainSearchField({
         autoComplete="off"
         aria-label="Search domains"
         placeholder="Search a domain or describe your idea"
-        className="h-12 w-full border border-white/15 bg-black/60 pl-11 pr-12 text-sm text-white outline-none transition focus:border-white/45 focus:ring-2 focus:ring-white/10"
+        className="h-12 w-full border border-white/15 bg-black/60 pl-11 pr-12 text-sm text-white outline-hidden transition focus:border-white/45 focus:ring-2 focus:ring-white/10"
       />
       {value ? (
         <button

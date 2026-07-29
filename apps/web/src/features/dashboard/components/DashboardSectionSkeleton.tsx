@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { MailPageSkeleton } from "@/features/mail/MailPageSkeleton";
+import { ProjectSectionPickerSkeleton } from "./ProjectSectionPicker";
 import { AnalyticsSectionSkeleton } from "./skeletons/AnalyticsSectionSkeleton";
 import { CdnSectionSkeleton } from "./skeletons/CdnSectionSkeleton";
 import {
@@ -14,7 +15,6 @@ import { FirewallSectionSkeleton } from "./skeletons/FirewallSectionSkeleton";
 import { IntegrationsSectionSkeleton } from "./skeletons/IntegrationsSectionSkeleton";
 import { LogsSectionSkeleton } from "./skeletons/LogsSectionSkeleton";
 import { ObservabilitySectionSkeleton } from "./skeletons/ObservabilitySectionSkeleton";
-import { ProjectSectionPickerSkeleton } from "./ProjectSectionPicker";
 import { ProjectPickerSkeleton } from "./skeletons/SectionSkeletonParts";
 import { SettingsSectionSkeleton } from "./skeletons/SettingsSectionSkeleton";
 import { SpeedInsightsSectionSkeleton } from "./skeletons/SpeedInsightsSectionSkeleton";

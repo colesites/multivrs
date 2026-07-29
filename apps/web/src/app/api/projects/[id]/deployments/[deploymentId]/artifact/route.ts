@@ -23,7 +23,6 @@ import {
 } from "@/lib/services/deployment-lifecycle.service";
 import { deploymentUrl } from "@/lib/services/serve.service";
 
-
 interface RouteParams {
   params: Promise<{ id: string; deploymentId: string }>;
 }

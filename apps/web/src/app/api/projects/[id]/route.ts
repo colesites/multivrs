@@ -13,7 +13,6 @@ import {
   updateProject,
 } from "@/lib/services/project.service";
 
-
 interface RouteParams {
   params: Promise<{ id: string }>;
 }

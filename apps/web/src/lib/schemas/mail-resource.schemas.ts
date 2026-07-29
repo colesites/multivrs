@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { hostnameSchema } from "@/lib/domains/dns.schemas";
 import { mailAddressSchema } from "@/lib/schemas/mail-message.schemas";
 
 export const createMailboxSchema = z.object({
@@ -9,7 +10,7 @@ export const createMailboxSchema = z.object({
 });
 
 export const createMailDomainSchema = z.object({
-  domain: z.string().trim().toLowerCase().min(3).max(253),
+  domain: hostnameSchema,
   kind: z.enum(["sending", "mailbox", "tracking", "return-path"]),
   projectId: z.uuid().optional(),
 });

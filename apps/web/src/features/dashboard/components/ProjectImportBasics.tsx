@@ -70,7 +70,7 @@ export function ProjectImportBasics({
             onChange={(event) =>
               onChange({ ...config, projectName: event.target.value })
             }
-            className="h-10 w-full rounded-lg border border-white/10 bg-black/60 px-3 text-white outline-none focus:border-white/30"
+            className="h-10 w-full rounded-lg border border-white/10 bg-black/60 px-3 text-white outline-hidden focus:border-white/30"
           />
         </label>
         <div className="space-y-2 text-xs text-white/60">
@@ -101,7 +101,7 @@ export function ProjectImportBasics({
             onChange={(event) =>
               onChange({ ...config, rootDirectory: event.target.value })
             }
-            className="h-10 w-full rounded-lg border border-white/10 bg-black/60 px-3 font-mono text-white outline-none focus:border-white/30"
+            className="h-10 w-full rounded-lg border border-white/10 bg-black/60 px-3 font-mono text-white outline-hidden focus:border-white/30"
           />
         </label>
       </div>

@@ -7,7 +7,6 @@ import {
   listApiTokens,
 } from "@/lib/services/api-token.service";
 
-
 const createTokenSchema = z.object({ name: z.string().trim().min(1).max(80) });
 
 export async function GET() {

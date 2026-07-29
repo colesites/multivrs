@@ -431,16 +431,17 @@ model MailDomain {
 }
 
 model MailDnsRecord {
-  id        String   @id @default(uuid())
-  domainId  String
-  purpose   String
-  type      String
-  name      String
-  value     String   @db.Text
-  priority  Int?
-  status    String   @default("pending")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String   @id @default(uuid())
+  domainId           String
+  purpose            String
+  type               String
+  name               String
+  value              String   @db.Text
+  priority           Int?
+  status             String   @default("pending")
+  managedByMultivrs  Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   domain MailDomain @relation(fields: [domainId], references: [id], onDelete: Cascade)
 

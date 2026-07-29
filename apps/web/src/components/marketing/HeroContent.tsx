@@ -27,7 +27,7 @@ export function HeroContent() {
       <div ref={eyebrowRef} className="will-animate mb-8">
         <Badge
           variant="outline"
-          className="border-foreground/10 bg-foreground/5 px-4 py-1.5 text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase backdrop-blur-sm"
+          className="border-foreground/10 bg-foreground/5 px-4 py-1.5 text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase backdrop-blur-xs"
         >
           Software for the Next Universe
         </Badge>

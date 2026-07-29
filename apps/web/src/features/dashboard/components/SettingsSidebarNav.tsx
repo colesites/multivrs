@@ -32,7 +32,7 @@ export function SettingsSidebarNav() {
                   className={cn(
                     "group relative flex items-center justify-between rounded-[18px] px-4 py-3 text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-accent/50 text-foreground shadow-sm ring-1 ring-border/50"
+                      ? "bg-accent/50 text-foreground shadow-xs ring-1 ring-border/50"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/30",
                   )}
                 >

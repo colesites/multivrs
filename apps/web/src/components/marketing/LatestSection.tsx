@@ -108,7 +108,7 @@ export function LatestSection() {
           {POSTS.map((post, i) => (
             <div
               key={post.slug}
-              className="w-[85vw] sm:w-[500px] lg:w-[600px] flex-shrink-0"
+              className="w-[85vw] shrink-0 sm:w-[500px] lg:w-[600px]"
               style={{ transformStyle: "preserve-3d" }}
             >
               <BlogCard post={post} featured={i === 0} />

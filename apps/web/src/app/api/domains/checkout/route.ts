@@ -5,7 +5,6 @@ import { requireUserId } from "@/lib/api/session";
 import { domainCheckoutSchema } from "@/lib/domains/domain-checkout.schemas";
 import { createDomainCheckout } from "@/lib/services/domain-checkout.service";
 
-
 export async function POST(request: NextRequest) {
   try {
     const userId = await requireUserId();

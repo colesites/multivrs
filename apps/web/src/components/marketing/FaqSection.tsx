@@ -93,7 +93,7 @@ export function FaqSection({
                       type="button"
                       onClick={() => toggleItem(faq._id)}
                       aria-expanded={isOpen}
-                      className="flex w-full items-start justify-between gap-4 text-left focus:outline-none cursor-pointer"
+                      className="flex w-full items-start justify-between gap-4 text-left focus:outline-hidden cursor-pointer"
                     >
                       <div className="flex items-start gap-4 sm:gap-6">
                         <span className="font-mono text-sm font-semibold text-muted-foreground group-hover:text-foreground/60 transition-colors pt-0.5">

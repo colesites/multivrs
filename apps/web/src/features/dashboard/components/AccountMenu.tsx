@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenuItem,
@@ -19,7 +20,6 @@ import {
 import { buildNavHref } from "@/features/dashboard/constants/navigation";
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
 import { authClient } from "@/lib/auth-client";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AccountMenuProps {
   name: string;

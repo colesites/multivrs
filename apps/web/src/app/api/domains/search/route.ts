@@ -9,7 +9,6 @@ import {
 } from "@/lib/domains/openprovider";
 import { logError } from "@/lib/services/logger.service";
 
-
 export async function GET(request: Request) {
   const name = normalizeDomainQuery(
     new URL(request.url).searchParams.get("q") ?? "",

@@ -7,7 +7,6 @@ import {
   listDeploymentLogs,
 } from "@/lib/services/deployment-log.service";
 
-
 interface RouteParams {
   params: Promise<{ id: string; deploymentId: string }>;
 }

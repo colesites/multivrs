@@ -163,6 +163,7 @@
         "zod": "^4.4.3",
       },
       "devDependencies": {
+        "@biomejs/biome": "^2.5.0",
         "@repo/biome-config": "*",
         "@repo/typescript-config": "*",
         "@tailwindcss/postcss": "^4",

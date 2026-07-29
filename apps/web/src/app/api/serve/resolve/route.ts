@@ -2,7 +2,6 @@ import { UnauthorizedError, ValidationError } from "@multivrs/error-utils";
 import { fail, ok } from "@/lib/api/respond";
 import { resolveHostname } from "@/lib/services/serve.service";
 
-
 function authorize(request: Request): void {
   const expected = process.env.MULTIVRS_SERVE_TOKEN;
   if (

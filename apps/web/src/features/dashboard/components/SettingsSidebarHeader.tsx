@@ -15,7 +15,7 @@ export function SettingsSidebarHeader() {
           nativeButton={false}
           render={<Link href="/dashboard" />}
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/50 bg-accent/30 shadow-sm transition-colors group-hover:bg-accent">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/50 bg-accent/30 shadow-xs transition-colors group-hover:bg-accent">
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
           </div>
           <span>Back to Dashboard</span>

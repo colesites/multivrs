@@ -40,7 +40,7 @@ export function BuildSettingsFields({
                 onChange={(event) =>
                   onChange({ ...config, [key]: event.target.value })
                 }
-                className="h-9 w-full rounded-md border border-white/10 bg-black px-3 text-xs text-white outline-none focus:border-white/30"
+                className="h-9 w-full rounded-md border border-white/10 bg-black px-3 text-xs text-white outline-hidden focus:border-white/30"
               />
             </label>
           ))}

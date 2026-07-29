@@ -26,9 +26,7 @@ export function ProjectsBackground() {
         transparent
       />
       {/* Ink wash + top fade so the topbar edge and cards stay readable. */}
-      <div
-        className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(255,255,255,0.35)_0%,rgba(255,255,255,0.72)_55%,rgba(255,255,255,0.92)_100%)] dark:bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(10,10,11,0.35)_0%,rgba(10,10,11,0.72)_55%,rgba(10,10,11,0.92)_100%)]"
-      />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(255,255,255,0.35)_0%,rgba(255,255,255,0.72)_55%,rgba(255,255,255,0.92)_100%)] dark:bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(10,10,11,0.35)_0%,rgba(10,10,11,0.72)_55%,rgba(10,10,11,0.92)_100%)]" />
     </div>
   );
 }

@@ -102,7 +102,7 @@ export function ProductsBento() {
           {PRODUCTS.map((product) => (
             <div
               key={product.name}
-              className="flex-shrink-0 w-[85vw] max-w-[600px] aspect-[4/5] relative rounded-3xl border border-border bg-foreground/[0.02] backdrop-blur-3xl overflow-hidden p-10 flex flex-col justify-between group transition-colors hover:border-foreground/20"
+              className="group relative flex aspect-[4/5] w-[85vw] max-w-[600px] shrink-0 flex-col justify-between overflow-hidden rounded-3xl border border-border bg-foreground/[0.02] p-10 backdrop-blur-3xl transition-colors hover:border-foreground/20"
               style={{ transformStyle: "preserve-3d" }}
             >
               {/* Clean minimalist data block */}

@@ -14,7 +14,6 @@ import {
   updateDomainDnsRecord,
 } from "@/lib/services/domain-dns.service";
 
-
 interface RouteParams {
   params: Promise<{ domainId: string }>;
 }

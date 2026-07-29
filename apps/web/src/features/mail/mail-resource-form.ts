@@ -67,7 +67,7 @@ export function resourcePayload(
     return {
       ...common,
       domain: text(form, "domain"),
-      kind: text(form, "kind") || "mailbox",
+      kind: text(form, "kind") || "sending",
     };
   if (view === "mailboxes")
     return {

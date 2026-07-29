@@ -1,4 +1,5 @@
-import { SectionSkeletonHeader, SKELETON_ROWS } from "./SectionSkeletonParts";
+import { SectionSkeletonHeader } from "./SectionSkeletonParts";
+import { SKELETON_ROWS } from "./skeleton.constants";
 
 export function DeploymentsSectionSkeleton() {
   return (
@@ -54,7 +55,7 @@ export function SandboxesSectionSkeleton() {
       <SectionSkeletonHeader titleWidth="w-36" />
       <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
         <section className="h-80 rounded-2xl border border-white/8 bg-white/2 p-5">
-          <div className="h-5 w-32 rounded bg-white/7" />
+          <div className="h-5 w-32 rounded-sm bg-white/7" />
           <div className="mt-7 space-y-4">
             {SKELETON_ROWS.slice(0, 4).map((row) => (
               <div className="h-11 rounded-lg bg-white/4" key={row} />
