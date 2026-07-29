@@ -31,22 +31,22 @@ export function CtaSection() {
 
   return (
     <section ref={root} className="relative mx-auto max-w-7xl px-6 lg:px-10">
-      <div className="flex flex-col items-center border-t border-white/10 py-28 text-center lg:py-36">
+      <div className="flex flex-col items-center border-t border-border py-28 text-center lg:py-36">
         <p
           data-reveal
-          className="mb-6 font-mono text-xs tracking-[0.25em] text-white/40 uppercase"
+          className="mb-6 font-mono text-xs tracking-[0.25em] text-muted-foreground uppercase"
         >
           Get started
         </p>
         <h2
           data-reveal
-          className="max-w-3xl font-clash text-[clamp(2.5rem,6vw,5rem)] font-bold leading-[0.95] tracking-tight text-white"
+          className="max-w-3xl font-clash text-[clamp(2.5rem,6vw,5rem)] font-bold leading-[0.95] tracking-tight text-foreground"
         >
           Start building with Multivrs.
         </h2>
         <p
           data-reveal
-          className="mt-6 max-w-md font-acari text-base leading-relaxed text-white/50 sm:text-lg"
+          className="mt-6 max-w-md font-acari text-base leading-relaxed text-muted-foreground sm:text-lg"
         >
           Ship your first project in minutes. No credit card, no setup, just
           deploy and go.
@@ -82,7 +82,7 @@ export function CtaSection() {
               tintOpacity={0.05}
               baseColor="#333333"
               lineColor="#ffffff"
-              textColor="#ffffff"
+              textColor="currentColor"
             >
               <span className="font-medium">Talk to sales</span>
             </SpecularButton>

@@ -43,17 +43,17 @@ export function FaqSection({
   };
 
   return (
-    <section className="relative w-full border-t border-white/10 bg-black py-24 text-white">
+    <section className="relative w-full border-t border-border bg-background py-24 text-foreground">
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid gap-12 lg:grid-cols-12">
           {/* Left Column: Heading & Dynamic Categories from Sanity */}
           <div className="lg:col-span-5">
-            <h2 className="font-sans text-4xl font-medium leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl text-white">
+            <h2 className="font-sans text-4xl font-medium leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl text-foreground">
               {title}
             </h2>
 
             {subtitle ? (
-              <p className="mt-4 max-w-md text-base leading-relaxed text-white/50 font-sans">
+              <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground font-sans">
                 {subtitle}
               </p>
             ) : null}
@@ -69,8 +69,8 @@ export function FaqSection({
                     aria-pressed={selectedCategory === cat}
                     className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
                       selectedCategory === cat
-                        ? "bg-white text-black font-semibold shadow-lg shadow-white/10"
-                        : "border border-white/10 bg-white/5 text-white/60 hover:border-white/25 hover:text-white"
+                        ? "bg-foreground text-background font-semibold shadow-lg shadow-foreground/10"
+                        : "border border-border bg-foreground/5 text-muted-foreground hover:border-foreground/25 hover:text-foreground"
                     }`}
                   >
                     {cat}
@@ -82,7 +82,7 @@ export function FaqSection({
 
           {/* Right Column: Numbered Vercel Accordion List */}
           <div className="lg:col-span-7">
-            <div className="divide-y divide-white/10 border-t border-b border-white/10">
+            <div className="divide-y divide-border border-t border-b border-border">
               {filteredFaqs.map((faq, index) => {
                 const isOpen = openId === faq._id;
                 const formattedIndex = (index + 1).toString().padStart(2, "0");
@@ -96,15 +96,15 @@ export function FaqSection({
                       className="flex w-full items-start justify-between gap-4 text-left focus:outline-none cursor-pointer"
                     >
                       <div className="flex items-start gap-4 sm:gap-6">
-                        <span className="font-mono text-sm font-semibold text-white/35 group-hover:text-white/60 transition-colors pt-0.5">
+                        <span className="font-mono text-sm font-semibold text-muted-foreground group-hover:text-foreground/60 transition-colors pt-0.5">
                           {formattedIndex}
                         </span>
-                        <span className="font-sans text-lg font-medium text-white group-hover:text-white/90 transition-colors">
+                        <span className="font-sans text-lg font-medium text-foreground group-hover:text-foreground/90 transition-colors">
                           {faq.question}
                         </span>
                       </div>
 
-                      <span className="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/60 transition-colors group-hover:border-white/30 group-hover:text-white">
+                      <span className="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-foreground/5 text-muted-foreground transition-colors group-hover:border-foreground/30 group-hover:text-foreground">
                         {isOpen ? (
                           <Minus className="size-3.5" />
                         ) : (
@@ -122,7 +122,7 @@ export function FaqSection({
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <p className="pl-9 text-sm leading-relaxed text-white/60 sm:pl-12 font-sans">
+                        <p className="pl-9 text-sm leading-relaxed text-muted-foreground sm:pl-12 font-sans">
                           {faq.answer}
                         </p>
                       </div>

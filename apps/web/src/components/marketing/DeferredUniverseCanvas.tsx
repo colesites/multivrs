@@ -3,12 +3,16 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
+const Fallback = () => (
+  <div className="fixed inset-0 z-0 bg-[#030303]" aria-hidden="true" />
+);
+
 const UniverseCanvas = dynamic(
   () =>
     import("./UniverseCanvas").then((module) => ({
       default: module.UniverseCanvas,
     })),
-  { ssr: false },
+  { ssr: false, loading: Fallback },
 );
 
 export function DeferredUniverseCanvas() {
@@ -27,5 +31,5 @@ export function DeferredUniverseCanvas() {
     return () => window.cancelIdleCallback(idleId);
   }, []);
 
-  return ready ? <UniverseCanvas /> : null;
+  return ready ? <UniverseCanvas /> : <Fallback />;
 }

@@ -1,5 +1,6 @@
 import { Color, Mesh, Program, Renderer, Triangle } from "ogl";
 import { useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
 
 const vertexShader = `
 attribute vec2 uv;
@@ -169,7 +170,7 @@ void main() {
 }
 `;
 
-interface GalaxyProps {
+interface GalaxyProps extends React.HTMLAttributes<HTMLDivElement> {
   focal?: [number, number];
   rotation?: [number, number];
   starSpeed?: number;
@@ -205,6 +206,7 @@ export default function Galaxy({
   rotationSpeed = 0.1,
   autoCenterRepulsion = 0,
   transparent = true,
+  className,
   ...rest
 }: GalaxyProps) {
   const ctnDom = useRef<HTMLDivElement>(null);
@@ -357,5 +359,5 @@ export default function Galaxy({
     transparent,
   ]);
 
-  return <div ref={ctnDom} className="w-full h-full relative" {...rest} />;
+  return <div ref={ctnDom} className={cn("w-full h-full relative", className)} {...rest} />;
 }

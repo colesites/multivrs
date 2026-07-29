@@ -27,7 +27,7 @@ export function HeroContent() {
       <div ref={eyebrowRef} className="will-animate mb-8">
         <Badge
           variant="outline"
-          className="border-white/10 bg-white/3 px-4 py-1.5 text-xs font-medium tracking-[0.2em] text-white/60 uppercase backdrop-blur-sm"
+          className="border-foreground/10 bg-foreground/5 px-4 py-1.5 text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase backdrop-blur-sm"
         >
           Software for the Next Universe
         </Badge>
@@ -51,7 +51,7 @@ export function HeroContent() {
       {/* Subtitle */}
       <p
         ref={subtitleRef}
-        className="will-animate mb-12 max-w-xl font-acari text-base leading-relaxed text-white/50 sm:text-lg"
+        className="will-animate mb-12 max-w-xl font-acari text-base leading-relaxed text-muted-foreground sm:text-lg"
       >
         {SUBTITLE}
       </p>
@@ -87,7 +87,7 @@ export function HeroContent() {
             tintOpacity={0.05}
             baseColor="#333333"
             lineColor="#ffffff"
-            textColor="#ffffff"
+            textColor="currentColor"
           >
             <span className="font-medium">Talk to sales</span>
           </SpecularButton>

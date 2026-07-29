@@ -2,7 +2,8 @@
 
 import { Color, Mesh, Program, Renderer, Triangle } from "ogl";
 import type { CSSProperties, MouseEventHandler, ReactNode } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 
 type ButtonSize = "sm" | "md" | "lg";
 
@@ -28,6 +29,7 @@ export interface SpecularButtonProps {
   onClick?: MouseEventHandler<HTMLButtonElement>;
   className?: string;
   type?: "button" | "submit" | "reset";
+  forceTheme?: "light" | "dark";
 }
 
 interface ShaderProps {
@@ -136,13 +138,38 @@ const SpecularButton = ({
   onClick,
   className = "",
   type = "button",
+  forceTheme,
 }: SpecularButtonProps) => {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isLight = (forceTheme || (mounted && resolvedTheme)) === "light";
+
+  // Smart Light/Dark Mode Color Adaptation
+  // We determine if it's a "primary" (solid) or "secondary" (translucent) button based on tintOpacity
+  const isPrimary = tintOpacity > 0.5;
+
+  const activeTint = isLight ? "#000000" : (tint || "#ffffff");
+  const activeBaseColor = isLight 
+    ? (isPrimary ? "#000000" : "#e5e5e5") 
+    : (baseColor || (isPrimary ? "#ffffff" : "#333333"));
+  const activeLineColor = isLight 
+    ? (isPrimary ? "#ffffff" : "#000000") 
+    : (lineColor || "#ffffff");
+  const activeTextColor = textColor === "currentColor" 
+    ? "currentColor" 
+    : (isLight ? (isPrimary ? "#ffffff" : "#000000") : (isPrimary ? "#000000" : "#ffffff"));
+
   const btnRef = useRef<HTMLButtonElement>(null);
   const fxRef = useRef<HTMLSpanElement>(null);
   const propsRef = useRef<ShaderProps>({
     radius,
-    lineColor,
-    baseColor,
+    lineColor: activeLineColor,
+    baseColor: activeBaseColor,
     intensity,
     shineSize,
     shineFade,
@@ -156,8 +183,8 @@ const SpecularButton = ({
   useEffect(() => {
     propsRef.current = {
       radius,
-      lineColor,
-      baseColor,
+      lineColor: activeLineColor,
+      baseColor: activeBaseColor,
       intensity,
       shineSize,
       shineFade,
@@ -169,8 +196,8 @@ const SpecularButton = ({
     };
   }, [
     radius,
-    lineColor,
-    baseColor,
+    activeLineColor,
+    activeBaseColor,
     intensity,
     shineSize,
     shineFade,
@@ -340,10 +367,10 @@ const SpecularButton = ({
       style={
         {
           "--sb-radius": `${radius}px`,
-          "--sb-tint": tint,
+          "--sb-tint": activeTint,
           "--sb-tint-opacity": tintOpacity,
           "--sb-blur": `${blur}px`,
-          "--sb-text-color": textColor,
+          "--sb-text-color": activeTextColor,
         } as CSSProperties
       }
     >

@@ -151,19 +151,19 @@ export function CapabilitiesSection() {
       >
         <p
           data-reveal
-          className="mb-5 font-mono text-xs tracking-[0.25em] text-white/40 uppercase"
+          className="mb-5 font-mono text-xs tracking-[0.25em] text-muted-foreground uppercase"
         >
           The Platform
         </p>
         <h2
           ref={headingRef}
-          className="font-clash text-[clamp(2.5rem,6vw,5rem)] font-bold leading-[1.02] tracking-tight text-white"
+          className="font-clash text-[clamp(2.5rem,6vw,5rem)] font-bold leading-[1.02] tracking-tight text-foreground"
         >
           One platform for every layer of the stack.
         </h2>
         <p
           data-reveal
-          className="mt-6 mx-auto max-w-xl font-acari text-base leading-relaxed text-white/50 sm:text-lg"
+          className="mt-6 mx-auto max-w-xl font-acari text-base leading-relaxed text-muted-foreground sm:text-lg"
         >
           Deploy, scale, and secure your software on infrastructure built to
           disappear, so you can focus on what you ship, not where it runs.
@@ -175,25 +175,25 @@ export function CapabilitiesSection() {
         {PILLARS.map((pillar) => (
           <div
             key={pillar.id}
-            className="flex flex-col items-center text-center border-b border-white/10 pb-16 last:border-0 last:pb-0"
+            className="flex flex-col items-center text-center border-b border-border pb-16 last:border-0 last:pb-0"
           >
             <div className="mb-6 flex flex-col items-center gap-3">
-              <span className="font-mono text-xs tracking-[0.3em] text-white/40">
+              <span className="font-mono text-xs tracking-[0.3em] text-muted-foreground">
                 {pillar.index}
               </span>
-              <span className="h-6 w-px bg-white/15" />
+              <span className="h-6 w-px bg-foreground/15" />
             </div>
-            <h3 className="font-clash text-4xl sm:text-5xl font-bold tracking-tight text-white drop-shadow-lg">
+            <h3 className="font-clash text-4xl sm:text-5xl font-bold tracking-tight text-foreground drop-shadow-lg">
               {pillar.name}
             </h3>
-            <p className="mt-4 font-acari text-base leading-relaxed text-white/70">
+            <p className="mt-4 font-acari text-base leading-relaxed text-foreground/70">
               {pillar.desc}
             </p>
             <ul className="mt-6 flex flex-wrap justify-center gap-2.5">
               {pillar.features.map((feature) => (
                 <li
                   key={feature}
-                  className="flex items-center gap-2 font-mono text-xs tracking-wider text-white/60 uppercase backdrop-blur-md bg-white/5 px-3 py-1.5 rounded-full border border-white/10"
+                  className="flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground uppercase backdrop-blur-md bg-foreground/5 px-3 py-1.5 rounded-full border border-border"
                 >
                   <span className="size-1.5 rounded-full bg-[#2563eb] shadow-[0_0_8px_#2563eb]" />
                   {feature}
@@ -220,22 +220,22 @@ export function CapabilitiesSection() {
               className="absolute inset-0 flex flex-col justify-center items-center pointer-events-none"
             >
               <div className="mb-8 flex flex-col items-center gap-4">
-                <span className="font-mono text-sm tracking-[0.3em] text-white/40">
+                <span className="font-mono text-sm tracking-[0.3em] text-muted-foreground">
                   {pillar.index}
                 </span>
-                <span className="h-8 w-px bg-white/15" />
+                <span className="h-8 w-px bg-foreground/15" />
               </div>
-              <h3 className="font-clash text-[clamp(4rem,10vw,8rem)] font-bold leading-[0.8] tracking-tighter text-white drop-shadow-2xl mix-blend-plus-lighter">
+              <h3 className="font-clash text-[clamp(4rem,10vw,8rem)] font-bold leading-[0.8] tracking-tighter text-foreground drop-shadow-2xl mix-blend-plus-lighter">
                 {pillar.name}
               </h3>
-              <p className="mt-8 max-w-2xl font-acari text-xl leading-relaxed text-white/70 drop-shadow-lg">
+              <p className="mt-8 max-w-2xl font-acari text-xl leading-relaxed text-foreground/70 drop-shadow-lg">
                 {pillar.desc}
               </p>
               <ul className="mt-12 flex flex-wrap justify-center max-w-3xl gap-x-8 gap-y-4">
                 {pillar.features.map((feature) => (
                   <li
                     key={feature}
-                    className="flex items-center gap-3 font-mono text-sm tracking-widest text-white/60 uppercase backdrop-blur-md bg-white/5 px-4 py-2 rounded-full border border-white/10"
+                    className="flex items-center gap-3 font-mono text-sm tracking-widest text-muted-foreground uppercase backdrop-blur-md bg-foreground/5 px-4 py-2 rounded-full border border-border"
                   >
                     <span className="size-1.5 rounded-full bg-[#2563eb] shadow-[0_0_10px_#2563eb]" />
                     {feature}

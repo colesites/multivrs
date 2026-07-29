@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ArrowUpRight,
   ChevronDown,
@@ -10,6 +12,7 @@ import Link from "next/link";
 import { MultivrsMark } from "@/components/brand/Logo";
 import type { NavColumn } from "@/components/nav/navigation";
 import SpecularButton from "@/components/SpecularButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   FOOTER_GROUPS_PRIMARY,
   FOOTER_GROUPS_SECONDARY,
@@ -23,14 +26,15 @@ import {
  * Server component — pure markup, no client interactivity needed.
  */
 export default function Footer() {
+
   return (
-    <footer className="relative z-20 border-t border-white/10 bg-[#030303]">
+    <footer className="relative z-20 border-t border-border bg-background">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-20">
         {/* Split CTA */}
-        <div className="grid gap-12 border-b border-white/10 pb-16 md:grid-cols-2">
+        <div className="grid gap-12 border-b border-border pb-16 md:grid-cols-2">
           <div>
-            <p className="max-w-sm font-acari text-sm leading-relaxed text-white/60">
-              <span className="font-semibold text-white">For humans.</span> Get
+            <p className="max-w-sm font-acari text-sm leading-relaxed text-muted-foreground">
+              <span className="font-semibold text-foreground">For humans.</span> Get
               started with Swift Rust and Multivrs in seconds.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
@@ -55,7 +59,7 @@ export default function Footer() {
                   tintOpacity={0.05}
                   baseColor="#333333"
                   lineColor="#ffffff"
-                  textColor="#ffffff"
+                  textColor="currentColor"
                 >
                   <span className="font-medium">View templates</span>
                 </SpecularButton>
@@ -64,18 +68,18 @@ export default function Footer() {
           </div>
 
           <div className="md:justify-self-end md:text-right">
-            <p className="max-w-sm font-acari text-sm leading-relaxed text-white/60 md:ml-auto">
-              <span className="font-semibold text-white">For agents.</span>{" "}
+            <p className="max-w-sm font-acari text-sm leading-relaxed text-muted-foreground md:ml-auto">
+              <span className="font-semibold text-foreground">For agents.</span>{" "}
               Tools to connect your agents to Multivrs infrastructure.
             </p>
-            <div className="mt-6 inline-flex items-center gap-3 rounded-lg border border-white/12 bg-white/[0.02] py-2 pr-3 pl-2.5 font-mono text-xs text-white/55">
-              <span className="inline-flex items-center gap-1 rounded-md bg-white/[0.04] px-2 py-1 text-white/70">
+            <div className="mt-6 inline-flex items-center gap-3 rounded-lg border border-border bg-foreground/[0.02] py-2 pr-3 pl-2.5 font-mono text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1 rounded-md bg-foreground/[0.04] px-2 py-1 text-foreground/70">
                 Plugin
                 <ChevronDown className="size-3" />
               </span>
-              <span className="text-white/30">|</span>
-              <code className="text-white/70">$ npx multivrs add</code>
-              <Copy className="size-3.5 text-white/40" />
+              <span className="text-foreground/30">|</span>
+              <code className="text-foreground/70">$ npx multivrs add</code>
+              <Copy className="size-3.5 text-foreground/40" />
             </div>
           </div>
         </div>
@@ -93,11 +97,11 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-20 flex flex-col gap-8 border-t border-white/10 pt-10">
+        <div className="mt-20 flex flex-col gap-8 border-t border-border pt-10">
           <Link
             href="/"
             aria-label="Multivrs home"
-            className="w-fit text-white"
+            className="w-fit text-foreground"
           >
             <MultivrsMark className="size-6" />
           </Link>
@@ -109,7 +113,7 @@ export default function Footer() {
               </span>
               All systems normal.
             </span>
-            <AppearanceIndicator />
+            <ThemeToggle />
           </div>
         </div>
       </div>
@@ -120,7 +124,7 @@ export default function Footer() {
 function FooterColumn({ group }: { group: NavColumn }) {
   return (
     <div>
-      <p className="mb-4 font-mono text-[0.7rem] font-medium tracking-widest text-white/35 uppercase">
+      <p className="mb-4 font-mono text-[0.7rem] font-medium tracking-widest text-muted-foreground uppercase">
         {group.heading}
       </p>
       <ul className="space-y-3">
@@ -131,11 +135,11 @@ function FooterColumn({ group }: { group: NavColumn }) {
               {...(link.external
                 ? { target: "_blank", rel: "noopener noreferrer" }
                 : {})}
-              className="group inline-flex items-center gap-1 text-sm text-white/55 transition-colors hover:text-white"
+              className="group inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.title}
               {link.external && (
-                <ArrowUpRight className="size-3 text-white/30 transition-colors group-hover:text-white" />
+                <ArrowUpRight className="size-3 text-foreground/30 transition-colors group-hover:text-foreground" />
               )}
             </Link>
           </li>
@@ -145,26 +149,3 @@ function FooterColumn({ group }: { group: NavColumn }) {
   );
 }
 
-/**
- * Visual appearance indicator matching the footer's bottom-right control.
- * Decorative for now — the marketing site is dark-only, so it's marked
- * aria-hidden rather than presenting a non-functional theme switch.
- */
-function AppearanceIndicator() {
-  return (
-    <div
-      aria-hidden="true"
-      className="inline-flex items-center rounded-full border border-white/10 p-0.5"
-    >
-      <span className="grid size-7 place-items-center rounded-full text-white/35">
-        <Monitor className="size-3.5" />
-      </span>
-      <span className="grid size-7 place-items-center rounded-full text-white/35">
-        <Sun className="size-3.5" />
-      </span>
-      <span className="grid size-7 place-items-center rounded-full bg-white/10 text-white">
-        <Moon className="size-3.5" />
-      </span>
-    </div>
-  );
-}

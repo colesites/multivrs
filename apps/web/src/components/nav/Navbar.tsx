@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MultivrsMark } from "@/components/brand/Logo";
 import SpecularButton from "@/components/SpecularButton";
 import { useDomainCommerce } from "@/features/domains/DomainCommerceProvider";
@@ -29,14 +29,43 @@ export function Navbar() {
     useDomainCommerce();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isOverDarkSection, setIsOverDarkSection] = useState(false);
   // Which mega-menu is expanded (null = closed). Shared by triggers + panel.
   const [activeMenu, setActiveMenu] = useState<MegaMenuLabel | null>(null);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+  const checkDarkSection = useCallback(() => {
+    const darkSection = document.getElementById("dark-marketing-header");
+    if (!darkSection) {
+      setIsOverDarkSection(false);
+      return;
+    }
+    const rect = darkSection.getBoundingClientRect();
+    // Add a small buffer (e.g. 64px navbar height)
+    setIsOverDarkSection(rect.bottom > 64);
   }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 50);
+      checkDarkSection();
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", checkDarkSection, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", checkDarkSection);
+    };
+  }, [checkDarkSection]);
+
+  // Re-check section when pathname changes (since Navbar doesn't unmount)
+  useEffect(() => {
+    if (pathname) {
+      checkDarkSection();
+      const timeout = setTimeout(checkDarkSection, 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [pathname, checkDarkSection]);
 
   // Close on Escape.
   useEffect(() => {
@@ -62,13 +91,14 @@ export function Navbar() {
           scrolled || isOpen
             ? "bg-background/95 backdrop-blur-xl"
             : "bg-transparent",
+          isOverDarkSection && "dark text-foreground",
         )}
       >
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-10">
           <div className="flex items-center gap-8">
             <Link
               href="/home"
-              className="flex items-center gap-2 text-white"
+              className="flex items-center gap-2 text-foreground"
               onMouseEnter={() => setActiveMenu(null)}
             >
               <MultivrsMark className="size-6" />
@@ -93,8 +123,8 @@ export function Navbar() {
                   className={cn(
                     "flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     activeMenu === menu.label
-                      ? "text-white"
-                      : "text-white/60 hover:text-white",
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   {menu.label}
@@ -112,7 +142,7 @@ export function Navbar() {
                   key={link.label}
                   href={link.href}
                   onMouseEnter={() => setActiveMenu(null)}
-                  className="rounded-md px-3 py-2 text-sm font-medium text-white/60 transition-colors hover:text-white"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {link.label}
                 </Link>
@@ -132,13 +162,14 @@ export function Navbar() {
                     tintOpacity={0.05}
                     baseColor="#333333"
                     lineColor="#ffffff"
-                    textColor="#ffffff"
+                    textColor="currentColor"
+                    forceTheme={isOverDarkSection ? "dark" : undefined}
                     onClick={() => setSavedOpen(true)}
                   >
                     <span className="flex items-center gap-1.5 font-medium">
                       <Bookmark className="size-4" /> Saved
                       {savedDomains.length ? (
-                        <span className="grid size-4 place-items-center rounded-full bg-white text-[9px] text-black">
+                        <span className="grid size-4 place-items-center rounded-full bg-foreground text-[9px] text-background">
                           {savedDomains.length}
                         </span>
                       ) : null}
@@ -152,13 +183,14 @@ export function Navbar() {
                   tintOpacity={0.05}
                   baseColor="#333333"
                   lineColor="#ffffff"
-                  textColor="#ffffff"
+                  textColor="currentColor"
+                  forceTheme={isOverDarkSection ? "dark" : undefined}
                   onClick={() => setCartOpen(true)}
                 >
                   <span className="flex items-center gap-1.5 font-semibold">
                     <ShoppingCart className="size-4" /> Cart
                     {cartItems.length ? (
-                      <span className="grid size-4 place-items-center rounded-full bg-white text-[9px] text-black">
+                      <span className="grid size-4 place-items-center rounded-full bg-foreground text-[9px] text-background">
                         {cartItems.length}
                       </span>
                     ) : null}
@@ -174,7 +206,8 @@ export function Navbar() {
                         tintOpacity={0.05}
                         baseColor="#333333"
                         lineColor="#ffffff"
-                        textColor="#ffffff"
+                        textColor="currentColor"
+                        forceTheme={isOverDarkSection ? "dark" : undefined}
                       >
                         Log In
                       </SpecularButton>
@@ -188,6 +221,7 @@ export function Navbar() {
                         baseColor="#ffffff"
                         lineColor="#ffffff"
                         textColor="#000000"
+                        forceTheme={isOverDarkSection ? "dark" : undefined}
                       >
                         Sign Up
                       </SpecularButton>
@@ -204,7 +238,8 @@ export function Navbar() {
                   tintOpacity={0.05}
                   baseColor="#333333"
                   lineColor="#ffffff"
-                  textColor="#ffffff"
+                  textColor="currentColor"
+                  forceTheme={isOverDarkSection ? "dark" : undefined}
                 >
                   Dashboard
                 </SpecularButton>
@@ -219,7 +254,8 @@ export function Navbar() {
                     tintOpacity={0.05}
                     baseColor="#333333"
                     lineColor="#ffffff"
-                    textColor="#ffffff"
+                    textColor="currentColor"
+                    forceTheme={isOverDarkSection ? "dark" : undefined}
                   >
                     Log In
                   </SpecularButton>
@@ -233,6 +269,7 @@ export function Navbar() {
                     baseColor="#ffffff"
                     lineColor="#ffffff"
                     textColor="#000000"
+                    forceTheme={isOverDarkSection ? "dark" : undefined}
                   >
                     Sign Up
                   </SpecularButton>
@@ -253,7 +290,8 @@ export function Navbar() {
                     tintOpacity={0.05}
                     baseColor="#333333"
                     lineColor="#ffffff"
-                    textColor="#ffffff"
+                    textColor="currentColor"
+                    forceTheme={isOverDarkSection ? "dark" : undefined}
                     className="!px-2.5 !py-2"
                     aria-label="Saved domains"
                     onClick={() => setSavedOpen(true)}
@@ -261,7 +299,7 @@ export function Navbar() {
                     <span className="relative">
                       <Bookmark className="size-4" />
                       {savedDomains.length ? (
-                        <span className="absolute -right-2 -top-2 grid size-4 place-items-center rounded-full bg-blue-400 text-[9px] text-black">
+                        <span className="absolute -right-2 -top-2 grid size-4 place-items-center rounded-full bg-blue-500 text-[9px] text-white">
                           {savedDomains.length}
                         </span>
                       ) : null}
@@ -275,7 +313,8 @@ export function Navbar() {
                   tintOpacity={0.05}
                   baseColor="#333333"
                   lineColor="#ffffff"
-                  textColor="#ffffff"
+                  textColor="currentColor"
+                  forceTheme={isOverDarkSection ? "dark" : undefined}
                   className="!px-2.5 !py-2"
                   aria-label="Shopping cart"
                   onClick={() => setCartOpen(true)}
@@ -283,7 +322,7 @@ export function Navbar() {
                   <span className="relative">
                     <ShoppingCart className="size-4" />
                     {cartItems.length ? (
-                      <span className="absolute -right-2 -top-2 grid size-4 place-items-center rounded-full bg-blue-400 text-[9px] text-black">
+                      <span className="absolute -right-2 -top-2 grid size-4 place-items-center rounded-full bg-blue-500 text-[9px] text-white">
                         {cartItems.length}
                       </span>
                     ) : null}
@@ -294,7 +333,7 @@ export function Navbar() {
 
             <button
               type="button"
-              className="ml-1 text-white/70"
+              className="ml-1 text-foreground/70"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
             >
@@ -343,7 +382,7 @@ export function Navbar() {
 function MegaColumn({ column }: { column: NavColumn }) {
   return (
     <div>
-      <p className="mb-4 text-xs font-semibold tracking-widest text-white/40 uppercase">
+      <p className="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
         {column.heading}
       </p>
       <ul className="space-y-3">
@@ -354,11 +393,11 @@ function MegaColumn({ column }: { column: NavColumn }) {
               {...(link.external
                 ? { target: "_blank", rel: "noopener noreferrer" }
                 : {})}
-              className="group inline-flex items-center gap-1 text-base text-white/80 transition-colors hover:text-white"
+              className="group inline-flex items-center gap-1 text-base text-foreground/80 transition-colors hover:text-foreground"
             >
               {link.title}
               {link.external && (
-                <ArrowUpRight className="size-3.5 text-white/40 transition-colors group-hover:text-white" />
+                <ArrowUpRight className="size-3.5 text-foreground/40 transition-colors group-hover:text-foreground" />
               )}
             </Link>
           </li>

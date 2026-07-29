@@ -45,7 +45,7 @@ export function PricingSection({
   }
 
   return (
-    <section className="relative min-h-screen w-full overflow-hidden bg-[#030303] pb-24 pt-28 text-foreground lg:pb-32 lg:pt-36">
+    <section className="relative min-h-screen w-full overflow-hidden bg-background pb-24 pt-28 text-foreground lg:pb-32 lg:pt-36">
       <div className="pointer-events-none absolute inset-0 z-0 opacity-40">
         <CursorGrid
           cellSize={65}
@@ -62,13 +62,13 @@ export function PricingSection({
       </div>
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-10">
         <div className="mb-12 max-w-3xl lg:mb-16">
-          <h1 className="text-4xl font-medium leading-[1.12] tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
+          <h1 className="text-4xl font-medium leading-[1.12] tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem]">
             Start simply.
             <br />
             Scale without surprises.
           </h1>
         </div>
-        <div className="grid grid-cols-1 divide-y divide-white/15 border border-white/15 bg-black/90 shadow-2xl lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+        <div className="grid grid-cols-1 divide-y divide-border border border-border bg-background shadow-2xl lg:grid-cols-3 lg:divide-x lg:divide-y-0">
           <PricingCard
             title={freePlan.name}
             price={freePlan.priceLabel}

@@ -75,13 +75,13 @@ export function LatestSection() {
         <div className="max-w-2xl">
           <p
             data-reveal
-            className="mb-5 font-mono text-xs tracking-[0.25em] text-white/40 uppercase"
+            className="mb-5 font-mono text-xs tracking-[0.25em] text-muted-foreground uppercase"
           >
             Latest
           </p>
           <h2
             ref={headingRef}
-            className="font-clash text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.02] tracking-tight text-white"
+            className="font-clash text-[clamp(2.25rem,5vw,4rem)] font-bold leading-[1.02] tracking-tight text-foreground"
           >
             Fresh from the Multivrs blog.
           </h2>
@@ -89,7 +89,7 @@ export function LatestSection() {
         <Link
           data-reveal
           href="/blog"
-          className="group inline-flex items-center gap-1.5 text-sm font-medium text-white/60 transition-colors hover:text-white"
+          className="group inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
           View all posts
           <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -134,13 +134,13 @@ function BlogCard({
       data-card
       href={`/blog/${post.slug}`}
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-[2rem] border border-white/5 bg-white/[0.01] backdrop-blur-3xl transition-all duration-700 will-change-transform hover:border-white/20 hover:bg-white/[0.03] hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(37,99,235,0.1)]",
+        "group relative flex flex-col overflow-hidden rounded-[2rem] border border-border bg-foreground/[0.01] backdrop-blur-3xl transition-all duration-700 will-change-transform hover:border-foreground/20 hover:bg-foreground/[0.03] hover:-translate-y-2 hover:shadow-[0_0_40px_rgba(37,99,235,0.1)]",
         span,
       )}
     >
       <div
         className={cn(
-          "relative overflow-hidden border-b border-white/5 mix-blend-screen opacity-80 group-hover:opacity-100 transition-opacity duration-700",
+          "relative overflow-hidden border-b border-border mix-blend-screen opacity-80 group-hover:opacity-100 transition-opacity duration-700",
           featured ? "aspect-[16/8]" : "aspect-[16/9]",
         )}
       >
@@ -151,28 +151,28 @@ function BlogCard({
       </div>
 
       <div className="flex flex-1 flex-col p-6 sm:p-7">
-        <div className="mb-4 flex items-center gap-2.5 font-mono text-[0.65rem] tracking-wider text-white/40 uppercase">
-          <span className="text-white/55">{post.category}</span>
-          <span className="size-0.5 rounded-full bg-white/30" />
+        <div className="mb-4 flex items-center gap-2.5 font-mono text-[0.65rem] tracking-wider text-muted-foreground uppercase">
+          <span className="text-muted-foreground">{post.category}</span>
+          <span className="size-0.5 rounded-full bg-foreground/30" />
           <span>{dateFmt.format(new Date(post.publishedAt))}</span>
-          <span className="size-0.5 rounded-full bg-white/30" />
+          <span className="size-0.5 rounded-full bg-foreground/30" />
           <span>{post.readingTime} min read</span>
         </div>
 
         <h3
           className={cn(
-            "font-clash font-semibold tracking-tight text-white transition-colors group-hover:text-white",
+            "font-clash font-semibold tracking-tight text-foreground transition-colors group-hover:text-foreground",
             featured ? "text-2xl sm:text-3xl" : "text-xl",
           )}
         >
           {post.title}
         </h3>
 
-        <p className="mt-3 line-clamp-2 max-w-prose font-acari text-sm leading-relaxed text-white/50">
+        <p className="mt-3 line-clamp-2 max-w-prose font-acari text-sm leading-relaxed text-muted-foreground">
           {post.excerpt}
         </p>
 
-        <span className="mt-auto pt-6 inline-flex items-center gap-1.5 text-sm font-medium text-white/55 transition-colors group-hover:text-white">
+        <span className="mt-auto pt-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors group-hover:text-foreground">
           Read more
           <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
         </span>

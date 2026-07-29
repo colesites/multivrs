@@ -36,7 +36,7 @@ export function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative min-h-svh w-full overflow-hidden bg-[#030303]"
+      className="relative min-h-svh w-full overflow-hidden bg-background"
     >
       {/* Z-0: 3D background (stars, asteroids, web) */}
       <HeroBackground />

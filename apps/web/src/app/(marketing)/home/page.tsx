@@ -18,9 +18,11 @@ export default function Home() {
       <DeferredUniverseCanvas />
 
       {/* The DOM overlays */}
-      <div className="relative z-10">
+      <div id="dark-marketing-header" className="relative z-10 dark text-foreground">
         <HeroSection />
         <CapabilitiesSection />
+      </div>
+      <div className="relative z-10 text-foreground">
         <Suspense fallback={null}>
           <FaqStream page="home" />
         </Suspense>

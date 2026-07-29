@@ -19,7 +19,7 @@ import {
 import { buildNavHref } from "@/features/dashboard/constants/navigation";
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
 import { authClient } from "@/lib/auth-client";
-import { ThemeToggle } from "./ThemeToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AccountMenuProps {
   name: string;

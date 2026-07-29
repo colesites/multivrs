@@ -29,18 +29,18 @@ export function NavbarMobile({ onClose }: NavbarMobileProps) {
             return (
               <div
                 key={menu.label}
-                className="border-b border-white/5 pb-2 pt-1"
+                className="border-b border-border pb-2 pt-1"
               >
                 <button
                   type="button"
                   onClick={() => toggleMenu(menu.label)}
-                  className="flex w-full items-center justify-between py-3 text-left text-xl font-medium text-white/90 transition-colors hover:text-white"
+                  className="flex w-full items-center justify-between py-3 text-left text-xl font-medium text-foreground/90 transition-colors hover:text-foreground"
                   aria-expanded={isOpen}
                 >
                   <span>{menu.label}</span>
                   <ChevronDown
-                    className={`size-5 text-white/50 transition-transform duration-200 ${
-                      isOpen ? "rotate-180 text-white" : ""
+                    className={`size-5 text-muted-foreground transition-transform duration-200 ${
+                      isOpen ? "rotate-180 text-foreground" : ""
                     }`}
                   />
                 </button>
@@ -61,10 +61,10 @@ export function NavbarMobile({ onClose }: NavbarMobileProps) {
           })}
 
           {NAV_LINKS.map((link) => (
-            <div key={link.label} className="border-b border-white/5 pb-2 pt-1">
+            <div key={link.label} className="border-b border-border pb-2 pt-1">
               <Link
                 href={link.href}
-                className="flex items-center py-3 text-xl font-medium text-white/90 transition-colors hover:text-white"
+                className="flex items-center py-3 text-xl font-medium text-foreground/90 transition-colors hover:text-foreground"
                 onClick={onClose}
               >
                 {link.label}
@@ -99,7 +99,7 @@ export function NavbarMobile({ onClose }: NavbarMobileProps) {
                   tintOpacity={0.05}
                   baseColor="#333333"
                   lineColor="#ffffff"
-                  textColor="#ffffff"
+                  textColor="currentColor"
                   className="w-full"
                 >
                   Log In
@@ -136,7 +136,7 @@ function MobileColumn({
 }) {
   return (
     <div>
-      <p className="mb-3 text-xs font-semibold tracking-widest text-white/40 uppercase">
+      <p className="mb-3 text-xs font-semibold tracking-widest text-muted-foreground uppercase">
         {column.heading}
       </p>
       <ul className="grid gap-1">
@@ -148,11 +148,11 @@ function MobileColumn({
                 ? { target: "_blank", rel: "noopener noreferrer" }
                 : {})}
               onClick={onClose}
-              className="flex items-center gap-1 rounded-lg py-1.5 text-sm text-white/70 active:text-white"
+              className="flex items-center gap-1 rounded-lg py-1.5 text-sm text-muted-foreground active:text-foreground"
             >
               {link.title}
               {link.external && (
-                <ArrowUpRight className="size-3.5 text-white/40" />
+                <ArrowUpRight className="size-3.5 text-muted-foreground" />
               )}
             </Link>
           </li>

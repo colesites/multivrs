@@ -52,10 +52,10 @@ export function DomainCartSheet() {
     <Sheet open={cartOpen} onOpenChange={setCartOpen}>
       <SheetContent
         side={side}
-        className="h-[82dvh] rounded-t-2xl border-white/12 bg-[#080808] p-0 text-white md:h-full md:w-[440px] md:max-w-[440px] md:rounded-none"
+        className="h-[82dvh] rounded-t-2xl border-border bg-background p-0 text-foreground md:h-full md:w-[440px] md:max-w-[440px] md:rounded-none"
       >
-        <SheetHeader className="border-b border-white/10 px-6 py-5">
-          <SheetTitle className="font-clash text-xl text-white">
+        <SheetHeader className="border-b border-border px-6 py-5">
+          <SheetTitle className="font-clash text-xl text-foreground">
             Your cart
           </SheetTitle>
           <SheetDescription className="sr-only">
@@ -65,20 +65,20 @@ export function DomainCartSheet() {
 
         <div className="min-h-0 flex-1 overflow-y-auto">
           {cartItems.length ? (
-            <div className="divide-y divide-white/8">
+            <div className="divide-y divide-border">
               {cartItems.map((item) => (
                 <div
                   key={item.domain}
                   className="flex items-start gap-4 px-6 py-5"
                 >
-                  <div className="grid size-10 shrink-0 place-items-center border border-white/10 bg-white/[0.03]">
-                    <ShoppingCart className="size-4 text-white/45" />
+                  <div className="grid size-10 shrink-0 place-items-center border border-border bg-muted">
+                    <ShoppingCart className="size-4 text-muted-foreground" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-clash text-lg font-medium">
                       {item.domain}
                     </p>
-                    <p className="mt-1 text-sm text-white/40">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       Renews at{" "}
                       {formatDomainPrice(item.renewalPrice, item.currency)}/year
                     </p>
@@ -102,7 +102,7 @@ export function DomainCartSheet() {
                                 ),
                               );
                           }}
-                          className="inline-grid size-8 place-items-center text-white/35 hover:text-white"
+                          className="inline-grid size-8 place-items-center text-muted-foreground hover:text-foreground"
                           aria-label={`Move ${item.domain} to saved domains`}
                         >
                           <Bookmark className="size-4" />
@@ -111,7 +111,7 @@ export function DomainCartSheet() {
                       <button
                         type="button"
                         onClick={() => removeFromCart(item.domain)}
-                        className="inline-grid size-8 place-items-center text-white/35 hover:text-red-300"
+                        className="inline-grid size-8 place-items-center text-muted-foreground hover:text-red-500"
                         aria-label={`Remove ${item.domain} from cart`}
                       >
                         <Trash2 className="size-4" />
@@ -124,9 +124,9 @@ export function DomainCartSheet() {
           ) : (
             <div className="grid h-full min-h-64 place-items-center px-6 text-center">
               <div>
-                <ShoppingCart className="mx-auto size-7 text-white/25" />
+                <ShoppingCart className="mx-auto size-7 text-muted-foreground/50" />
                 <p className="mt-4 font-medium">Your cart is empty</p>
-                <p className="mt-1 text-sm text-white/40">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Add an available domain from the search results.
                 </p>
               </div>
@@ -134,7 +134,7 @@ export function DomainCartSheet() {
           )}
         </div>
 
-        <div className="border-t border-white/10 bg-black/50 p-6">
+        <div className="border-t border-border bg-muted/50 p-6">
           <div className="mb-5 flex items-center justify-between text-lg">
             <span>Total</span>
             <span className="font-semibold">
@@ -145,7 +145,7 @@ export function DomainCartSheet() {
             type="button"
             disabled={!cartItems.length}
             onClick={isSignedIn ? continueToCheckout : signInToCheckout}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-white font-medium text-black hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-primary font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <MultivrsMark className="size-4" />
             {isSignedIn ? "Continue to checkout" : "Sign in to checkout"}

@@ -45,7 +45,7 @@ export function NewProjectHeader() {
           tintOpacity={0.06}
           baseColor="#333333"
           lineColor="#a855f7"
-          textColor="#ffffff"
+          textColor="currentColor"
           className="!h-7 !px-3 !text-xs font-medium"
         >
           <span className="flex items-center gap-1.5">

@@ -15,6 +15,7 @@ import {
   ProjectsUsageSkeleton,
 } from "@/features/dashboard/components/skeletons/ProjectCardsSkeleton";
 import type { DashboardProject } from "@/features/dashboard/types/project.types";
+import type { AccountUsage } from "@/features/dashboard/types/usage.types";
 
 const UsageView = dynamic(() =>
   import("@/features/dashboard/components/UsageView").then(
@@ -25,9 +26,10 @@ const UsageView = dynamic(() =>
 interface ProjectsGridProps {
   projects: Promise<DashboardProject[] | null>;
   username: Promise<string>;
+  usage: Promise<AccountUsage>;
 }
 
-export function ProjectsGrid({ username, projects }: ProjectsGridProps) {
+export function ProjectsGrid({ username, projects, usage }: ProjectsGridProps) {
   const [layout, setLayout] = useState<ProjectLayout>("grid");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ProjectFilter>("all");
@@ -49,7 +51,7 @@ export function ProjectsGrid({ username, projects }: ProjectsGridProps) {
       />
       {view === "usage" ? (
         <Suspense fallback={<ProjectsUsageSkeleton />}>
-          <UsageView />
+          <UsageView usage={usage} />
         </Suspense>
       ) : (
         <Suspense fallback={<ProjectCardsSkeleton layout={layout} />}>

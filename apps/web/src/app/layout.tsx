@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -90,7 +91,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased dark`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} h-full antialiased`}>
       <head>
         <meta name="theme-color" content="#030303" />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
@@ -99,8 +100,15 @@ export default function RootLayout({
         </script>
       </head>
       <body className="min-h-full flex flex-col font-inter bg-background text-foreground selection:bg-white/10 selection:text-white">
-        <Toaster position="bottom-right" richColors />
-        <div className="flex-1">{children}</div>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Toaster position="bottom-right" richColors />
+          <div className="flex-1">{children}</div>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -27,10 +27,10 @@ export function SavedDomainsSheet() {
     <Sheet open={savedOpen} onOpenChange={setSavedOpen}>
       <SheetContent
         side={side}
-        className="h-[82dvh] rounded-t-2xl border-white/12 bg-[#080808] p-0 text-white md:h-full md:w-[440px] md:max-w-[440px] md:rounded-none"
+        className="h-[82dvh] rounded-t-2xl border-border bg-background p-0 text-foreground md:h-full md:w-[440px] md:max-w-[440px] md:rounded-none"
       >
-        <SheetHeader className="border-b border-white/10 px-6 py-5">
-          <SheetTitle className="font-clash text-xl text-white">
+        <SheetHeader className="border-b border-border px-6 py-5">
+          <SheetTitle className="font-clash text-xl text-foreground">
             Saved domains
           </SheetTitle>
           <SheetDescription className="sr-only">
@@ -38,7 +38,7 @@ export function SavedDomainsSheet() {
           </SheetDescription>
         </SheetHeader>
         {savedDomains.length ? (
-          <div className="min-h-0 flex-1 divide-y divide-white/8 overflow-y-auto">
+          <div className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
             {savedDomains.map((result) => (
               <div
                 key={result.domain}
@@ -46,7 +46,7 @@ export function SavedDomainsSheet() {
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{result.domain}</p>
-                  <p className="mt-1 text-xs text-white/40">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {formatDomainPrice(result.price, result.currency)}
                   </p>
                 </div>
@@ -61,7 +61,7 @@ export function SavedDomainsSheet() {
                         toast.error("The domain could not be moved to cart."),
                       );
                   }}
-                  className="grid size-9 place-items-center border border-white/12 text-white/65 hover:bg-white hover:text-black"
+                  className="grid size-9 place-items-center border border-border text-muted-foreground hover:bg-primary hover:text-primary-foreground"
                   aria-label={`Move ${result.domain} to cart`}
                 >
                   <ShoppingCart className="size-4" />
@@ -73,7 +73,7 @@ export function SavedDomainsSheet() {
                       toast.error("Saved domains could not be updated."),
                     );
                   }}
-                  className="grid size-9 place-items-center text-white/35 hover:text-red-300"
+                  className="grid size-9 place-items-center text-muted-foreground hover:text-red-500"
                   aria-label={`Remove ${result.domain} from saved domains`}
                 >
                   <Trash2 className="size-4" />
@@ -84,9 +84,9 @@ export function SavedDomainsSheet() {
         ) : (
           <div className="grid min-h-80 flex-1 place-items-center px-8 text-center">
             <div>
-              <Bookmark className="mx-auto size-8 text-white/25" />
+              <Bookmark className="mx-auto size-8 text-muted-foreground/50" />
               <p className="mt-5 font-medium">No saved domains</p>
-              <p className="mt-2 text-sm leading-6 text-white/40">
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Save an available result and it will appear here.
               </p>
             </div>

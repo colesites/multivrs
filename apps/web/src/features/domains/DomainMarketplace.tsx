@@ -93,7 +93,10 @@ export function DomainMarketplace({
   );
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-black pt-16 text-white">
+    <main
+      id="dark-marketing-header"
+      className="relative min-h-screen overflow-hidden bg-black pt-16 text-white"
+    >
       <div className="pointer-events-none absolute inset-0 opacity-30">
         <Beams
           beamNumber={14}

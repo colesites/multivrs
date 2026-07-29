@@ -147,7 +147,11 @@ const EMPTY_SERIES = [
   { day: "Jul 31", usage: 0 },
 ];
 
-export function UsageView() {
+import { use } from "react";
+import type { AccountUsage } from "@/features/dashboard/types/usage.types";
+
+export function UsageView({ usage }: { usage: Promise<AccountUsage> }) {
+  const usageData = use(usage);
   return (
     <div className="space-y-8">
       <header className="flex flex-col gap-5 border-b border-[var(--hairline)] pb-7 sm:flex-row sm:items-end sm:justify-between">

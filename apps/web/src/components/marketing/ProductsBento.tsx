@@ -71,19 +71,19 @@ export function ProductsBento() {
       <div ref={headerRef} className="max-w-4xl mx-auto px-6 lg:px-10 mb-20">
         <p
           data-reveal
-          className="mb-5 font-mono text-xs tracking-[0.25em] text-white/40 uppercase"
+          className="mb-5 font-mono text-xs tracking-[0.25em] text-muted-foreground uppercase"
         >
           The Ecosystem
         </p>
         <h2
           ref={headingRef}
-          className="font-clash text-[clamp(2.5rem,5vw,5rem)] font-bold leading-[1.02] tracking-tight text-white"
+          className="font-clash text-[clamp(2.5rem,5vw,5rem)] font-bold leading-[1.02] tracking-tight text-foreground"
         >
           A universe of products, built to work as one.
         </h2>
         <p
           data-reveal
-          className="mt-6 max-w-xl font-acari text-base leading-relaxed text-white/50 sm:text-lg"
+          className="mt-6 max-w-xl font-acari text-base leading-relaxed text-muted-foreground sm:text-lg"
         >
           Each Multivrs product stands on its own, and together they form a
           single, seamless platform for building software.
@@ -102,31 +102,31 @@ export function ProductsBento() {
           {PRODUCTS.map((product) => (
             <div
               key={product.name}
-              className="flex-shrink-0 w-[85vw] max-w-[600px] aspect-[4/5] relative rounded-3xl border border-white/10 bg-white/[0.02] backdrop-blur-3xl overflow-hidden p-10 flex flex-col justify-between group transition-colors hover:border-white/20"
+              className="flex-shrink-0 w-[85vw] max-w-[600px] aspect-[4/5] relative rounded-3xl border border-border bg-foreground/[0.02] backdrop-blur-3xl overflow-hidden p-10 flex flex-col justify-between group transition-colors hover:border-foreground/20"
               style={{ transformStyle: "preserve-3d" }}
             >
               {/* Clean minimalist data block */}
               <div>
-                <p className="mb-4 font-mono text-sm tracking-[0.2em] text-white/40 uppercase">
+                <p className="mb-4 font-mono text-sm tracking-[0.2em] text-muted-foreground uppercase">
                   {product.tag}
                 </p>
-                <h3 className="font-clash text-4xl lg:text-5xl font-bold tracking-tight text-white mb-6">
+                <h3 className="font-clash text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6">
                   {product.name}
                 </h3>
-                <p className="max-w-md font-acari text-lg leading-relaxed text-white/60">
+                <p className="max-w-md font-acari text-lg leading-relaxed text-muted-foreground">
                   {product.blurb}
                 </p>
               </div>
 
               {/* Minimalist Tech Ring representation instead of mouse planet */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-white/5 rounded-full pointer-events-none opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-[opacity,transform] duration-1000 ease-out" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-white/10 rounded-full pointer-events-none opacity-50 group-hover:opacity-100 group-hover:-rotate-90 transition-[opacity,transform] duration-1000 ease-out border-t-transparent" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-border rounded-full pointer-events-none opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-[opacity,transform] duration-1000 ease-out" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-border rounded-full pointer-events-none opacity-50 group-hover:opacity-100 group-hover:-rotate-90 transition-[opacity,transform] duration-1000 ease-out border-t-transparent" />
 
               <div className="mt-auto">
                 <Link
                   href={product.href}
                   target={product.external ? "_blank" : undefined}
-                  className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors uppercase font-mono text-xs tracking-widest"
+                  className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors uppercase font-mono text-xs tracking-widest"
                 >
                   {product.external ? "Visit site" : "Learn more"}
                   {product.external ? (

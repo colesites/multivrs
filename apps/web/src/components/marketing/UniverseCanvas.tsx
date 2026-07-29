@@ -329,7 +329,7 @@ export function UniverseCanvas() {
         dpr={[1, 1.5]}
         gl={{ antialias: false, alpha: false }}
       >
-        <fog attach="fog" args={["#030303", 10, 200]} />
+        <fog attach="fog" args={["#000000", 10, 200]} />
         <ambientLight intensity={0.5} />
 
         <WormholeRig />
