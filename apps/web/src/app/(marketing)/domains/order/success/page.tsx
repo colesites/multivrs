@@ -1,5 +1,6 @@
 import { CircleCheck, LoaderCircle } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { ClearPurchasedDomainCart } from "@/features/domains/ClearPurchasedDomainCart";
 import { fulfillDomainCheckout } from "@/lib/services/domain-fulfillment.service";
@@ -8,9 +9,15 @@ interface SuccessPageProps {
   searchParams: Promise<{ session_id?: string }>;
 }
 
-export default async function DomainOrderSuccessPage({
-  searchParams,
-}: SuccessPageProps) {
+export default function DomainOrderSuccessPage(props: SuccessPageProps) {
+  return (
+    <Suspense fallback={null}>
+      <DomainOrderSuccessContent {...props} />
+    </Suspense>
+  );
+}
+
+async function DomainOrderSuccessContent({ searchParams }: SuccessPageProps) {
   const { session_id: sessionId } = await searchParams;
   const result = await loadFulfillment(sessionId);
   return (

@@ -6,7 +6,10 @@ import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.servic
 export async function deliverMailMessage(userId: string, messageId: string) {
   const message = await prisma.mailMessage.findFirst({
     where: { id: messageId, userId, status: { in: ["queued", "processing"] } },
-    include: { mailbox: { include: { domain: true } } },
+    include: {
+      attachments: true,
+      mailbox: { include: { domain: true } },
+    },
   });
   if (!message) return;
   const suppressed = await prisma.mailSuppression.findFirst({
@@ -37,6 +40,17 @@ export async function deliverMailMessage(userId: string, messageId: string) {
       text: message.textBody ?? undefined,
       html: message.htmlBody ?? undefined,
       headers: { "Message-ID": message.messageId },
+      attachments: message.attachments.flatMap((attachment) =>
+        attachment.contentBase64
+          ? [
+              {
+                filename: attachment.filename,
+                contentType: attachment.contentType,
+                content: Buffer.from(attachment.contentBase64, "base64"),
+              },
+            ]
+          : [],
+      ),
     });
     const event = await prisma.$transaction(async (tx) => {
       await tx.mailMessage.update({

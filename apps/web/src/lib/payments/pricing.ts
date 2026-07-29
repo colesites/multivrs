@@ -1,4 +1,5 @@
 import "server-only";
+import { cacheLife, cacheTag } from "next/cache";
 import type Stripe from "stripe";
 import { z } from "zod";
 import { getStripe } from "@/lib/payments/stripe-client";
@@ -127,6 +128,10 @@ export async function getPricingPlans(): Promise<{
   freePlan: StripePlan;
   proPlan: StripePlan;
 }> {
+  "use cache";
+  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
+  cacheTag("pricing");
+
   const [freePlan, proPlan] = await Promise.all([
     getStripePlan(
       "Hobby",

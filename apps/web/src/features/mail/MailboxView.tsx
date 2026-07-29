@@ -23,11 +23,15 @@ const folderByView: Partial<Record<MailView, string>> = {
 export function MailboxView({
   data,
   onReply,
+  onForward,
+  projectId,
   query,
   view,
 }: {
   data: MailDashboardData;
   onReply: (message: MailMessageDetail) => void;
+  onForward: (message: MailMessageDetail) => void;
+  projectId?: string;
   query: string;
   view: MailView;
 }) {
@@ -46,37 +50,75 @@ export function MailboxView({
         .includes(query.toLowerCase())
     );
   });
-  const [selectedId, setSelectedId] = useState<string | undefined>(
-    threads[0]?.id,
-  );
-  const selected =
-    threads.find((thread) => thread.id === selectedId) ?? threads[0];
-  async function action(messageId: string, mailAction: string) {
-    const response = await fetch(`/api/mail/messages/${messageId}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: mailAction }),
+  const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+  const selected = threads.find((thread) => thread.id === selectedId);
+  const action = async (
+    messageId: string,
+    mailAction: string,
+    quiet = false,
+  ) => {
+    try {
+      await updateMessage(messageId, mailAction);
+      if (!quiet) toast.success("Conversation updated");
+      router.refresh();
+    } catch {
+      toast.error("Email action failed");
+    }
+  };
+  const openThread = (threadId: string) => {
+    setSelectedId(threadId);
+    const thread = threads.find((item) => item.id === threadId);
+    const latest = data.messages[threadId]?.at(-1);
+    if (!thread?.unread || !latest) return;
+    void action(latest.id, "read", true);
+  };
+
+  async function emptyTrash() {
+    if (
+      !confirm(
+        "Permanently delete every message in Trash? This cannot be undone.",
+      )
+    )
+      return;
+    const suffix = projectId
+      ? `?projectId=${encodeURIComponent(projectId)}`
+      : "";
+    const response = await fetch(`/api/mail/messages${suffix}`, {
+      method: "DELETE",
     });
     if (!response.ok) {
-      toast.error("Email action failed");
+      toast.error("Trash could not be emptied");
       return;
     }
-    toast.success("Conversation updated");
+    toast.success("Trash emptied");
     router.refresh();
   }
   return (
     <div className="flex min-h-[calc(100vh-7.5rem)]">
       <MailThreadList
-        onSelect={setSelectedId}
+        onEmptyTrash={
+          view === "trash" && threads.length ? emptyTrash : undefined
+        }
+        onRefresh={() => router.refresh()}
+        onSelect={openThread}
         selectedId={selected?.id}
         threads={threads}
       />
       <MailReader
         messages={selected ? (data.messages[selected.id] ?? []) : []}
         onAction={action}
+        onForward={onForward}
         onReply={onReply}
         thread={selected}
       />
     </div>
   );
+}
+async function updateMessage(messageId: string, mailAction: string) {
+  const response = await fetch(`/api/mail/messages/${messageId}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action: mailAction }),
+  });
+  if (!response.ok) throw new Error("Mail action failed");
 }

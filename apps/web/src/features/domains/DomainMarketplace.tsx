@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useDeferredValue, useState } from "react";
 import { toast } from "sonner";
+import useSWR from "swr";
 import { DomainCartSheet } from "./DomainCartSheet";
 import { useDomainCommerce } from "./DomainCommerceProvider";
 import {
@@ -10,7 +11,7 @@ import {
   DomainFilters,
   type DomainSort,
 } from "./DomainFilters";
-import { DomainResult, DomainResultSkeleton } from "./DomainResult";
+import { DomainResult } from "./DomainResult";
 import { DomainSearchField } from "./DomainSearchField";
 import type { DomainSearchResult } from "./domain-marketplace";
 import {
@@ -36,166 +37,53 @@ export function DomainMarketplace({
   source?: string;
 }) {
   const [editedValue, setEditedValue] = useState<string>();
-  const [results, setResults] = useState<DomainSearchResult[]>([]);
-  const [state, setState] = useState<SearchState>(query ? "loading" : "idle");
-  const [message, setMessage] = useState("");
-  const [catalog, setCatalog] = useState<string[]>([]);
-  const [requestedExtensions, setRequestedExtensions] = useState<string[]>([]);
-  const [total, setTotal] = useState(0);
   const [tld, setTld] = useState("");
   const [availability, setAvailability] = useState<AvailabilityFilter>("all");
   const [sort, setSort] = useState<DomainSort>("relevance");
   const [limit, setLimit] = useState(60);
   const value = editedValue ?? query;
-  const searching = normalizeDomainQuery(value).length >= 2;
+  const normalizedQuery = normalizeDomainQuery(value);
+  const deferredQuery = useDeferredValue(normalizedQuery);
+  const searching = normalizedQuery.length >= 2;
+  const querySettled = deferredQuery === normalizedQuery;
+  const searchKey =
+    deferredQuery.length >= 2
+      ? ["domain-marketplace", deferredQuery, tld, limit]
+      : null;
+  const search = useSWR(
+    searchKey,
+    () => searchDomains({ name: deferredQuery, tld, limit }),
+    { keepPreviousData: false },
+  );
+  const results = search.data?.results ?? [];
+  const catalog = search.data?.catalog ?? [];
+  const total = search.data?.total ?? 0;
+  const message = search.data?.message ?? "";
+  const state: SearchState = !searching
+    ? "idle"
+    : !querySettled || search.isLoading
+      ? "loading"
+      : search.error
+        ? "error"
+        : (search.data?.state ?? "error");
 
   function updateValue(nextValue: string) {
     if (!searching && normalizeDomainQuery(nextValue).length >= 2) {
       window.scrollTo({ top: 0 });
     }
     setEditedValue(nextValue);
-  }
-
-  useEffect(() => {
-    const name = normalizeDomainQuery(value);
-    if (name.length < 2) {
-      setResults([]);
-      setRequestedExtensions([]);
-      setState("idle");
-      return;
-    }
-    const initialExtensions = tld
-      ? [tld]
-      : [...RELEVANT_DOMAIN_EXTENSIONS].slice(0, 4);
-    setResults([]);
-    setRequestedExtensions(
-      tld ? [tld] : [...RELEVANT_DOMAIN_EXTENSIONS].slice(0, limit),
+    const name = normalizeDomainQuery(nextValue);
+    const params = new URLSearchParams();
+    if (name) params.set("q", name);
+    if (teamSlug) params.set("teamSlug", teamSlug);
+    if (projectSlug) params.set("projectSlug", projectSlug);
+    if (source) params.set("source", source);
+    window.history.replaceState(
+      null,
+      "",
+      `/domains${params.size ? `?${params}` : ""}`,
     );
-    setMessage("");
-    setState("loading");
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      const params = new URLSearchParams({ q: name });
-      if (teamSlug) params.set("teamSlug", teamSlug);
-      if (projectSlug) params.set("projectSlug", projectSlug);
-      if (source) params.set("source", source);
-      window.history.replaceState(null, "", `/domains?${params}`);
-      try {
-        const first = await fetchDomainBatch(
-          name,
-          initialExtensions,
-          controller.signal,
-          true,
-        );
-        if (!first.response.ok) {
-          setMessage(first.body.message ?? "");
-          setRequestedExtensions([]);
-          setState(
-            first.body.error === "provider_not_configured"
-              ? "not-configured"
-              : "error",
-          );
-          return;
-        }
-
-        await revealDomainResults(
-          first.body.results,
-          controller.signal,
-          setResults,
-        );
-        setState("ready");
-
-        let detailed: Awaited<ReturnType<typeof fetchDomainBatch>>;
-        try {
-          detailed = await fetchDomainBatch(
-            name,
-            [...RELEVANT_DOMAIN_EXTENSIONS].slice(0, 12),
-            controller.signal,
-          );
-        } catch (error) {
-          if (error instanceof DOMException && error.name === "AbortError")
-            return;
-          setMessage(
-            "Additional domain results could not be loaded. Retry the search to refresh them.",
-          );
-          return;
-        }
-        if (!detailed.response.ok) {
-          setMessage(
-            detailed.body.message ??
-              "Additional domain results could not be loaded.",
-          );
-          return;
-        }
-
-        const nextCatalog = detailed.body.catalog ?? [];
-        const relevant = relevantDomainExtensions(nextCatalog);
-        const relevantSet = new Set(relevant);
-        const remainder = nextCatalog.filter(
-          (extension) => !relevantSet.has(extension),
-        );
-        const targetExtensions = tld
-          ? [tld]
-          : [...relevant, ...remainder].slice(0, limit);
-        setCatalog(nextCatalog);
-        setTotal(detailed.body.total ?? nextCatalog.length);
-        setRequestedExtensions(targetExtensions);
-        await revealDomainResults(
-          detailed.body.results,
-          controller.signal,
-          setResults,
-        );
-
-        const initiallyLoaded = new Set(
-          RELEVANT_DOMAIN_EXTENSIONS.slice(0, 12),
-        );
-        const remaining = targetExtensions.filter(
-          (extension) =>
-            !initiallyLoaded.has(
-              extension as (typeof RELEVANT_DOMAIN_EXTENSIONS)[number],
-            ),
-        );
-        const batches = chunk(remaining, 12);
-        let cursor = 0;
-        const worker = async () => {
-          while (cursor < batches.length && !controller.signal.aborted) {
-            const batch = batches[cursor];
-            cursor += 1;
-            if (!batch) return;
-            try {
-              const next = await fetchDomainBatch(
-                name,
-                batch,
-                controller.signal,
-              );
-              ensureSuccessfulResponse(next.response);
-              await revealDomainResults(
-                next.body.results,
-                controller.signal,
-                setResults,
-              );
-            } catch (error) {
-              if (error instanceof DOMException && error.name === "AbortError")
-                return;
-              setMessage(
-                "Some domain results could not be checked. Retry the search to refresh them.",
-              );
-            }
-          }
-        };
-        await Promise.all([worker(), worker()]);
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError")
-          return;
-        setState("error");
-        setMessage("The provider request could not be completed.");
-      }
-    }, 300);
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [limit, projectSlug, source, teamSlug, tld, value]);
+  }
 
   const visibleResults = sortResults(
     availability === "available"
@@ -250,11 +138,9 @@ export function DomainMarketplace({
                 }
               />
             ) : null}
-            {(state === "loading" || state === "ready") &&
-            requestedExtensions.length ? (
+            {state === "ready" && results.length ? (
               <Results
                 results={visibleResults}
-                requestedExtensions={requestedExtensions}
                 catalog={catalog}
                 total={total}
                 tld={tld}
@@ -286,7 +172,6 @@ export function DomainMarketplace({
 
 function Results({
   results,
-  requestedExtensions,
   catalog,
   total,
   tld,
@@ -299,7 +184,6 @@ function Results({
   onLoadMore,
 }: {
   results: DomainSearchResult[];
-  requestedExtensions: string[];
   catalog: string[];
   total: number;
   tld: string;
@@ -333,47 +217,23 @@ function Results({
     },
     onAdd: toggleCart,
   };
-  const byExtension = new Map(
-    results.map((result) => [domainExtension(result.domain), result]),
-  );
-  const slots =
-    sort === "relevance"
-      ? requestedExtensions.map((extension) => ({
-          extension,
-          result: byExtension.get(extension),
-        }))
-      : results.map((result) => ({
-          extension: domainExtension(result.domain),
-          result,
-        }));
-  const visibleSlots =
-    availability === "available"
-      ? slots.filter((slot) => !slot.result || slot.result.available)
-      : slots;
-  const topSlots = requestedExtensions.slice(0, 4).map((extension) => ({
-    extension,
-    result: byExtension.get(extension),
-  }));
+  const topResults = results.slice(0, 4);
 
   return (
     <>
       <h1 className="mb-3 text-xl font-semibold">Top results</h1>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {topSlots.map(({ extension, result }) =>
-          result ? (
-            <DomainResult
-              key={result.domain}
-              result={result}
-              featured
-              canSave={isSignedIn}
-              saved={isSaved(result.domain)}
-              inCart={isInCart(result.domain)}
-              {...actions}
-            />
-          ) : (
-            <DomainResultSkeleton key={extension} featured />
-          ),
-        )}
+        {topResults.map((result) => (
+          <DomainResult
+            key={result.domain}
+            result={result}
+            featured
+            canSave={isSignedIn}
+            saved={isSaved(result.domain)}
+            inCart={isInCart(result.domain)}
+            {...actions}
+          />
+        ))}
       </div>
       <div className="mb-3 mt-10 flex items-end justify-between gap-4">
         <div>
@@ -382,12 +242,7 @@ function Results({
             <p className="mt-1 text-xs text-white/35">
               {total.toLocaleString("en-US")} domain extensions
             </p>
-          ) : (
-            <div
-              aria-hidden="true"
-              className="mt-2 h-2.5 w-32 animate-pulse bg-white/6"
-            />
-          )}
+          ) : null}
         </div>
         <DomainFilters
           catalog={catalog}
@@ -400,20 +255,16 @@ function Results({
         />
       </div>
       <div className="grid border-l border-t border-white/8 sm:grid-cols-2 lg:grid-cols-3">
-        {visibleSlots.map(({ extension, result }) =>
-          result ? (
-            <DomainResult
-              key={result.domain}
-              result={result}
-              canSave={isSignedIn}
-              saved={isSaved(result.domain)}
-              inCart={isInCart(result.domain)}
-              {...actions}
-            />
-          ) : (
-            <DomainResultSkeleton key={extension} />
-          ),
-        )}
+        {results.map((result) => (
+          <DomainResult
+            key={result.domain}
+            result={result}
+            canSave={isSignedIn}
+            saved={isSaved(result.domain)}
+            inCart={isInCart(result.domain)}
+            {...actions}
+          />
+        ))}
       </div>
       {canLoadMore ? (
         <button
@@ -457,17 +308,90 @@ type SearchResponse = {
   message?: string;
 };
 
-async function fetchDomainBatch(
-  name: string,
-  extensions: string[],
-  signal: AbortSignal,
-  fast = false,
-) {
+type DomainSearchData = {
+  catalog: string[];
+  message: string;
+  results: DomainSearchResult[];
+  state: Exclude<SearchState, "idle" | "loading">;
+  total: number;
+};
+
+async function searchDomains({
+  name,
+  tld,
+  limit,
+}: {
+  name: string;
+  tld: string;
+  limit: number;
+}): Promise<DomainSearchData> {
+  const initialExtensions = tld
+    ? [tld]
+    : [...RELEVANT_DOMAIN_EXTENSIONS].slice(0, 12);
+  const initial = await fetchDomainBatch(name, initialExtensions);
+  if (!initial.response.ok) {
+    return {
+      catalog: [],
+      message: initial.body.message ?? "",
+      results: [],
+      state:
+        initial.body.error === "provider_not_configured"
+          ? "not-configured"
+          : "error",
+      total: 0,
+    };
+  }
+
+  const catalog = initial.body.catalog ?? [];
+  const relevant = relevantDomainExtensions(catalog);
+  const relevantSet = new Set(relevant);
+  const remainder = catalog.filter((extension) => !relevantSet.has(extension));
+  const targetExtensions = tld
+    ? [tld]
+    : [...relevant, ...remainder].slice(0, limit);
+  const loaded = new Set(initialExtensions);
+  const batches = chunk(
+    targetExtensions.filter((extension) => !loaded.has(extension)),
+    12,
+  );
+  const byDomain = new Map(
+    initial.body.results.map((result) => [result.domain, result]),
+  );
+  let message = "";
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < batches.length) {
+      const batch = batches[cursor];
+      cursor += 1;
+      if (!batch) return;
+      try {
+        const next = await fetchDomainBatch(name, batch);
+        ensureSuccessfulResponse(next.response);
+        for (const result of next.body.results) {
+          byDomain.set(result.domain, result);
+        }
+      } catch {
+        message =
+          "Some domain results could not be checked. Retry the search to refresh them.";
+      }
+    }
+  };
+  await Promise.all([worker(), worker()]);
+
+  return {
+    catalog,
+    message,
+    results: [...byDomain.values()],
+    state: "ready",
+    total: initial.body.total ?? catalog.length,
+  };
+}
+
+async function fetchDomainBatch(name: string, extensions: string[]) {
   const endpoint = new URL("/api/domains/search", window.location.origin);
   endpoint.searchParams.set("q", name);
   endpoint.searchParams.set("tlds", extensions.join(","));
-  if (fast) endpoint.searchParams.set("fast", "1");
-  const response = await fetch(endpoint, { signal });
+  const response = await fetch(endpoint);
   if (!response.ok) {
     const body = (await response.json()) as SearchResponse;
     return { response, body };
@@ -480,27 +404,8 @@ function ensureSuccessfulResponse(response: Response): void {
   if (!response.ok) throw new Error("Domain batch failed");
 }
 
-async function revealDomainResults(
-  incoming: DomainSearchResult[],
-  signal: AbortSignal,
-  update: React.Dispatch<React.SetStateAction<DomainSearchResult[]>>,
-) {
-  for (const result of incoming) {
-    if (signal.aborted) return;
-    update((current) => [
-      ...current.filter((item) => item.domain !== result.domain),
-      result,
-    ]);
-    await new Promise((resolve) => window.setTimeout(resolve, 35));
-  }
-}
-
 function chunk<T>(values: T[], size: number): T[][] {
   return Array.from({ length: Math.ceil(values.length / size) }, (_, index) =>
     values.slice(index * size, index * size + size),
   );
-}
-
-function domainExtension(domain: string): string {
-  return domain.slice(domain.indexOf(".") + 1);
 }

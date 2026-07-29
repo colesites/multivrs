@@ -39,24 +39,30 @@ export interface DashboardNavItem {
  * the scope segment.
  */
 export const DASHBOARD_NAV_ITEMS: readonly DashboardNavItem[] = [
-  { name: "Projects", slug: "", icon: LayoutGrid },
-  { name: "Deployments", slug: "deployments", icon: Rocket },
-  { name: "Logs", slug: "logs", icon: ScrollText },
-  { name: "Analytics", slug: "analytics", icon: Activity },
-  { name: "Speed Insights", slug: "speed-insights", icon: Gauge },
-  { name: "Observability", slug: "observability", icon: Radar },
-  { name: "Firewall", slug: "firewall", icon: ShieldCheck },
-  { name: "CDN", slug: "cdn", icon: Network },
+  { name: "Projects", slug: "", icon: LayoutGrid, badge: "Beta" },
+  { name: "Deployments", slug: "deployments", icon: Rocket, badge: "Beta" },
+  { name: "Logs", slug: "logs", icon: ScrollText, badge: "Beta" },
+  { name: "Analytics", slug: "analytics", icon: Activity, badge: "Beta" },
+  {
+    name: "Speed Insights",
+    slug: "speed-insights",
+    icon: Gauge,
+    badge: "Beta",
+  },
+  { name: "Observability", slug: "observability", icon: Radar, badge: "Beta" },
+  { name: "Firewall", slug: "firewall", icon: ShieldCheck, badge: "Beta" },
+  { name: "CDN", slug: "cdn", icon: Network, badge: "Beta" },
   {
     name: "Environment Variables",
     slug: "environment-variables",
     icon: KeyRound,
+    badge: "Beta",
   },
-  { name: "Integrations", slug: "integrations", icon: PlugZap },
+  { name: "Integrations", slug: "integrations", icon: PlugZap, badge: "Beta" },
   { name: "Sandboxes", slug: "sandboxes", icon: SquareTerminal, badge: "Beta" },
-  { name: "Domains", slug: "domains", icon: Globe },
-  { name: "Emails", slug: "emails", icon: AtSign },
-  { name: "Settings", slug: "settings", icon: Settings },
+  { name: "Domains", slug: "domains", icon: Globe, badge: "Beta" },
+  { name: "Emails", slug: "emails", icon: AtSign, badge: "Beta" },
+  { name: "Settings", slug: "settings", icon: Settings, badge: "Beta" },
 ] as const;
 
 /**

@@ -1,8 +1,8 @@
 "use client";
 
-import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { DashboardSearchInput } from "@/features/dashboard/components/DashboardSearchInput";
 import {
   buildNavHref,
   DASHBOARD_NAV_ITEMS,
@@ -78,32 +78,28 @@ export function SidebarSearch() {
 
   return (
     <div ref={wrapRef} className="relative">
-      <div className="flex h-9 items-center gap-2.5 rounded-lg border border-[var(--hairline)] bg-white/[0.015] px-3 transition-colors focus-within:border-[var(--hairline-strong)] focus-within:bg-white/[0.03]">
-        <Search
-          className="size-4 shrink-0 text-muted-foreground/70"
-          strokeWidth={1.75}
-        />
-        <input
-          ref={inputRef}
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setActive(0);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={onKeyDown}
-          placeholder="Search…"
-          aria-label="Search dashboard"
-          role="combobox"
-          aria-expanded={open}
-          aria-controls={listId}
-          className="min-w-0 flex-1 bg-transparent text-[13px] text-foreground caret-[var(--accent)] outline-none placeholder:text-muted-foreground"
-        />
-        <kbd className="shrink-0 rounded-md border border-[var(--hairline)] bg-white/[0.02] px-1.5 py-0.5 font-geist-mono text-[10px] text-muted-foreground/80">
-          ⌘K
-        </kbd>
-      </div>
+      <DashboardSearchInput
+        ref={inputRef}
+        aria-controls={listId}
+        aria-expanded={open}
+        aria-label="Search dashboard"
+        containerClassName="bg-white/[0.015] focus-within:bg-white/[0.03]"
+        onValueChange={(value) => {
+          setQuery(value);
+          setActive(0);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={onKeyDown}
+        placeholder="Search…"
+        role="combobox"
+        trailing={
+          <kbd className="shrink-0 rounded-md border border-[var(--hairline)] bg-white/[0.02] px-1.5 py-0.5 font-geist-mono text-[10px] text-muted-foreground/80">
+            ⌘K
+          </kbd>
+        }
+        value={query}
+      />
 
       {open && results.length > 0 && (
         <ul

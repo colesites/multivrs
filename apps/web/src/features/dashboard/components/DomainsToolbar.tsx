@@ -1,6 +1,6 @@
-import { Search, X } from "lucide-react";
 import Link from "next/link";
 import SpecularButton from "@/components/SpecularButton";
+import { DashboardSearchInput } from "@/features/dashboard/components/DashboardSearchInput";
 
 interface DomainsToolbarProps {
   marketplace: string;
@@ -17,26 +17,13 @@ export function DomainsToolbar({
 }: DomainsToolbarProps) {
   return (
     <div className="mb-4 flex items-center gap-3">
-      <label className="flex h-9 flex-1 items-center gap-2.5 rounded-lg border border-[var(--hairline)] bg-[var(--ink-raised)]/60 px-3.5 backdrop-blur-md transition-colors focus-within:border-[var(--hairline-strong)]">
-        <span className="sr-only">Search domains</span>
-        <Search className="size-3.5 shrink-0 text-muted-foreground/70" />
-        <input
-          value={query}
-          onChange={(event) => onQueryChange(event.target.value.toLowerCase())}
-          placeholder="Search domains..."
-          className="min-w-0 flex-1 bg-transparent text-[13px] text-foreground caret-accent outline-none placeholder:text-muted-foreground"
-        />
-        {query ? (
-          <button
-            type="button"
-            onClick={() => onQueryChange("")}
-            aria-label="Clear search"
-            className="grid size-4 cursor-pointer place-items-center text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <X className="size-3.5" />
-          </button>
-        ) : null}
-      </label>
+      <DashboardSearchInput
+        clearable
+        containerClassName="flex-1"
+        value={query}
+        onValueChange={(value) => onQueryChange(value.toLowerCase())}
+        placeholder="Search domains..."
+      />
       <div className="flex shrink-0 items-center gap-2">
         <SpecularButton
           size="sm"

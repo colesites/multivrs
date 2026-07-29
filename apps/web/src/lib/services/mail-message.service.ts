@@ -23,7 +23,13 @@ export async function updateMailMessage(
   messageId: string,
   action: keyof typeof ACTIONS,
 ) {
-  await ownedMailMessage(userId, messageId);
+  const message = await ownedMailMessage(userId, messageId);
+  if (action === "read" || action === "unread") {
+    return prisma.mailMessage.updateMany({
+      where: { userId, threadId: message.threadId },
+      data: ACTIONS[action],
+    });
+  }
   return prisma.mailMessage.update({
     where: { id: messageId },
     data: ACTIONS[action],

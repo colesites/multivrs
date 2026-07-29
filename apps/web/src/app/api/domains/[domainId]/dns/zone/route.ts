@@ -3,7 +3,6 @@ import { fail, ok } from "@/lib/api/respond";
 import { requireUserId } from "@/lib/api/session";
 import { enableDomainDns } from "@/lib/services/domain-dns.service";
 
-export const runtime = "nodejs";
 
 interface RouteParams {
   params: Promise<{ domainId: string }>;

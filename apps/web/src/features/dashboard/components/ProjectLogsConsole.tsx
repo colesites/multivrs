@@ -1,9 +1,10 @@
 "use client";
 
-import { Circle, RefreshCcw, Search } from "lucide-react";
+import { Circle, RefreshCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { DashboardSearchInput } from "@/features/dashboard/components/DashboardSearchInput";
 import type {
   RuntimeLogItem,
   RuntimeLogLevel,
@@ -64,15 +65,12 @@ export function ProjectLogsConsole({
         </Button>
       </header>
       <div className="flex flex-wrap items-center gap-2">
-        <label className="flex h-9 min-w-[220px] flex-1 items-center gap-2 rounded-lg border border-[var(--hairline)] px-3">
-          <Search className="size-3.5 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search logs…"
-            className="min-w-0 flex-1 bg-transparent text-xs outline-none"
-          />
-        </label>
+        <DashboardSearchInput
+          containerClassName="min-w-[220px] flex-1"
+          value={query}
+          onValueChange={setQuery}
+          placeholder="Search logs…"
+        />
         {LEVELS.map((level) => (
           <button
             key={level}

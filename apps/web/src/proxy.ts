@@ -63,6 +63,7 @@ export default async function proxy(req: NextRequest) {
     path.startsWith("/_next") ||
     path.startsWith("/api") ||
     path === "/favicon.ico" ||
+    path === "/sw.js" ||
     path.endsWith(".svg") ||
     path.endsWith(".png") ||
     path.endsWith(".jpg") ||
@@ -106,6 +107,6 @@ export const config = {
   // Exclude static assets, Next.js internal bundles, and API routes from
   // protection redirects.
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|sw\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2)$).*)",
   ],
 };

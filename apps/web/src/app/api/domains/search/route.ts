@@ -9,7 +9,6 @@ import {
 } from "@/lib/domains/openprovider";
 import { logError } from "@/lib/services/logger.service";
 
-export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   const name = normalizeDomainQuery(

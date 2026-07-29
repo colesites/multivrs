@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { DashboardSearchInput } from "@/features/dashboard/components/DashboardSearchInput";
 import { GitHubMark } from "@/features/dashboard/components/GitHubMark";
 import { GitHubRepositoryList } from "@/features/dashboard/components/GitHubRepositoryList";
 import { useGithubRepositories } from "@/features/dashboard/hooks/useGithubRepositories";
@@ -116,16 +117,12 @@ export function NewProjectFlow({ username }: { username?: string }) {
             <GitHubMark className="size-4" />{" "}
             {github.connected ? github.owner : "Connect GitHub"}
           </button>
-          <label className="flex h-9 min-w-56 flex-1 items-center gap-2 rounded-lg border border-white/10 bg-black/60 px-3">
-            <span className="sr-only">Search repositories</span>
-            <Search className="size-3.5 text-white/40" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search repositories"
-              className="min-w-0 flex-1 bg-transparent text-xs outline-none"
-            />
-          </label>
+          <DashboardSearchInput
+            containerClassName="min-w-56 flex-1"
+            value={query}
+            onValueChange={setQuery}
+            placeholder="Search repositories"
+          />
         </div>
         <div className="divide-y divide-white/5 overflow-hidden rounded-xl border border-white/10 bg-black/40">
           <GitHubRepositoryList

@@ -42,7 +42,8 @@ export function MailResourceRow({
 
   async function deleteItem(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!confirm(`Are you sure you want to delete this ${view.slice(0, -1)}?`)) return;
+    if (!confirm(`Are you sure you want to delete this ${view.slice(0, -1)}?`))
+      return;
     const response = await fetch(`/api/mail/${view}/${item.id}`, {
       method: "DELETE",
     });
@@ -56,7 +57,9 @@ export function MailResourceRow({
 
   function handleRowClick() {
     if (view === "domains" && params.username && params.scope) {
-      router.push(`/${params.username}/${params.scope}/email/domains/${item.id}`);
+      router.push(
+        `/${params.username}/${params.scope}/email/domains/${item.id}`,
+      );
     }
   }
 
@@ -72,15 +75,18 @@ export function MailResourceRow({
     item.status === "active" ||
     item.status === "delivered";
 
-  const interactiveProps = view === "domains" ? {
-    onClick: handleRowClick,
-    onKeyDown: handleKeyDown,
-    role: "button",
-    tabIndex: 0,
-  } : {};
+  const interactiveProps =
+    view === "domains"
+      ? {
+          onClick: handleRowClick,
+          onKeyDown: handleKeyDown,
+          role: "button",
+          tabIndex: 0,
+        }
+      : {};
 
   return (
-    <div 
+    <div
       {...interactiveProps}
       className={`grid grid-cols-[1.4fr_.9fr_.45fr_32px] items-center gap-3 border-b border-white/[0.055] px-4 py-3.5 text-xs last:border-0 ${view === "domains" ? "cursor-pointer hover:bg-white/[0.02]" : ""}`}
     >
@@ -88,7 +94,9 @@ export function MailResourceRow({
         <p className="truncate text-white/75">{item.name}</p>
         {item.createdAt ? (
           <p className="mt-1 text-[9px] text-white/25">
-            {new Date(item.createdAt).toLocaleDateString("en-US")}
+            {new Date(item.createdAt).toLocaleDateString("en-US", {
+              timeZone: "UTC",
+            })}
           </p>
         ) : null}
       </div>
@@ -108,13 +116,20 @@ export function MailResourceRow({
       ) : (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button aria-label="More actions" type="button" onClick={(e) => e.stopPropagation()}>
+            <button
+              aria-label="More actions"
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+            >
               <MoreHorizontal className="size-4 text-white/30 hover:text-white/70 transition-colors" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
             {(view === "mailboxes" || view === "domains") && (
-              <DropdownMenuItem onClick={deleteItem} className="text-red-400 focus:text-red-400 focus:bg-red-400/10">
+              <DropdownMenuItem
+                onClick={deleteItem}
+                className="text-red-400 focus:text-red-400 focus:bg-red-400/10"
+              >
                 Delete
               </DropdownMenuItem>
             )}

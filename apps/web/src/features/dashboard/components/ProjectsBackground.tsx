@@ -1,6 +1,8 @@
 "use client";
 
-import Galaxy from "@/components/Galaxy";
+import dynamic from "next/dynamic";
+
+const Galaxy = dynamic(() => import("@/components/Galaxy"), { ssr: false });
 
 /**
  * Ambient galaxy starfield behind the Projects overview. Tuned low and

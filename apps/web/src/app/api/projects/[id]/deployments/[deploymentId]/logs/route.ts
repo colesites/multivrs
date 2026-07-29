@@ -7,7 +7,6 @@ import {
   listDeploymentLogs,
 } from "@/lib/services/deployment-log.service";
 
-export const runtime = "nodejs";
 
 interface RouteParams {
   params: Promise<{ id: string; deploymentId: string }>;

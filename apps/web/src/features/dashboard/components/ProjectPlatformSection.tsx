@@ -13,6 +13,7 @@ import { SpeedInsightsPage } from "@/features/dashboard/components/SpeedInsights
 import { ALL_PROJECTS_SCOPE } from "@/features/dashboard/constants/navigation";
 import type { SectionMeta } from "@/features/dashboard/constants/sections";
 import type { PlatformSection } from "@/features/dashboard/lib/project-platform-sections";
+import type { MailView } from "@/features/mail/mail-navigation";
 import { auth } from "@/lib/auth";
 import {
   getProjectAnalytics,
@@ -28,11 +29,15 @@ import { oidcIssuerOrStatus } from "@/lib/services/oidc.service";
 
 export async function ProjectPlatformSection({
   meta,
+  initialMailView = "overview",
+  initialMailCompose = false,
   scope,
   section,
   username,
 }: {
   meta: SectionMeta;
+  initialMailView?: MailView;
+  initialMailCompose?: boolean;
   scope: string;
   section: PlatformSection;
   username: string;
@@ -45,6 +50,8 @@ export async function ProjectPlatformSection({
     return (
       <ProjectEmailSection
         scope={scope}
+        initialView={initialMailView}
+        initialCompose={initialMailCompose}
         userId={session.user.id}
         username={username}
       />
@@ -59,7 +66,6 @@ export async function ProjectPlatformSection({
         username={username}
         section={section}
         title={meta.title}
-        description={meta.description}
         projects={projects}
       />
     );

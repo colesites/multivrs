@@ -1,15 +1,20 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { RefreshCw, Star, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { MailThreadSummary } from "@/features/mail/mail.types";
 import { cn } from "@/lib/utils";
 
 export function MailThreadList({
   onSelect,
+  onEmptyTrash,
+  onRefresh,
   selectedId,
   threads,
 }: {
   onSelect: (id: string) => void;
+  onEmptyTrash?: () => void;
+  onRefresh: () => void;
   selectedId?: string;
   threads: MailThreadSummary[];
 }) {
@@ -17,9 +22,29 @@ export function MailThreadList({
     <div className="border-r border-white/[0.07] bg-[#090a0d] md:w-[340px] md:shrink-0">
       <div className="flex h-12 items-center justify-between border-b border-white/[0.07] px-4">
         <p className="text-xs font-medium">Conversations</p>
-        <span className="font-mono text-[10px] text-white/30">
-          {threads.length}
-        </span>
+        <div className="flex items-center gap-1">
+          <span className="mr-1 font-mono text-[10px] text-white/30">
+            {threads.length}
+          </span>
+          <Button
+            aria-label="Refresh mailbox"
+            onClick={onRefresh}
+            size="icon-sm"
+            variant="ghost"
+          >
+            <RefreshCw className="size-3.5" />
+          </Button>
+          {onEmptyTrash ? (
+            <Button
+              aria-label="Empty trash"
+              onClick={onEmptyTrash}
+              size="icon-sm"
+              variant="ghost"
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          ) : null}
+        </div>
       </div>
       <div className="max-h-[calc(100vh-10.5rem)] overflow-y-auto">
         {threads.map((thread) => (

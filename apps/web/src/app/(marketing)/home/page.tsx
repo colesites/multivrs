@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { CapabilitiesSection } from "@/components/marketing/CapabilitiesSection";
-import { FaqSection } from "@/components/marketing/FaqSection";
+import { DeferredUniverseCanvas } from "@/components/marketing/DeferredUniverseCanvas";
+import { FaqStream } from "@/components/marketing/FaqStream";
 import { HeroSection } from "@/components/marketing/HeroSection";
-import { UniverseCanvas } from "@/components/marketing/UniverseCanvas";
-import { getFaqs } from "@/sanity/lib/faq-service";
 
 export const metadata: Metadata = {
   title: "Multivrs | Software Ecosystem for Modern Teams",
@@ -12,20 +12,18 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export const revalidate = 60;
-
-export default async function Home() {
-  const faqs = await getFaqs("home");
-
+export default function Home() {
   return (
     <>
-      <UniverseCanvas />
+      <DeferredUniverseCanvas />
 
       {/* The DOM overlays */}
       <div className="relative z-10">
         <HeroSection />
         <CapabilitiesSection />
-        <FaqSection faqs={faqs} />
+        <Suspense fallback={null}>
+          <FaqStream page="home" />
+        </Suspense>
       </div>
     </>
   );

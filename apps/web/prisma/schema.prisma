@@ -133,6 +133,7 @@ model Project {
   name                   String
   slug                   String
   framework              String? // "nextjs" | "swift-rust" | "vite" | "static" | null (auto)
+  repositoryUrl          String?
   ownerId                String
   // The production alias pointer: which deployment production serves.
   productionDeploymentId String?  @unique
@@ -591,15 +592,16 @@ model MailMessage {
 }
 
 model MailAttachment {
-  id          String   @id @default(uuid())
-  messageId   String
-  filename    String
-  contentType String
-  size        Int
-  storageKey  String
-  inline      Boolean  @default(false)
-  contentId   String?
-  createdAt   DateTime @default(now())
+  id            String   @id @default(uuid())
+  messageId     String
+  filename      String
+  contentType   String
+  size          Int
+  storageKey    String
+  contentBase64 String?  @db.Text
+  inline        Boolean  @default(false)
+  contentId     String?
+  createdAt     DateTime @default(now())
 
   message MailMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
 

@@ -1,5 +1,5 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { getServerSession } from "@/lib/auth/session";
 
 /**
@@ -16,18 +16,26 @@ import { getServerSession } from "@/lib/auth/session";
  * redirect so logged-out users never even reach this server component. This
  * page is the authoritative fallback that actually reads the session.
  */
-export default async function RootPage() {
-  const session = await getServerSession(await headers());
+export default function RootPage() {
+  return (
+    <Suspense fallback={null}>
+      <RootRedirect />
+    </Suspense>
+  );
+}
+
+async function RootRedirect() {
+  const session = await getServerSession();
 
   if (!session) {
-    redirect("/home");
+    return redirect("/home");
   }
 
   const username = session.user.username;
   if (!username) {
     // Authenticated but hasn't picked a username — send them to finish setup.
-    redirect("/signup?step=username");
+    return redirect("/signup?step=username");
   }
 
-  redirect(`/${username}`);
+  return redirect(`/${username}`);
 }

@@ -39,7 +39,8 @@ export function DeploymentRow({ deployment }: DeploymentRowProps) {
         </div>
 
         <span className="truncate font-medium text-foreground/90">
-          {deployment.commitMessage || "Manual Deployment"}
+          {deployment.commitMessage ||
+            `Deployment ${deployment.id.slice(0, 8)}`}
         </span>
       </div>
 

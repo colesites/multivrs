@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu } from "lucide-react";
+import { Suspense, use } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -19,7 +20,7 @@ export function DashboardMobileNavigation({
   user,
   workspaceName,
 }: {
-  notifications: DashboardNotification[];
+  notifications: Promise<DashboardNotification[]>;
   user: { email: string; image?: string | null; name: string };
   workspaceName: string;
 }) {
@@ -47,13 +48,20 @@ export function DashboardMobileNavigation({
         <div className="flex-1 overflow-y-auto">
           <SidebarNav />
         </div>
-        <SidebarFooter
-          email={user.email}
-          image={user.image}
-          name={user.name}
-          notifications={notifications}
-        />
+        <Suspense fallback={<SidebarFooter {...user} notifications={[]} />}>
+          <MobileSidebarFooter notifications={notifications} user={user} />
+        </Suspense>
       </SheetContent>
     </Sheet>
   );
+}
+
+function MobileSidebarFooter({
+  notifications,
+  user,
+}: {
+  notifications: Promise<DashboardNotification[]>;
+  user: { email: string; image?: string | null; name: string };
+}) {
+  return <SidebarFooter {...user} notifications={use(notifications)} />;
 }

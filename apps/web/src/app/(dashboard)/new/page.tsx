@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { NewProjectFlow } from "@/features/dashboard/components/NewProjectFlow";
 import { NewProjectHeader } from "@/features/dashboard/components/NewProjectHeader";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "New Project — Multivrs",
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NewProjectPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
   if (!session) redirect("/login?redirect=/new");
   const username = session.user.username ?? session.user.id;
   return (

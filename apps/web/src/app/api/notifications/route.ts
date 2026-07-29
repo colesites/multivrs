@@ -7,7 +7,6 @@ import {
   mutateNotification,
 } from "@/lib/services/notification.service";
 
-export const runtime = "nodejs";
 
 export async function GET() {
   try {

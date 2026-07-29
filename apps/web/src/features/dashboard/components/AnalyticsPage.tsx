@@ -1,12 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { AnalyticsProjectPicker } from "@/features/dashboard/components/AnalyticsProjectPicker";
 import type { PlatformAnalytics } from "@/features/dashboard/types/analytics.types";
 import type { DashboardProject } from "@/features/dashboard/types/project.types";
 import { AnalyticsBreakdowns } from "./AnalyticsBreakdowns";
-import { AnalyticsChart } from "./AnalyticsChart";
 import { AnalyticsMetrics } from "./AnalyticsMetrics";
+
+const AnalyticsChart = dynamic(() =>
+  import("./AnalyticsChart").then((module) => module.AnalyticsChart),
+);
 
 interface AnalyticsPageProps {
   username?: string;
@@ -26,7 +30,7 @@ export function AnalyticsPage({
   }
 
   return (
-    <div className="space-y-8 relative z-10 animate-in fade-in slide-in-from-bottom-[5%] duration-700 ease-out fill-mode-both max-w-[1400px] mx-auto px-5 py-7 lg:px-8">
+    <div className="relative z-10 mx-auto max-w-[1400px] space-y-8 px-5 py-7 lg:px-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 pt-4">
         <div>

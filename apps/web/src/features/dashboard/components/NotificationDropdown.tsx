@@ -32,7 +32,7 @@ export function NotificationDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-[360px] overflow-hidden p-0"
+        className="w-[360px] overflow-hidden border border-[var(--hairline)] bg-[var(--ink)] p-0 shadow-2xl shadow-black/40 dashboard-surface"
       >
         <NotificationsPanel initialNotifications={notifications} />
       </DropdownMenuContent>

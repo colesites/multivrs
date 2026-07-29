@@ -2,7 +2,6 @@ import { fail, ok } from "@/lib/api/respond";
 import { requireUserId } from "@/lib/api/session";
 import { createSubscriptionCheckout } from "@/lib/services/subscription-checkout.service";
 
-export const runtime = "nodejs";
 
 export async function POST() {
   try {

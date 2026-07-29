@@ -1,11 +1,10 @@
 "use client";
 
-import { Clock3, Send } from "lucide-react";
+import { Clock3, Maximize2, Minimize2, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -14,22 +13,24 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Textarea } from "@/components/ui/textarea";
 import { useResponsiveSheetSide } from "@/features/domains/use-responsive-sheet-side";
-import { ComposeField } from "@/features/mail/MailFormControls";
+import { MailComposeFields } from "@/features/mail/MailComposeFields";
 import type {
   MailboxSummary,
   MailMessageDetail,
 } from "@/features/mail/mail.types";
 import { submitMailCompose } from "@/features/mail/mail-compose.client";
+import { cn } from "@/lib/utils";
 
 export function MailCompose({
   mailboxes,
+  forward,
   onOpenChange,
   open,
   reply,
 }: {
   mailboxes: MailboxSummary[];
+  forward?: MailMessageDetail;
   onOpenChange: (open: boolean) => void;
   open: boolean;
   reply?: MailMessageDetail;
@@ -37,6 +38,7 @@ export function MailCompose({
   const router = useRouter();
   const side = useResponsiveSheetSide();
   const [sending, setSending] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   function submit(formData: FormData) {
     setSending(true);
     void submitMailCompose(formData, reply).then((result) => {
@@ -55,66 +57,59 @@ export function MailCompose({
   return (
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent
-        className="w-full border-white/10 bg-[#090a0d] sm:max-w-xl"
+        className={cn(
+          "w-full border-white/10 bg-[#090a0d] transition-[max-width] duration-200 sm:max-w-xl",
+          expanded && "sm:max-w-[min(92vw,1100px)]",
+        )}
         side={side}
+        style={
+          expanded
+            ? side === "bottom"
+              ? {
+                  bottom: "1rem",
+                  height: "calc(100dvh - 2rem)",
+                  left: "1rem",
+                  maxHeight: "none",
+                  maxWidth: "none",
+                  right: "1rem",
+                  width: "auto",
+                }
+              : {
+                  bottom: "1rem",
+                  height: "auto",
+                  left: "1rem",
+                  maxWidth: "none",
+                  right: "1rem",
+                  top: "1rem",
+                  width: "auto",
+                }
+            : undefined
+        }
       >
-        <SheetHeader className="border-b border-white/[0.07]">
-          <SheetTitle>New message</SheetTitle>
+        <SheetHeader className="relative border-b border-white/[0.07] pr-14">
+          <SheetTitle>
+            {reply ? "Reply" : forward ? "Forward message" : "New message"}
+          </SheetTitle>
           <SheetDescription>
-            Send from a verified Multivrs mailbox.
+            Rich text, inline images, links, and attachments are supported.
           </SheetDescription>
+          <Button
+            aria-label={expanded ? "Restore compose size" : "Expand compose"}
+            className="absolute right-12 top-4"
+            onClick={() => setExpanded((value) => !value)}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            {expanded ? <Minimize2 /> : <Maximize2 />}
+          </Button>
         </SheetHeader>
         <form action={submit} className="flex min-h-0 flex-1 flex-col">
-          <div className="flex-1 space-y-4 overflow-y-auto p-6">
-            {!mailboxes.length ? (
-              <p className="rounded-lg border border-amber-300/20 bg-amber-300/[0.06] p-3 text-xs text-amber-100">
-                Create a mailbox and verify its domain before sending.
-              </p>
-            ) : null}
-            <ComposeField label="From">
-              <select
-                className="h-10 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm outline-none"
-                defaultValue={mailboxes[0]?.id}
-                name="mailboxId"
-                required
-              >
-                {mailboxes.map((mailbox) => (
-                  <option key={mailbox.id} value={mailbox.id}>
-                    {mailbox.name} &lt;{mailbox.address}&gt;
-                  </option>
-                ))}
-              </select>
-            </ComposeField>
-            <ComposeField label="To">
-              <Input
-                defaultValue={reply?.fromAddress}
-                name="to"
-                placeholder="person@example.com, teammate@example.com"
-                required
-              />
-            </ComposeField>
-            <ComposeField label="Cc">
-              <Input name="cc" placeholder="Optional" />
-            </ComposeField>
-            <ComposeField label="Subject">
-              <Input
-                defaultValue={reply ? `Re: ${reply.subject}` : ""}
-                name="subject"
-                required
-              />
-            </ComposeField>
-            <ComposeField label="Message">
-              <Textarea
-                className="min-h-56 resize-none"
-                name="text"
-                placeholder="Write your message…"
-                required
-              />
-            </ComposeField>
-            <ComposeField label="Schedule">
-              <Input name="scheduledAt" type="datetime-local" />
-            </ComposeField>
-          </div>
+          <MailComposeFields
+            forward={forward}
+            mailboxes={mailboxes}
+            reply={reply}
+          />
           <SheetFooter className="border-t border-white/[0.07]">
             <Button disabled={sending || !mailboxes.length} type="submit">
               <Send />

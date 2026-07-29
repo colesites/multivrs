@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { sanitizeMailHtml } from "@/lib/mail/sanitize-html";
+import { sanitizeOutboundMailHtml } from "@/lib/mail/sanitize-html";
 import { prisma } from "@/lib/prisma";
 import type { ComposeMailInput } from "@/lib/schemas/mail-message.schemas";
 import { ownedMailbox } from "@/lib/services/mail-access.service";
@@ -26,6 +26,7 @@ export async function composeMail(
       })
     : null;
   const scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null;
+  const safeHtml = sanitizeOutboundMailHtml(input.html);
   const result = await prisma.$transaction(async (tx) => {
     const thread = reply
       ? await tx.mailThread.findUniqueOrThrow({ where: { id: reply.threadId } })
@@ -55,12 +56,28 @@ export async function composeMail(
         bccAddresses: input.bcc,
         subject: input.subject,
         textBody: input.text,
-        htmlBody: input.html,
-        sanitizedHtml: sanitizeMailHtml(input.html),
+        htmlBody: safeHtml,
+        sanitizedHtml: safeHtml,
         replyTo: input.replyTo,
         scheduledAt,
       },
     });
+    if (input.attachments.length) {
+      await tx.mailAttachment.createMany({
+        data: input.attachments.map((attachment) => ({
+          messageId: message.id,
+          filename: attachment.filename,
+          contentType: attachment.contentType,
+          size: attachment.size,
+          storageKey: `database:${message.id}:${attachment.filename}`,
+          contentBase64: attachment.contentBase64,
+        })),
+      });
+      await tx.mailMessage.update({
+        where: { id: message.id },
+        data: { hasAttachments: true },
+      });
+    }
     const event = await tx.mailEvent.create({
       data: {
         userId,

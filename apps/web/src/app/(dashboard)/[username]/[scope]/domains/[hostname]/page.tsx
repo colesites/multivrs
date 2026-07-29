@@ -1,8 +1,7 @@
 import { NotFoundError } from "@multivrs/error-utils";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { DomainDnsPage } from "@/features/dashboard/components/DomainDnsPage";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth/session";
 import { domainProjectOptions } from "@/lib/services/domain.service";
 import { getDomainDns } from "@/lib/services/domain-dns.service";
 import { getDomainDetail } from "@/lib/services/domain-management.service";
@@ -12,7 +11,7 @@ export default async function DomainPage({
 }: {
   params: Promise<{ username: string; scope: string; hostname: string }>;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
   if (!session) notFound();
   const { username, scope, hostname } = await params;
   let data: Awaited<ReturnType<typeof loadDomainPage>>;

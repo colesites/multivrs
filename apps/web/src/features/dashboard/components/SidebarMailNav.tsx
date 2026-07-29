@@ -1,10 +1,14 @@
 "use client";
 
-import { ArrowLeft, Mail } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
-import { useGlobalMailStore, useOptionalMailContext } from "@/features/mail/mail-context";
+import {
+  useGlobalMailStore,
+  useOptionalMailContext,
+} from "@/features/mail/mail-context";
 import {
   MAIL_NAVIGATION,
   type MailView,
@@ -17,13 +21,18 @@ import { cn } from "@/lib/utils";
  * existing Sidebar's middle zone, inheriting its width and design tokens.
  */
 export function SidebarMailNav() {
+  const pathname = usePathname();
   const { username, scope } = useDashboardScope();
-  const ctx = useOptionalMailContext() || useGlobalMailStore();
+  const localContext = useOptionalMailContext();
+  const globalContext = useGlobalMailStore();
+  const ctx = localContext ?? globalContext;
 
   const backHref = scope === "~" ? `/${username}` : `/${username}/${scope}`;
 
-  if (!ctx) return null; // or could return a skeleton
-  const { data, view, setView, openCompose } = ctx;
+  const routeView = pathname.includes("/email/domains/")
+    ? "domains"
+    : "overview";
+  const view = ctx?.view ?? routeView;
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -33,20 +42,36 @@ export function SidebarMailNav() {
           href={backHref}
           className="group flex items-center gap-2 rounded-lg px-2 py-1.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" strokeWidth={1.75} />
+          <ArrowLeft
+            className="size-3.5 transition-transform group-hover:-translate-x-0.5"
+            strokeWidth={1.75}
+          />
           <span>Back</span>
         </Link>
       </div>
 
       {/* Compose button */}
       <div className="px-3 pb-2 pt-1">
-        <Button
-          className="w-full bg-foreground text-background hover:bg-foreground/90"
-          onClick={openCompose}
-          size="sm"
-        >
-          Compose
-        </Button>
+        {ctx ? (
+          <Button
+            className="w-full bg-foreground text-background hover:bg-foreground/90"
+            onClick={ctx.openCompose}
+            size="sm"
+          >
+            Compose
+          </Button>
+        ) : (
+          <Link
+            className={buttonVariants({
+              className:
+                "w-full bg-foreground text-background hover:bg-foreground/90",
+              size: "sm",
+            })}
+            href={`/${username}/${scope}/emails?view=inbox&compose=1`}
+          >
+            Compose
+          </Link>
+        )}
       </div>
 
       {/* Navigation items */}
@@ -64,15 +89,22 @@ export function SidebarMailNav() {
             }
             const Icon = item.icon;
             const count =
-              "count" in item
-                ? data.folderCounts[item.count as keyof typeof data.folderCounts]
+              "count" in item && ctx
+                ? ctx.data.folderCounts[
+                    item.count as keyof typeof ctx.data.folderCounts
+                  ]
                 : undefined;
             const isActive = view === item.view;
+            const href = `/${username}/${scope}/emails?view=${item.view}`;
             return (
               <li key={item.view}>
-                <button
-                  type="button"
-                  onClick={() => setView(item.view as MailView)}
+                <Link
+                  href={href}
+                  onClick={(event) => {
+                    if (!ctx) return;
+                    event.preventDefault();
+                    ctx.setView(item.view as MailView);
+                  }}
                   className={cn(
                     "group relative flex h-9 w-full items-center gap-3 rounded-lg px-3 text-[13px] transition-colors duration-150",
                     isActive
@@ -89,13 +121,15 @@ export function SidebarMailNav() {
                     )}
                     strokeWidth={1.75}
                   />
-                  <span className="truncate tracking-[-0.01em]">{item.label}</span>
+                  <span className="truncate tracking-[-0.01em]">
+                    {item.label}
+                  </span>
                   {count ? (
                     <span className="ml-auto font-geist-mono text-[10px] text-muted-foreground/50">
                       {count}
                     </span>
                   ) : null}
-                </button>
+                </Link>
               </li>
             );
           })}

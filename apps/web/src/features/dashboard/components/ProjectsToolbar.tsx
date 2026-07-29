@@ -1,27 +1,35 @@
 "use client";
 
-import { BarChart3, Grid2X2, LayoutGrid, List, Search } from "lucide-react";
+import { BarChart3, Grid2X2, LayoutGrid, List, ListFilter } from "lucide-react";
 import Link from "next/link";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DashboardSearchInput } from "@/features/dashboard/components/DashboardSearchInput";
+import { cn } from "@/lib/utils";
 
 export type ProjectLayout = "grid" | "list";
-export type ProjectStatusFilter = "all" | "building" | "error" | "ready";
+export type ProjectFilter = "all" | "building" | "error" | "ready";
+export type ProjectSort = "activity" | "name";
 export type ProjectView = "projects" | "usage";
 
 interface ProjectsToolbarProps {
   layout: ProjectLayout;
+  filter: ProjectFilter;
+  onFilterChange: (filter: ProjectFilter) => void;
   onLayoutChange: (layout: ProjectLayout) => void;
   onQueryChange: (query: string) => void;
-  onStatusChange: (status: ProjectStatusFilter) => void;
+  onSortChange: (sort: ProjectSort) => void;
   onViewChange: (view: ProjectView) => void;
   query: string;
-  status: ProjectStatusFilter;
+  sort: ProjectSort;
   view: ProjectView;
 }
 
@@ -59,69 +67,110 @@ export function ProjectsToolbar(props: ProjectsToolbarProps) {
       </div>
       {props.view === "projects" ? (
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex h-9 min-w-64 flex-1 items-center gap-2 rounded-lg border border-[var(--hairline)] bg-[var(--ink-raised)]/60 px-3">
-            <Search className="size-3.5 text-muted-foreground" />
-            <input
-              value={props.query}
-              onChange={(event) => props.onQueryChange(event.target.value)}
-              placeholder="Search projects"
-              className="min-w-0 flex-1 bg-transparent text-[13px] outline-none"
-            />
-          </label>
-          <Select
-            value={props.status}
-            onValueChange={(value) =>
-              props.onStatusChange(
-                value === "ready" || value === "building" || value === "error"
-                  ? value
-                  : "all",
-              )
-            }
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="ready">Ready</SelectItem>
-              <SelectItem value="building">Building</SelectItem>
-              <SelectItem value="error">Error</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="flex h-9 rounded-lg border border-[var(--hairline)]">
-            <button
-              type="button"
-              onClick={() => props.onLayoutChange("list")}
-              aria-label="List view"
-              className={
-                props.layout === "list"
-                  ? "bg-white/10 px-2.5"
-                  : "px-2.5 text-muted-foreground"
-              }
-            >
-              <List className="size-4" />
-            </button>
+          <DashboardSearchInput
+            containerClassName="min-w-64 flex-1"
+            value={props.query}
+            onValueChange={props.onQueryChange}
+            placeholder="Search projects"
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-lg"
+                aria-label="Filter and sort projects"
+                className={cn(
+                  "relative border-[var(--hairline)] bg-black/20",
+                  props.filter !== "all" &&
+                    "border-foreground/30 text-foreground",
+                )}
+              >
+                <ListFilter className="size-4" />
+                {props.filter !== "all" ? (
+                  <span className="absolute right-1 top-1 size-1.5 rounded-full bg-foreground" />
+                ) : null}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 rounded-xl">
+              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={props.filter}
+                onValueChange={(value) =>
+                  props.onFilterChange(toProjectFilter(value))
+                }
+              >
+                <DropdownMenuRadioItem value="all">
+                  All projects
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="ready">
+                  Ready
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="building">
+                  Building
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="error">
+                  Error
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={props.sort}
+                onValueChange={(value) =>
+                  props.onSortChange(toProjectSort(value))
+                }
+              >
+                <DropdownMenuRadioItem value="activity">
+                  Activity
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="name">Name</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <div className="flex rounded-lg border border-[var(--hairline)] bg-black/20 p-1">
             <button
               type="button"
               onClick={() => props.onLayoutChange("grid")}
               aria-label="Grid view"
+              aria-pressed={props.layout === "grid"}
               className={
                 props.layout === "grid"
-                  ? "bg-white/10 px-2.5"
-                  : "px-2.5 text-muted-foreground"
+                  ? "flex size-7 items-center justify-center rounded-md bg-white/10"
+                  : "flex size-7 items-center justify-center rounded-md text-muted-foreground"
               }
             >
               <Grid2X2 className="size-4" />
             </button>
+            <button
+              type="button"
+              onClick={() => props.onLayoutChange("list")}
+              aria-label="List view"
+              aria-pressed={props.layout === "list"}
+              className={
+                props.layout === "list"
+                  ? "flex size-7 items-center justify-center rounded-md bg-white/10"
+                  : "flex size-7 items-center justify-center rounded-md text-muted-foreground"
+              }
+            >
+              <List className="size-4" />
+            </button>
           </div>
-          <Link
-            href="/new"
-            className="inline-flex h-9 items-center rounded-lg bg-foreground px-4 text-[13px] font-semibold text-background"
-          >
-            Add new
+          <Link href="/new" className={buttonVariants({ size: "lg" })}>
+            Add New
           </Link>
         </div>
       ) : null}
     </div>
   );
+}
+
+function toProjectFilter(value: string): ProjectFilter {
+  return value === "ready" || value === "building" || value === "error"
+    ? value
+    : "all";
+}
+
+function toProjectSort(value: string): ProjectSort {
+  return value === "name" ? "name" : "activity";
 }

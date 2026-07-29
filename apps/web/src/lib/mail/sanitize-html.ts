@@ -37,3 +37,31 @@ export function sanitizeMailHtml(value?: string): string | undefined {
     },
   });
 }
+
+export function sanitizeOutboundMailHtml(value?: string): string | undefined {
+  if (!value) return undefined;
+  return sanitizeHtml(value, {
+    allowedTags: [
+      ...sanitizeHtml.defaults.allowedTags,
+      "img",
+      "table",
+      "thead",
+      "tbody",
+      "tr",
+      "th",
+      "td",
+    ],
+    allowedAttributes: {
+      ...sanitizeHtml.defaults.allowedAttributes,
+      "*": ["class", "title"],
+      a: ["href", "name", "target", "rel"],
+      img: ["alt", "height", "width", "src"],
+    },
+    allowedSchemes: ["https", "mailto", "cid", "data"],
+    allowProtocolRelative: false,
+    disallowedTagsMode: "discard",
+    transformTags: {
+      a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer" }),
+    },
+  });
+}

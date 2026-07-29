@@ -30,10 +30,12 @@ export function ProjectSettingsPage({
   const [draft, setDraft] = useState<{
     name?: string;
     framework?: string;
+    repositoryUrl?: string;
   }>({});
   const [busy, setBusy] = useState<"delete" | "save" | null>(null);
   const name = draft.name ?? project.name;
   const framework = draft.framework ?? project.framework ?? "auto";
+  const repositoryUrl = draft.repositoryUrl ?? project.repositoryUrl ?? "";
 
   function save() {
     if (busy) return;
@@ -44,6 +46,7 @@ export function ProjectSettingsPage({
         body: JSON.stringify({
           framework: framework === "auto" ? null : framework,
           name,
+          repositoryUrl: repositoryUrl.trim() || null,
         }),
         headers: { "content-type": "application/json" },
         method: "PATCH",
@@ -129,6 +132,24 @@ export function ProjectSettingsPage({
             </SelectContent>
           </Select>
         </div>
+        <label
+          htmlFor="project-repository-url"
+          className="block max-w-xl space-y-2 text-xs text-muted-foreground"
+        >
+          <span>GitHub repository URL</span>
+          <Input
+            id="project-repository-url"
+            inputMode="url"
+            placeholder="https://github.com/owner/repository"
+            value={repositoryUrl}
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                repositoryUrl: event.target.value,
+              }))
+            }
+          />
+        </label>
         <Button onClick={save} disabled={busy !== null || !name.trim()}>
           {busy === "save" ? "Saving…" : "Save changes"}
         </Button>

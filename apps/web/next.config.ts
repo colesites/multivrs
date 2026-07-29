@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  cacheComponents: true,
   output: "standalone",
   reactCompiler: true,
   // Workspace packages ship TypeScript source (exports point at ./src/*.ts),

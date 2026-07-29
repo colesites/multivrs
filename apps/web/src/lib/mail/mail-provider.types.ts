@@ -8,6 +8,11 @@ export interface OutboundMailMessage {
   text?: string;
   html?: string;
   headers?: Record<string, string>;
+  attachments?: Array<{
+    filename: string;
+    contentType: string;
+    content: Buffer;
+  }>;
 }
 
 export interface ProviderSendResult {

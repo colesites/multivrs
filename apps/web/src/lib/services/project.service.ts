@@ -22,6 +22,7 @@ function toProject(row: ProjectRow): Project {
     name: row.name,
     slug: row.slug,
     framework: row.framework,
+    repositoryUrl: row.repositoryUrl,
     ownerId: row.ownerId,
     productionDeploymentId: row.productionDeploymentId,
     createdAt: row.createdAt.toISOString(),
@@ -45,6 +46,7 @@ export async function createProject(
       name: input.name,
       slug,
       framework: input.framework ?? null,
+      repositoryUrl: input.repositoryUrl ?? null,
       ownerId,
     },
   });
@@ -84,7 +86,11 @@ export async function updateProject(
 ): Promise<Project> {
   await getProject(ownerId, id);
   const row = await prisma.project.update({
-    data: { framework: input.framework, name: input.name },
+    data: {
+      framework: input.framework,
+      name: input.name,
+      repositoryUrl: input.repositoryUrl,
+    },
     where: { id },
   });
   await recordAuditEvent({

@@ -1,6 +1,5 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth/session";
 
 /**
  * `/dashboard` — a redirect resolver, not a rendered page (mirrors the root
@@ -18,7 +17,7 @@ import { auth } from "@/lib/auth";
  * `[username]` route, so there is no collision.
  */
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
 
   if (!session) {
     redirect("/login");

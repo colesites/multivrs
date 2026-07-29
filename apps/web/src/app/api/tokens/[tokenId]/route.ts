@@ -2,7 +2,6 @@ import { fail, ok } from "@/lib/api/respond";
 import { requireSessionUserId } from "@/lib/api/session";
 import { revokeApiToken } from "@/lib/services/api-token.service";
 
-export const runtime = "nodejs";
 
 export async function DELETE(
   _request: Request,

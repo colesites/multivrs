@@ -17,6 +17,7 @@ function projectBody(name: string) {
     name,
     slug: "kontinue-ai",
     framework: "nextjs",
+    repositoryUrl: null,
     ownerId: "user_1",
     productionDeploymentId: null,
     createdAt: NOW,

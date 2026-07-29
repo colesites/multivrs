@@ -125,26 +125,3 @@ export function DomainResult({
     </article>
   );
 }
-
-export function DomainResultSkeleton({
-  featured = false,
-}: {
-  featured?: boolean;
-}) {
-  return (
-    <div
-      aria-hidden="true"
-      className={
-        featured
-          ? "min-h-32 animate-pulse border border-white/12 bg-white/[0.025] p-5"
-          : "flex min-h-20 animate-pulse items-center border-b border-r border-white/8 px-4"
-      }
-    >
-      <div className="flex-1">
-        <div className="h-3.5 w-24 bg-white/8" />
-        <div className="mt-3 h-2.5 w-16 bg-white/6" />
-      </div>
-      <div className="size-8 bg-white/6" />
-    </div>
-  );
-}

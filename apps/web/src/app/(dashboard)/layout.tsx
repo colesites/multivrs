@@ -1,6 +1,8 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { DashboardAuthFallback } from "@/features/dashboard/components/DashboardAuthFallback";
 import { getServerSession } from "@/lib/auth/session";
+import { geistMono, hankenGrotesk } from "@/lib/dashboard-fonts";
 
 /**
  * Layout for the authenticated dashboard area (everything under /[username]).
@@ -10,10 +12,26 @@ import { getServerSession } from "@/lib/auth/session";
  * does a fast optimistic cookie check, but this layout verifies the real
  * session on the server.
  */
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await getServerSession(await headers());
+  return (
+    <Suspense
+      fallback={
+        <DashboardAuthFallback
+          className={`${hankenGrotesk.variable} ${geistMono.variable}`}
+        />
+      }
+    >
+      <AuthenticatedDashboard>{children}</AuthenticatedDashboard>
+    </Suspense>
+  );
+}
+
+async function AuthenticatedDashboard({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const session = await getServerSession();
 
   if (!session) {
     redirect("/login");
@@ -26,9 +44,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="dashboard-shell">
+    <div
+      className={`${hankenGrotesk.variable} ${geistMono.variable} dashboard-shell`}
+    >
       {/* TODO: dashboard nav / team switcher goes here */}
-      <main>{children}</main>
+      {children}
     </div>
   );
 }

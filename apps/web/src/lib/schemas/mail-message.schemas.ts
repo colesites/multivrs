@@ -15,14 +15,36 @@ export const composeMailBaseSchema = z.object({
   replyTo: mailAddressSchema.optional(),
   replyToMessageId: z.uuid().optional(),
   scheduledAt: z.iso.datetime().optional(),
+  attachments: z
+    .array(
+      z.object({
+        filename: z.string().trim().min(1).max(255),
+        contentType: z.string().trim().min(1).max(255),
+        contentBase64: z.base64().max(7_000_000),
+        size: z
+          .number()
+          .int()
+          .positive()
+          .max(5 * 1024 * 1024),
+      }),
+    )
+    .max(5)
+    .default([]),
 });
 
-export const composeMailSchema = composeMailBaseSchema.refine(
-  (value) => value.text || value.html,
-  {
+export const composeMailSchema = composeMailBaseSchema
+  .refine((value) => value.text || value.html, {
     message: "An email body is required",
-  }
-);
+  })
+  .refine(
+    (value) =>
+      value.attachments.reduce((total, item) => total + item.size, 0) <=
+      10 * 1024 * 1024,
+    {
+      message: "Attachments cannot exceed 10 MB in total",
+      path: ["attachments"],
+    },
+  );
 
 export const mailMessageActionSchema = z.object({
   action: z.enum([

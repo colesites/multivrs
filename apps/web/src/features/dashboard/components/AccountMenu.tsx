@@ -27,7 +27,7 @@ interface AccountMenuProps {
 }
 
 const LINKS = [
-  { label: "Home Page", href: "/", icon: Home },
+  { label: "Home Page", href: "/home", icon: Home },
   { label: "Changelog", href: "/shipped", icon: PenLine },
   { label: "Help", href: "/help", icon: LifeBuoy },
   { label: "Docs", href: "/docs", icon: BookOpen },

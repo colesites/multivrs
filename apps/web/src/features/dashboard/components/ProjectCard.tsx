@@ -1,22 +1,48 @@
-import { GitBranch, MoreHorizontal, Settings } from "lucide-react";
-import Link from "next/link";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ProjectCardMetrics } from "@/features/dashboard/components/ProjectCardMetrics";
+  CircleAlert,
+  CircleCheck,
+  CircleDashed,
+  GitBranch,
+  LoaderCircle,
+  Rocket,
+} from "lucide-react";
+import Link from "next/link";
+import { ProjectCardActions } from "@/features/dashboard/components/ProjectCardActions";
+import { ProjectFavicon } from "@/features/dashboard/components/ProjectFavicon";
 import type {
   DashboardProject,
   ProjectStatus,
 } from "@/features/dashboard/types/project.types";
 import { cn } from "@/lib/utils";
 
-const STATUS: Record<ProjectStatus, { dot: string; label: string }> = {
-  ready: { dot: "bg-[var(--accent)]", label: "Ready" },
-  building: { dot: "bg-amber-400 animate-pulse", label: "Building" },
-  error: { dot: "bg-red-500", label: "Error" },
+const STATUS: Record<
+  ProjectStatus,
+  {
+    icon: typeof CircleCheck;
+    label: string;
+    className: string;
+  }
+> = {
+  idle: {
+    icon: CircleDashed,
+    label: "No deployments",
+    className: "text-muted-foreground",
+  },
+  ready: {
+    icon: CircleCheck,
+    label: "Ready",
+    className: "text-blue-400",
+  },
+  building: {
+    icon: LoaderCircle,
+    label: "Building",
+    className: "animate-spin text-amber-400",
+  },
+  error: {
+    icon: CircleAlert,
+    label: "Deployment failed",
+    className: "text-red-400",
+  },
 };
 
 interface ProjectCardProps {
@@ -25,95 +51,108 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, href }: ProjectCardProps) {
+  const deploymentHref = project.latestDeployment
+    ? `${href}/deployments/${project.latestDeployment.id}`
+    : null;
   const status = STATUS[project.status];
-  const initial = project.name[0]?.toUpperCase() ?? "P";
-
-  const visits = project.analytics?.pageVisits ?? "—";
-  const speed = project.analytics?.speedInsightScore ?? 0;
+  const StatusIcon = status.icon;
 
   return (
-    <div className="group relative flex flex-col rounded-[16px] border border-[var(--hairline)] bg-[var(--ink-raised)]/70 backdrop-blur-md transition-[border-color,background-color] hover:border-[var(--hairline-strong)] hover:bg-[var(--ink-raised)]/90 overflow-hidden card-grain">
-      {/* Top Section */}
-      <div className="p-5 flex flex-col gap-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] border border-[var(--hairline-strong)] bg-white/[0.04] font-geist-mono text-[14px] font-bold text-foreground">
-              {initial}
-            </span>
-            <div className="min-w-0">
-              <Link
-                href={href}
-                className="block truncate text-[14.5px] font-bold tracking-tight text-foreground outline-none after:absolute after:inset-0 hover:underline focus-visible:underline"
-              >
-                {project.name}
-              </Link>
-              <div className="flex items-center gap-1.5 mt-0.5 text-[12px] text-muted-foreground/80">
-                <span className="truncate">{project.domain}</span>
-              </div>
-            </div>
-          </div>
+    <article className="group rounded-xl border border-[var(--hairline)] bg-[var(--ink-raised)]/65 p-4 transition-colors hover:border-[var(--hairline-strong)] hover:bg-[var(--ink-raised)]/85">
+      <div className="flex items-start gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-black ring-1 ring-white/5">
+          <ProjectFavicon name={project.name} url={project.faviconUrl} />
+        </span>
 
-          <div className="flex items-center gap-2 relative z-10">
-            <span
-              className="flex items-center justify-center size-6 rounded-full border border-[var(--hairline)] bg-white/[0.02]"
-              title={status.label}
-            >
-              <span className={cn("size-2 rounded-full", status.dot)} />
-            </span>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="Project options"
-                  className="flex items-center justify-center size-6 rounded-md text-muted-foreground/50 transition-colors hover:bg-white/[0.05] hover:text-foreground"
-                >
-                  <MoreHorizontal className="size-4" strokeWidth={1.75} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link href={`${href}/settings`} className="cursor-pointer">
-                    <Settings className="mr-2 size-4" />
-                    <span>Settings</span>
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        {/* Repository info */}
-        <div className="flex items-center gap-1.5 text-[11.5px] font-mono text-foreground/80 bg-white/[0.03] border border-[var(--hairline)] rounded-md px-2 py-1 w-fit">
-          <svg
-            className="size-3.5 opacity-80"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            stroke="none"
-            aria-hidden="true"
+        <div className="min-w-0 flex-1">
+          <Link
+            className="block w-fit max-w-full truncate text-[15px] font-semibold tracking-tight text-foreground hover:underline"
+            href={href}
           >
-            <title>GitHub repository icon</title>
-            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-          </svg>
-          {project.repo}
+            {project.name}
+          </Link>
+          {project.siteUrl && project.siteLabel ? (
+            <a
+              className="mt-0.5 block w-fit max-w-full truncate text-sm text-muted-foreground transition-colors hover:text-foreground hover:underline"
+              href={project.siteUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {project.siteLabel}
+            </a>
+          ) : (
+            <span className="mt-0.5 block text-sm text-muted-foreground">
+              No deployments yet
+            </span>
+          )}
         </div>
 
-        {/* Commit & Branch info */}
-        <div className="flex flex-col gap-1.5 mt-1">
-          <p className="line-clamp-1 text-[13px] text-foreground/90 font-medium">
-            {project.commitMessage}
-          </p>
-          <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground/70">
-            <span>{project.updatedAt}</span>
-            <span>on</span>
-            <span className="flex items-center gap-1 font-mono text-[11px] text-foreground/70">
-              <GitBranch className="size-3" />
-              {project.branch}
-            </span>
-          </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <span
+            aria-label={status.label}
+            className="flex size-8 items-center justify-center rounded-full border border-[var(--hairline)] bg-black/20"
+            role="img"
+            title={status.label}
+          >
+            <StatusIcon className={cn("size-[18px]", status.className)} />
+          </span>
+          <ProjectCardActions
+            href={href}
+            projectId={project.id}
+            projectName={project.name}
+          />
         </div>
       </div>
 
-      <ProjectCardMetrics visits={visits} speed={speed} />
-    </div>
+      <div className="mt-5 space-y-2">
+        {project.latestDeployment && deploymentHref ? (
+          <Link
+            className="flex min-w-0 items-center gap-2 text-sm text-foreground/90 hover:underline"
+            href={deploymentHref}
+          >
+            <Rocket className="size-3.5 shrink-0 text-muted-foreground" />
+            <span className="truncate">{project.latestDeployment.label}</span>
+            <span className="ml-auto flex shrink-0 items-center gap-1 font-geist-mono text-[11px] text-muted-foreground">
+              <GitBranch className="size-3" />
+              {project.latestDeployment.branch}
+            </span>
+          </Link>
+        ) : null}
+
+        <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+          <GitHubMark className="size-3.5 shrink-0" />
+          {project.repositoryUrl && project.repositoryLabel ? (
+            <a
+              className="truncate transition-colors hover:text-foreground hover:underline"
+              href={project.repositoryUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {project.repositoryLabel}
+            </a>
+          ) : (
+            <span className="truncate">Repository unavailable</span>
+          )}
+          {project.latestDeployment ? (
+            <time className="ml-auto shrink-0 text-xs">
+              {project.latestDeployment.createdAt}
+            </time>
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function GitHubMark({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path d="M12 .7A11.5 11.5 0 0 0 8.4 23c.6.1.8-.3.8-.6v-2.2c-3.4.7-4.1-1.4-4.1-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .7Z" />
+    </svg>
   );
 }

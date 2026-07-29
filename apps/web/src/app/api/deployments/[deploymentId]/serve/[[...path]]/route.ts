@@ -11,7 +11,6 @@ import { invokeNodeCompute } from "@/lib/artifacts/node-compute";
 import { createArtifactStore } from "@/lib/artifacts/store";
 import { getPublicDeployment } from "@/lib/services/deployment.service";
 
-export const runtime = "nodejs";
 
 interface RouteParams {
   params: Promise<{ deploymentId: string; path?: string[] }>;

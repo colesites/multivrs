@@ -1,4 +1,5 @@
 import "server-only";
+import { cacheLife } from "next/cache";
 import {
   type CatalogEntry,
   catalogSchema,
@@ -30,6 +31,9 @@ async function fetchCatalog(
   baseUrl: string,
   token: string,
 ): Promise<CatalogEntry[]> {
+  "use cache";
+  cacheLife({ stale: 3600, revalidate: 21_600, expire: 86_400 });
+
   const first = await fetchPage(baseUrl, token, 0);
   const offsets = Array.from(
     { length: Math.ceil(first.total / PAGE_SIZE) - 1 },
@@ -48,7 +52,6 @@ async function fetchPage(baseUrl: string, token: string, offset: number) {
     `${baseUrl}/v1beta/tlds?limit=${PAGE_SIZE}&offset=${offset}&with_price=true`,
     {
       headers: { authorization: `Bearer ${token}` },
-      next: { revalidate: 21_600 },
     },
   );
   if (!response.ok) {

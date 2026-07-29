@@ -25,6 +25,7 @@ export class ResendMailProvider implements OutboundMailProvider {
       replyTo: message.replyTo,
       subject: message.subject,
       headers: message.headers,
+      attachments: message.attachments,
       ...content,
     });
     if (response.error || !response.data?.id) {

@@ -47,7 +47,8 @@ export function ProjectResourceLists({
             >
               <span className="size-2 rounded-full bg-current opacity-70" />
               <span className="min-w-0 flex-1 truncate">
-                {item.commitSha?.slice(0, 7) ?? "Manual deployment"}
+                {item.commitSha?.slice(0, 7) ??
+                  `Deployment ${item.id.slice(0, 8)}`}
               </span>
               <span className="text-xs capitalize text-muted-foreground">
                 {item.status}

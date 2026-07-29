@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api/respond";
 import { requireUserId } from "@/lib/api/session";
 import { transitionDeployment } from "@/lib/services/deployment-lifecycle.service";
 
-export const runtime = "nodejs";
 
 interface RouteParams {
   params: Promise<{ id: string; deploymentId: string }>;

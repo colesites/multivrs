@@ -7,7 +7,6 @@ import { sandboxDomainOrderSchema } from "@/lib/domains/domain-order.schemas";
 import { OpenproviderApiError } from "@/lib/domains/openprovider-client";
 import { orderSandboxDomain } from "@/lib/services/sandbox-domain-order.service";
 
-export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {

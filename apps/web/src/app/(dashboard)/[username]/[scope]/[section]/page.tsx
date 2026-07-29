@@ -1,16 +1,15 @@
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { DeploymentsPage } from "@/features/dashboard/components/DeploymentsPage";
 import { DomainsPage } from "@/features/dashboard/components/DomainsPage";
 import { LogsPage } from "@/features/dashboard/components/LogsPage";
-import { ProjectPlatformSection } from "@/features/dashboard/components/ProjectPlatformSection";
+import { PlatformSectionStream } from "@/features/dashboard/components/PlatformSectionStream";
 import { ProjectSettingsPage } from "@/features/dashboard/components/ProjectSettingsPage";
 import { SectionPlaceholder } from "@/features/dashboard/components/SectionPlaceholder";
 import { SettingsPage } from "@/features/dashboard/components/SettingsPage";
 import { ALL_PROJECTS_SCOPE } from "@/features/dashboard/constants/navigation";
 import { getSectionMeta } from "@/features/dashboard/constants/sections";
 import { isPlatformProjectSection } from "@/features/dashboard/lib/project-platform-sections";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth/session";
 import { getAccountProfile } from "@/lib/services/account.service";
 import { listApiTokens } from "@/lib/services/api-token.service";
 import { listAuditEvents } from "@/lib/services/audit-event.service";
@@ -32,8 +31,10 @@ import { listProjectRuntimeLogs } from "@/lib/services/runtime-log.service";
  */
 export default async function SectionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ username: string; scope: string; section: string }>;
+  searchParams: Promise<{ compose?: string; view?: string }>;
 }) {
   const { username, scope, section } = await params;
   const meta = getSectionMeta(section);
@@ -42,16 +43,15 @@ export default async function SectionPage({
   }
 
   if (section === "deployments") {
-    const deployments = await dashboardDeployments(
+    const deployments = dashboardDeployments(
       username,
       scope === ALL_PROJECTS_SCOPE ? undefined : scope,
     );
-    if (!deployments) notFound();
     return <DeploymentsPage deployments={deployments} />;
   }
 
   if (section === "logs") {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getServerSession();
     if (!session) notFound();
     const projects = await dashboardProjects(username);
     if (!projects) notFound();
@@ -70,7 +70,7 @@ export default async function SectionPage({
   }
 
   if (section === "settings" && scope === ALL_PROJECTS_SCOPE) {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getServerSession();
     if (!session) notFound();
     const [events, profile, tokens] = await Promise.all([
       listAuditEvents(session.user.id),
@@ -81,7 +81,7 @@ export default async function SectionPage({
   }
 
   if (section === "settings") {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getServerSession();
     if (!session) notFound();
     const scopedProject = await getScopedProject(
       session.user.id,
@@ -99,7 +99,7 @@ export default async function SectionPage({
   }
 
   if (section === "domains") {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await getServerSession();
     if (!session) notFound();
     const projectSlug = scope === ALL_PROJECTS_SCOPE ? undefined : scope;
     const [domains, projects] = await Promise.all([
@@ -117,9 +117,12 @@ export default async function SectionPage({
   }
 
   if (isPlatformProjectSection(section)) {
+    const mailSearch = await searchParams;
     return (
-      <ProjectPlatformSection
+      <PlatformSectionStream
+        compose={mailSearch.compose}
         meta={meta}
+        requestedView={mailSearch.view}
         scope={scope}
         section={section}
         username={username}

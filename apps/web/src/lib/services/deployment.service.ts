@@ -38,15 +38,23 @@ export async function createDeployment(
   if (!project || project.ownerId !== ownerId) {
     throw new NotFoundError("Project not found");
   }
-  const row = await prisma.deployment.create({
-    data: {
-      projectId,
-      status: "queued",
-      target: input.target,
-      branch: input.branch ?? null,
-      commitSha: input.commitSha ?? null,
-      renderMode: input.renderMode ?? null,
-    },
+  const row = await prisma.$transaction(async (tx) => {
+    if (input.repoUrl && project.repositoryUrl !== input.repoUrl) {
+      await tx.project.update({
+        where: { id: projectId },
+        data: { repositoryUrl: input.repoUrl },
+      });
+    }
+    return tx.deployment.create({
+      data: {
+        projectId,
+        status: "queued",
+        target: input.target,
+        branch: input.branch ?? null,
+        commitSha: input.commitSha ?? null,
+        renderMode: input.renderMode ?? null,
+      },
+    });
   });
   return toDeployment(row);
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { MailboxView } from "@/features/mail/MailboxView";
 import { MailCompose } from "@/features/mail/MailCompose";
 import { MailMobileMenu } from "@/features/mail/MailMobileMenu";
@@ -7,7 +8,6 @@ import { MailOverview } from "@/features/mail/MailOverview";
 import { MailResourcePage } from "@/features/mail/MailResourcePage";
 import { useMailContext } from "@/features/mail/mail-context";
 import type { MailView } from "@/features/mail/mail-navigation";
-import { useState } from "react";
 
 const mailboxViews = new Set<MailView>([
   "inbox",
@@ -29,7 +29,8 @@ export function MultivrsMailPage() {
     setComposeOpen,
     reply,
     setReply,
-    openCompose,
+    forward,
+    setForward,
     query,
   } = useMailContext();
 
@@ -49,8 +50,15 @@ export function MultivrsMailPage() {
     content = (
       <MailboxView
         data={data}
+        projectId={projectId}
         onReply={(message) => {
+          setForward(undefined);
           setReply(message);
+          setComposeOpen(true);
+        }}
+        onForward={(message) => {
+          setReply(undefined);
+          setForward(message);
           setComposeOpen(true);
         }}
         query={query}
@@ -66,6 +74,7 @@ export function MultivrsMailPage() {
         onOpenChange={setComposeOpen}
         open={composeOpen}
         reply={reply}
+        forward={forward}
       />
       <MailMobileMenu
         onOpenChange={setMenuOpen}
@@ -76,4 +85,3 @@ export function MultivrsMailPage() {
     </>
   );
 }
-

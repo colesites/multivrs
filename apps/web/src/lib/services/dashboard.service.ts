@@ -1,10 +1,13 @@
 import "server-only";
+import { cache } from "react";
 import type { DashboardDeployment } from "@/features/dashboard/components/DeploymentsPage";
 import type {
   DashboardProject,
   ProjectStatus,
 } from "@/features/dashboard/types/project.types";
 import { prisma } from "@/lib/prisma";
+import { deploymentUrl } from "@/lib/services/serve.service";
+import { SITE_URL } from "@/lib/site";
 
 function relative(date: Date): string {
   const minutes = Math.max(
@@ -17,6 +20,7 @@ function relative(date: Date): string {
 }
 
 function status(value?: string): ProjectStatus {
+  if (!value) return "idle";
   if (value === "queued" || value === "building") return "building";
   if (value === "error" || value === "canceled") return "error";
   return "ready";
@@ -34,7 +38,7 @@ function duration(createdAt: Date, updatedAt: Date, state: string): string {
     : `${seconds}s`;
 }
 
-export async function dashboardProjects(
+export const dashboardProjects = cache(async function dashboardProjects(
   username: string,
 ): Promise<DashboardProject[] | null> {
   const owner = await prisma.user.findUnique({
@@ -52,19 +56,56 @@ export async function dashboardProjects(
   });
   return projects.map((project) => {
     const latest = project.deployments[0];
+    const hostname = project.domains[0]?.hostname ?? null;
+    const generatedDeploymentUrl = latest
+      ? (latest.url ?? deploymentUrl(latest.id))
+      : null;
+    const siteUrl = hostname ? `https://${hostname}` : generatedDeploymentUrl;
+    const repositoryLabel = project.repositoryUrl
+      ? new URL(project.repositoryUrl).pathname
+          .replace(/^\//, "")
+          .replace(/\.git$/, "")
+      : null;
     return {
+      id: project.id,
       slug: project.slug,
       name: project.name,
-      domain: project.domains[0]?.hostname ?? latest?.url ?? "Not deployed",
-      repo: project.framework ?? "auto-detected",
+      siteUrl,
+      siteLabel: hostname ?? hostLabel(generatedDeploymentUrl),
+      faviconUrl: siteUrl ? faviconUrl(siteUrl) : null,
+      repositoryUrl: project.repositoryUrl,
+      repositoryLabel,
       status: status(latest?.status),
-      commitMessage: latest?.commitSha
-        ? `commit ${latest.commitSha.slice(0, 7)}`
-        : "Manual deployment",
-      branch: latest?.branch ?? "main",
-      updatedAt: relative(project.updatedAt),
+      latestDeployment: latest
+        ? {
+            id: latest.id,
+            label: latest.commitSha
+              ? `Commit ${latest.commitSha.slice(0, 7)}`
+              : `Deployment ${latest.id.slice(0, 8)}`,
+            branch: latest.branch ?? "main",
+            createdAt: relative(latest.createdAt),
+          }
+        : null,
     };
   });
+});
+
+function hostLabel(url: string | null): string | null {
+  if (!url) return null;
+  if (url.startsWith("/")) return "Deployment preview";
+  try {
+    return new URL(url).host || null;
+  } catch {
+    return null;
+  }
+}
+
+function faviconUrl(url: string): string | null {
+  try {
+    return new URL("/favicon.ico", new URL(url, SITE_URL)).toString();
+  } catch {
+    return null;
+  }
 }
 
 export async function dashboardDeployments(
@@ -105,10 +146,10 @@ export async function dashboardDeployments(
     ),
     url: deployment.url ?? "",
     createdAt: deployment.createdAt.toISOString(),
-    commitSha: deployment.commitSha?.slice(0, 7) ?? "manual",
+    commitSha: deployment.commitSha?.slice(0, 7) ?? "—",
     commitMessage: deployment.commitSha
       ? `Commit ${deployment.commitSha.slice(0, 7)}`
-      : "Manual deployment",
+      : `Deployment ${deployment.id.slice(0, 8)}`,
     environment:
       deployment.project.productionDeploymentId === deployment.id
         ? "Production"

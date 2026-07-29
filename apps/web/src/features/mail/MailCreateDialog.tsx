@@ -89,9 +89,12 @@ export function MailCreateDialog({
           <div className="space-y-3">
             {connection ? (
               <div className="grid grid-cols-2 gap-2 rounded-lg border border-white/10 bg-white/[0.025] p-3 text-xs">
-                <span className="text-white/40">Host</span><code>{connection.host}</code>
-                <span className="text-white/40">Port / security</span><code>{connection.port} / TLS</code>
-                <span className="text-white/40">Username</span><code className="break-all">{connection.username}</code>
+                <span className="text-white/40">Host</span>
+                <code>{connection.host}</code>
+                <span className="text-white/40">Port / security</span>
+                <code>{connection.port} / TLS</code>
+                <span className="text-white/40">Username</span>
+                <code className="break-all">{connection.username}</code>
               </div>
             ) : null}
             <code className="block break-all rounded-lg border border-accent/20 bg-accent/[0.05] p-4 text-xs text-accent">
@@ -104,7 +107,9 @@ export function MailCreateDialog({
                   ? `SMTP_HOST=${connection.host}\nSMTP_PORT=${connection.port}\nSMTP_USERNAME=${connection.username}\nSMTP_PASSWORD=${secret}\nSMTP_TLS=true`
                   : secret;
                 await navigator.clipboard.writeText(value);
-                toast.success(connection ? "SMTP configuration copied" : "Secret copied");
+                toast.success(
+                  connection ? "SMTP configuration copied" : "Secret copied",
+                );
               }}
             >
               {connection ? "Copy SMTP configuration" : "Copy secret"}

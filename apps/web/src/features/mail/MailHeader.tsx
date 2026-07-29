@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Search, MailPlus } from "lucide-react";
+import { MailPlus, Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { MailView } from "@/features/mail/mail-navigation";
@@ -74,4 +74,3 @@ export function MailHeader({
     </header>
   );
 }
-

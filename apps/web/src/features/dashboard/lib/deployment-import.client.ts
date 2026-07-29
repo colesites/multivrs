@@ -17,11 +17,15 @@ async function failure(response: Response, fallback: string) {
   return new Error(parsed.success ? parsed.data.error.message : fallback);
 }
 
-export async function createImportProject(config: DeploymentImportConfig) {
+export async function createImportProject(
+  config: DeploymentImportConfig,
+  source: RepositorySource,
+) {
   const response = await fetch("/api/projects", {
     body: JSON.stringify({
       framework: config.framework,
       name: config.projectName.trim(),
+      repositoryUrl: source.url,
     }),
     headers: { "content-type": "application/json" },
     method: "POST",

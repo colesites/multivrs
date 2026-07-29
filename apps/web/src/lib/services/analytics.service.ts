@@ -1,4 +1,5 @@
 import "server-only";
+import { cacheLife } from "next/cache";
 import { z } from "zod";
 import type {
   AnalyticsBreakdownItem,
@@ -26,6 +27,9 @@ const EMPTY: PlatformAnalytics = {
 };
 
 async function queryAnalytics(sql: string): Promise<Record<string, unknown>[]> {
+  "use cache";
+  cacheLife({ stale: 30, revalidate: 60, expire: 300 });
+
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
   const token = process.env.CLOUDFLARE_ANALYTICS_API_TOKEN;
   if (!accountId || !token)
@@ -35,7 +39,6 @@ async function queryAnalytics(sql: string): Promise<Record<string, unknown>[]> {
     body: sql,
     headers: { authorization: `Bearer ${token}` },
     method: "POST",
-    next: { revalidate: 60 },
   });
   if (!response.ok)
     throw new Error(`Cloudflare Analytics returned ${response.status}`);

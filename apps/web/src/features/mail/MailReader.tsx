@@ -1,8 +1,8 @@
-"use client";
-
 import {
   Archive,
+  Forward,
   Inbox,
+  Mail,
   MailOpen,
   Reply,
   ShieldAlert,
@@ -19,11 +19,13 @@ import type {
 export function MailReader({
   messages,
   onAction,
+  onForward,
   onReply,
   thread,
 }: {
   messages: MailMessageDetail[];
   onAction: (messageId: string, action: string) => void;
+  onForward: (message: MailMessageDetail) => void;
   onReply: (message: MailMessageDetail) => void;
   thread?: MailThreadSummary;
 }) {
@@ -59,12 +61,14 @@ export function MailReader({
               <Inbox />
             </Button>
             <Button
-              aria-label="Mark read"
-              onClick={() => onAction(latest.id, "read")}
+              aria-label={thread.unread ? "Mark as read" : "Mark as unread"}
+              onClick={() =>
+                onAction(latest.id, thread.unread ? "read" : "unread")
+              }
               size="icon-sm"
               variant="ghost"
             >
-              <MailOpen />
+              {thread.unread ? <MailOpen /> : <Mail />}
             </Button>
             <Button
               aria-label="Star"
@@ -119,14 +123,22 @@ export function MailReader({
               </header>
               <MailMessageBody message={message} />
               <footer className="px-4 pb-4">
-                <Button
-                  onClick={() => onReply(message)}
-                  size="sm"
-                  variant="outline"
-                >
-                  <Reply />
-                  Reply
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => onReply(message)}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Reply /> Reply
+                  </Button>
+                  <Button
+                    onClick={() => onForward(message)}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Forward /> Forward
+                  </Button>
+                </div>
               </footer>
             </article>
           ))}

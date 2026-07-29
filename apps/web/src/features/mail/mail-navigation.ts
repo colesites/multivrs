@@ -21,27 +21,8 @@ import {
   Webhook,
 } from "lucide-react";
 
-export type MailView =
-  | "overview"
-  | "inbox"
-  | "starred"
-  | "sent"
-  | "drafts"
-  | "archive"
-  | "spam"
-  | "trash"
-  | "logs"
-  | "broadcasts"
-  | "automations"
-  | "templates"
-  | "contacts"
-  | "audiences"
-  | "domains"
-  | "mailboxes"
-  | "credentials"
-  | "webhooks"
-  | "analytics"
-  | "settings";
+export type { MailView } from "@/features/mail/mail-view";
+export { isMailView, parseMailView } from "@/features/mail/mail-view";
 
 export const MAIL_NAVIGATION = [
   { label: "Overview", view: "overview", icon: BookOpen },

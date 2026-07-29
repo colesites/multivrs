@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useDeploymentTimer } from "@/features/dashboard/hooks/useDeploymentTimer";
 import {
   createImportProject,
   getImportProgress,
@@ -12,7 +13,6 @@ import type {
   DeploymentImportConfig,
   RepositorySource,
 } from "@/features/dashboard/types/deployment-import.types";
-import { useDeploymentTimer } from "@/features/dashboard/hooks/useDeploymentTimer";
 
 export type ImportDeploymentStatus =
   | "idle"
@@ -70,7 +70,10 @@ export function useDeploymentImport(source: RepositorySource) {
               ? current
               : [
                   ...current,
-                  { id: `failure-${deployment.id}`, message: deployment.errorMessage ?? "" },
+                  {
+                    id: `failure-${deployment.id}`,
+                    message: deployment.errorMessage ?? "",
+                  },
                 ],
           );
         }
@@ -109,7 +112,7 @@ export function useDeploymentImport(source: RepositorySource) {
     setLogs([{ id: "queued", message: "Preparing the cloud build…" }]);
     clock.start();
     try {
-      const project = await createImportProject(config);
+      const project = await createImportProject(config, source);
       const deployment = await queueImportDeployment(
         project.id,
         config,

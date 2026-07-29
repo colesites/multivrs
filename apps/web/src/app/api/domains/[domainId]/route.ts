@@ -10,7 +10,6 @@ import {
   updateDomainAutoRenew,
 } from "@/lib/services/domain-management.service";
 
-export const runtime = "nodejs";
 
 interface RouteParams {
   params: Promise<{ domainId: string }>;

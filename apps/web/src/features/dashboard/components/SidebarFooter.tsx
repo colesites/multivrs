@@ -57,7 +57,7 @@ export function SidebarFooter({
           side="top"
           align="end"
           sideOffset={10}
-          className="w-[300px] rounded-2xl p-1.5 font-hanken dashboard-surface"
+          className="w-[300px] rounded-2xl border border-[var(--hairline)] bg-[var(--ink)] p-1.5 font-hanken shadow-2xl shadow-black/40 dashboard-surface"
         >
           <AccountMenu name={name} email={email} />
         </DropdownMenuContent>
@@ -77,7 +77,7 @@ export function SidebarFooter({
           side="top"
           align="end"
           sideOffset={10}
-          className="w-[340px] overflow-hidden rounded-2xl p-0 font-hanken dashboard-surface"
+          className="w-[340px] overflow-hidden rounded-2xl border border-[var(--hairline)] bg-[var(--ink)] p-0 font-hanken shadow-2xl shadow-black/40 dashboard-surface"
         >
           <NotificationsPanel initialNotifications={notifications} />
         </DropdownMenuContent>

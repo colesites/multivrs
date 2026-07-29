@@ -13,7 +13,6 @@ import {
   updateProject,
 } from "@/lib/services/project.service";
 
-export const runtime = "nodejs";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

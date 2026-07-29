@@ -7,7 +7,6 @@ import {
   updateAccountProfile,
 } from "@/lib/services/account.service";
 
-export const runtime = "nodejs";
 
 export async function GET() {
   try {

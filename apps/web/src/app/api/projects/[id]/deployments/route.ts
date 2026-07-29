@@ -20,9 +20,6 @@ import {
   listDeployments,
 } from "@/lib/services/deployment.service";
 
-export const runtime = "nodejs";
-export const maxDuration = 300;
-
 interface RouteParams {
   params: Promise<{ id: string }>;
 }

@@ -1,40 +1,49 @@
 "use client";
 
-import Lenis from "lenis";
 import { useEffect } from "react";
-import {
-  gsap,
-  prefersReducedMotion,
-  ScrollTrigger,
-} from "@/components/marketing/scroll";
 
-/**
- * Buttery momentum scrolling (Lenis) wired into GSAP's ticker so ScrollTrigger
- * stays perfectly in sync — the foundation of the "award-winning" scroll feel.
- *
- * Under reduced motion we bail out and leave native scrolling untouched.
- * Renders nothing; mount it once near the top of the marketing tree.
- */
+async function createSmoothScroll(): Promise<() => void> {
+  const [{ default: Lenis }, { default: gsap }, { ScrollTrigger }] =
+    await Promise.all([
+      import("lenis"),
+      import("gsap"),
+      import("gsap/ScrollTrigger"),
+    ]);
+  gsap.registerPlugin(ScrollTrigger);
+  const lenis = new Lenis({
+    duration: 1.1,
+    smoothWheel: true,
+    easing: (value) => Math.min(1, 1.001 - 2 ** (-10 * value)),
+  });
+  lenis.on("scroll", ScrollTrigger.update);
+  const onTick = (time: number) => lenis.raf(time * 1000);
+  gsap.ticker.add(onTick);
+  gsap.ticker.lagSmoothing(0);
+  return () => {
+    gsap.ticker.remove(onTick);
+    lenis.destroy();
+  };
+}
+
 export function SmoothScroll() {
   useEffect(() => {
-    if (prefersReducedMotion()) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const lenis = new Lenis({
-      duration: 1.1,
-      smoothWheel: true,
-      // easeOutExpo — long, premium glide
-      easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
-    });
-
-    lenis.on("scroll", ScrollTrigger.update);
-
-    const onTick = (time: number) => lenis.raf(time * 1000);
-    gsap.ticker.add(onTick);
-    gsap.ticker.lagSmoothing(0);
-
+    let disposed = false;
+    let teardown: (() => void) | undefined;
+    const idleId = window.requestIdleCallback(
+      () => {
+        void createSmoothScroll().then((cleanup) => {
+          if (disposed) cleanup();
+          else teardown = cleanup;
+        });
+      },
+      { timeout: 1200 },
+    );
     return () => {
-      gsap.ticker.remove(onTick);
-      lenis.destroy();
+      disposed = true;
+      window.cancelIdleCallback(idleId);
+      teardown?.();
     };
   }, []);
 

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Hanken_Grotesk, Inter } from "next/font/google";
-import localFont from "next/font/local";
+import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -8,68 +7,6 @@ import "./globals.css";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-});
-
-// Dashboard typeface — a refined grotesk reserved for the authenticated
-// product surface. Distinct from the marketing stack (Clash / Acari / Inter).
-const hankenGrotesk = Hanken_Grotesk({
-  variable: "--font-hanken",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-// Mono companion for dashboard labels, metrics and keyboard hints.
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
-
-const acari = localFont({
-  src: [
-    {
-      path: "../../public/fonts/AcariSans-Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/AcariSans-Medium.otf",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/AcariSans-Bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/AcariSans-ExtraBold.otf",
-      weight: "800",
-      style: "normal",
-    },
-  ],
-  variable: "--font-acari",
-});
-
-const clashDisplay = localFont({
-  src: [
-    {
-      path: "../../public/fonts/ClashDisplay-Regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/ClashDisplay-Medium.otf",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/ClashDisplay-Bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-clash",
 });
 
 const SITE_DESCRIPTION =
@@ -153,10 +90,7 @@ export default function RootLayout({
   };
 
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${acari.variable} ${clashDisplay.variable} ${hankenGrotesk.variable} ${geistMono.variable} h-full antialiased dark`}
-    >
+    <html lang="en" className={`${inter.variable} h-full antialiased dark`}>
       <head>
         <meta name="theme-color" content="#030303" />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
@@ -166,7 +100,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-inter bg-background text-foreground selection:bg-white/10 selection:text-white">
         <Toaster position="bottom-right" richColors />
-        <main className="flex-1">{children}</main>
+        <div className="flex-1">{children}</div>
       </body>
     </html>
   );

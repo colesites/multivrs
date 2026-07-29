@@ -1,11 +1,10 @@
-import { headers } from "next/headers";
+import { NotFoundError } from "@multivrs/error-utils";
 import { notFound, redirect } from "next/navigation";
 import { ProjectOverviewPage } from "@/features/dashboard/components/ProjectOverviewPage";
 import { ALL_PROJECTS_SCOPE } from "@/features/dashboard/constants/navigation";
-import { auth } from "@/lib/auth";
-import { getProjectOverview } from "@/lib/services/project-overview.service";
-import { NotFoundError } from "@multivrs/error-utils";
 import type { ProjectOverviewData } from "@/features/dashboard/types/project-overview.types";
+import { getServerSession } from "@/lib/auth/session";
+import { getProjectOverview } from "@/lib/services/project-overview.service";
 
 export default async function ScopeOverviewPage({
   params,
@@ -18,7 +17,7 @@ export default async function ScopeOverviewPage({
     redirect(`/${username}`);
   }
 
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getServerSession();
   if (!session) redirect("/login");
 
   let data: ProjectOverviewData;
@@ -31,10 +30,5 @@ export default async function ScopeOverviewPage({
     throw err;
   }
 
-  return (
-    <ProjectOverviewPage
-      username={username}
-      data={data}
-    />
-  );
+  return <ProjectOverviewPage username={username} data={data} />;
 }

@@ -7,7 +7,6 @@ import {
   listApiTokens,
 } from "@/lib/services/api-token.service";
 
-export const runtime = "nodejs";
 
 const createTokenSchema = z.object({ name: z.string().trim().min(1).max(80) });
 
