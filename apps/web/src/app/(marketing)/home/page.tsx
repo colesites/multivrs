@@ -20,7 +20,7 @@ export default function Home() {
       {/* The DOM overlays */}
       <div
         id="dark-marketing-header"
-        className="relative z-10 dark text-foreground"
+        className="relative z-10 dark text-foreground bg-background"
       >
         {/* Overscroll buffer for mobile rubber-banding at the top */}
         <div className="absolute inset-x-0 top-0 h-[50vh] -translate-y-full bg-[#0a0015]" />
