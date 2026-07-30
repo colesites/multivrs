@@ -8,5 +8,6 @@ export interface AccountUsage {
   bandwidthBytes: number;
   requests: number;
   series: UsagePoint[];
+  metrics: Record<string, number>;
   state: "ready" | "unconfigured" | "error";
 }

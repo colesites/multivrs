@@ -7,6 +7,8 @@ import {
   CacheSettingsCard,
   CdnTelemetryCard,
 } from "@/features/dashboard/components/CdnSettingsControls";
+import { ContentPlatformManager } from "@/features/dashboard/components/ContentPlatformManager";
+import type { ContentPlatformData } from "@/features/dashboard/types/content-platform.types";
 import type { EdgeSettingsData } from "@/features/dashboard/types/edge-settings.types";
 import { requestOk } from "@/lib/api/request.client";
 
@@ -16,10 +18,12 @@ export function CdnPage({
   projectId,
   projectName,
   initialSettings,
+  initialContent,
 }: {
   projectId: string;
   projectName: string;
   initialSettings: EdgeSettingsData;
+  initialContent: ContentPlatformData;
 }) {
   const [settings, setSettings] = useState(initialSettings);
   const [state, setState] = useState<ActionState>("idle");
@@ -88,6 +92,10 @@ export function CdnPage({
           </span>
         )}
       </div>
+      <ContentPlatformManager
+        initialData={initialContent}
+        projectId={projectId}
+      />
     </div>
   );
 }

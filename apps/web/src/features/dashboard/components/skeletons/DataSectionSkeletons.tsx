@@ -67,3 +67,32 @@ export function SandboxesSectionSkeleton() {
     </main>
   );
 }
+
+export function WorkflowsSectionSkeleton() {
+  return (
+    <main className="mx-auto w-full max-w-6xl space-y-8 px-5 py-8" aria-busy>
+      <header>
+        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+          Durable execution
+        </p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+          Workflows
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Durable steps and UTC schedules for this project.
+        </p>
+      </header>
+      <section>
+        <h2 className="border-b border-[var(--hairline)] pb-3 font-geist-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          Project workflows
+        </h2>
+        {SKELETON_ROWS.slice(0, 3).map((row) => (
+          <div
+            className="h-20 animate-pulse border-b border-[var(--hairline)] bg-white/[0.018]"
+            key={row}
+          />
+        ))}
+      </section>
+    </main>
+  );
+}

@@ -10,7 +10,7 @@ interface AccountChromeProps {
 }
 
 export function AccountChrome({ user, workspaceName }: AccountChromeProps) {
-  const projects = loadProjectOptions(workspaceName);
+  const projects = loadProjectOptions(workspaceName, user.id);
   const notifications = listNotifications(user.id);
   const publicUser = { name: user.name, email: user.email, image: user.image };
 
@@ -37,7 +37,7 @@ export function AccountChrome({ user, workspaceName }: AccountChromeProps) {
   );
 }
 
-async function loadProjectOptions(workspaceName: string) {
-  const projects = await dashboardProjects(workspaceName);
+async function loadProjectOptions(workspaceName: string, viewerId: string) {
+  const projects = await dashboardProjects(workspaceName, viewerId);
   return (projects ?? []).map(({ slug, name }) => ({ slug, name }));
 }

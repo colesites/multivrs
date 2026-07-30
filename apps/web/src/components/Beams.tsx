@@ -195,6 +195,8 @@ const Beams: FC<BeamsProps> = ({
   scale = 0.2,
   rotation = 0,
 }) => {
+  // The shader material owns mutable GPU uniforms; its identity must survive renders.
+  // react-doctor-disable-next-line react-doctor/react-compiler-no-manual-memoization
   const beamMaterial = useMemo(
     () =>
       extendMaterial(THREE.MeshStandardMaterial, {
@@ -336,6 +338,8 @@ interface PlaneProps {
 
 function MergedPlanes({ material, width, count, height }: PlaneProps) {
   const materialRef = useRef(material);
+  // Recreating BufferGeometry leaks GPU resources and resets the animated mesh.
+  // react-doctor-disable-next-line react-doctor/react-compiler-no-manual-memoization
   const geometry = useMemo(
     () => createStackedPlanesBufferGeometry(count, width, height, 0, 100),
     [count, width, height],

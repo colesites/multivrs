@@ -9,6 +9,7 @@ import { deploymentSchema } from "@multivrs/client";
 import { NotFoundError } from "@multivrs/error-utils";
 import type { Deployment as DeploymentRow } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { getProject } from "@/lib/services/project.service";
 
 export function toDeployment(row: DeploymentRow): Deployment {
   return deploymentSchema.parse({
@@ -34,10 +35,7 @@ export async function createDeployment(
   projectId: string,
   input: CreateDeploymentInput,
 ): Promise<Deployment> {
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project || project.ownerId !== ownerId) {
-    throw new NotFoundError("Project not found");
-  }
+  const project = await getProject(ownerId, projectId, "deploy");
   const row = await prisma.$transaction(async (tx) => {
     if (input.repoUrl && project.repositoryUrl !== input.repoUrl) {
       await tx.project.update({
@@ -68,9 +66,10 @@ export async function getDeployment(
     where: { id: deploymentId },
     include: { project: true },
   });
-  if (!row || row.projectId !== projectId || row.project.ownerId !== ownerId) {
+  if (!row || row.projectId !== projectId) {
     throw new NotFoundError("Deployment not found");
   }
+  await getProject(ownerId, projectId, "read");
   return toDeployment(row);
 }
 
@@ -99,10 +98,7 @@ export async function listDeployments(
   ownerId: string,
   projectId: string,
 ): Promise<Deployment[]> {
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project || project.ownerId !== ownerId) {
-    throw new NotFoundError("Project not found");
-  }
+  await getProject(ownerId, projectId, "read");
   const rows = await prisma.deployment.findMany({
     where: { projectId },
     orderBy: { createdAt: "desc" },

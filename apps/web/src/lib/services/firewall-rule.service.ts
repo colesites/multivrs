@@ -63,7 +63,7 @@ export async function createFirewallRule(
   projectId: string,
   input: CreateFirewallRuleInput,
 ): Promise<DashboardFirewallRule> {
-  await getProject(userId, projectId);
+  await getProject(userId, projectId, "update");
   const highest = await prisma.firewallRule.aggregate({
     where: { projectId },
     _max: { priority: true },
@@ -87,7 +87,7 @@ export async function setFirewallRuleEnabled(
   id: string,
   enabled: boolean,
 ): Promise<void> {
-  await getProject(userId, projectId);
+  await getProject(userId, projectId, "update");
   await prisma.firewallRule.updateMany({
     where: { id, projectId },
     data: { enabled },
@@ -99,6 +99,6 @@ export async function deleteFirewallRule(
   projectId: string,
   id: string,
 ): Promise<void> {
-  await getProject(userId, projectId);
+  await getProject(userId, projectId, "update");
   await prisma.firewallRule.deleteMany({ where: { id, projectId } });
 }

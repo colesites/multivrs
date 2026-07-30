@@ -82,18 +82,3 @@ export async function deleteUserFromConvex(authId: string): Promise<void> {
     await convex.mutation(api.users.deleteUser, { authId });
   }, `deleteUserFromConvex(${authId})`);
 }
-
-/**
- * Update user presence in Convex (real-time presence indicator)
- */
-export async function updateUserPresence(
-  authId: string,
-  presence: "online" | "away" | "offline",
-): Promise<void> {
-  await withRetry(async () => {
-    await convex.mutation(api.users.updatePresence, {
-      authId,
-      presence,
-    });
-  }, `updateUserPresence(${authId}, ${presence})`);
-}

@@ -36,6 +36,7 @@ export const projectSchema = z.object({
   framework: z.enum(FRAMEWORK_IDS).nullable(),
   repositoryUrl: repositoryUrlSchema.nullable(),
   ownerId: z.string(),
+  organizationId: z.string().nullable(),
   productionDeploymentId: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -47,6 +48,7 @@ export const createProjectInputSchema = z.object({
   slug: z.string().min(1).max(100).regex(SLUG_PATTERN, "slug must be kebab-case").optional(),
   framework: z.enum(FRAMEWORK_IDS).nullable().optional(),
   repositoryUrl: repositoryUrlSchema.optional(),
+  organizationId: z.string().uuid().optional(),
 });
 export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
 

@@ -8,27 +8,36 @@ export interface ScopedProject {
   slug: string;
 }
 
+export async function canAccessDashboardWorkspace(
+  userId: string,
+  username: string,
+): Promise<boolean> {
+  const project = await prisma.project.findFirst({
+    where: {
+      owner: { username },
+      organization: { members: { some: { userId } } },
+    },
+    select: { id: true },
+  });
+  return Boolean(project);
+}
+
 export async function getScopedProject(
   userId: string,
   username: string,
   slug: string,
 ): Promise<ScopedProject> {
   const project = await prisma.project.findFirst({
-    where: { ownerId: userId, owner: { username }, slug },
+    where: {
+      owner: { username },
+      slug,
+      OR: [
+        { ownerId: userId },
+        { organization: { members: { some: { userId } } } },
+      ],
+    },
     select: { id: true, name: true, slug: true },
   });
   if (!project) throw new NotFoundError("Project not found");
   return project;
-}
-
-export async function getScopedProjectIds(
-  userId: string,
-  username: string,
-  slug?: string,
-): Promise<string[]> {
-  const projects = await prisma.project.findMany({
-    where: { ownerId: userId, owner: { username }, ...(slug ? { slug } : {}) },
-    select: { id: true },
-  });
-  return projects.map((project) => project.id);
 }

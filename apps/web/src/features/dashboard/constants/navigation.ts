@@ -14,6 +14,7 @@ import {
   Settings,
   ShieldCheck,
   SquareTerminal,
+  Workflow,
 } from "lucide-react";
 
 /**
@@ -60,6 +61,7 @@ export const DASHBOARD_NAV_ITEMS: readonly DashboardNavItem[] = [
   },
   { name: "Integrations", slug: "integrations", icon: PlugZap, badge: "Beta" },
   { name: "Sandboxes", slug: "sandboxes", icon: SquareTerminal, badge: "Beta" },
+  { name: "Workflows", slug: "workflows", icon: Workflow, badge: "Beta" },
   { name: "Domains", slug: "domains", icon: Globe, badge: "Beta" },
   { name: "Emails", slug: "emails", icon: AtSign, badge: "Beta" },
   { name: "Settings", slug: "settings", icon: Settings, badge: "Beta" },
@@ -83,34 +85,3 @@ export function buildNavHref(
   }
   return `/${username}/${scope}/${slug}`;
 }
-
-import { Binary, CreditCard, Shield, Users } from "lucide-react";
-
-export const SETTINGS_NAV_GROUPS = [
-  {
-    title: "",
-    items: [{ name: "General", href: "/dashboard/settings", icon: Settings }],
-  },
-  {
-    title: "Workspace",
-    items: [
-      { name: "Members", href: "/dashboard/settings/members", icon: Users },
-      {
-        name: "Billing",
-        href: "/dashboard/settings/billing",
-        icon: CreditCard,
-      },
-      { name: "Security", href: "/dashboard/settings/security", icon: Shield },
-    ],
-  },
-  {
-    title: "Advanced",
-    items: [
-      {
-        name: "Developer Settings",
-        href: "/dashboard/settings/developer",
-        icon: Binary,
-      },
-    ],
-  },
-];

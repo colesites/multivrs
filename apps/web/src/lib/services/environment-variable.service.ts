@@ -51,7 +51,7 @@ export async function saveEnvironmentVariable(
   projectId: string,
   input: SaveInput,
 ) {
-  await getProject(userId, projectId);
+  await getProject(userId, projectId, "update");
   const encrypted = encryptEnvironmentValue(input.value);
   const row = await prisma.environmentVariable.upsert({
     where: { projectId_key: { key: input.key, projectId } },
@@ -66,7 +66,7 @@ export async function deleteEnvironmentVariable(
   projectId: string,
   id: string,
 ) {
-  await getProject(userId, projectId);
+  await getProject(userId, projectId, "update");
   await prisma.environmentVariable.deleteMany({ where: { id, projectId } });
 }
 

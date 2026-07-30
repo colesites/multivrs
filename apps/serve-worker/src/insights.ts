@@ -1,17 +1,20 @@
 import { z } from "zod";
+import { BROWSER_ANALYTICS_SCRIPT } from "./browser-analytics";
 import type { ControlResolution } from "./control";
 import type { Env } from "./types";
 
 const vitalSchema = z.object({
+  browser: z.string().trim().max(40).default("Other"),
+  device: z.enum(["desktop", "mobile", "tablet"]).default("desktop"),
   name: z.enum(["CLS", "INP", "LCP", "TTFB"]),
   path: z.string().startsWith("/").max(2_000),
+  sessionId: z.uuid().optional(),
   value: z.number().finite().nonnegative().max(600_000),
+  visitorId: z.uuid().optional(),
 });
 
-const SCRIPT = `(()=>{const p='/_multivrs/vitals';const send=(name,value)=>navigator.sendBeacon(p,new Blob([JSON.stringify({name,value,path:location.pathname})],{type:'application/json'}));let lcp=0,cls=0,inp=0;try{new PerformanceObserver(l=>{for(const e of l.getEntries())lcp=e.startTime}).observe({type:'largest-contentful-paint',buffered:true});new PerformanceObserver(l=>{for(const e of l.getEntries())if(!e.hadRecentInput)cls+=e.value}).observe({type:'layout-shift',buffered:true});new PerformanceObserver(l=>{for(const e of l.getEntries())inp=Math.max(inp,e.duration)}).observe({type:'event',buffered:true,durationThreshold:40})}catch{}addEventListener('load',()=>{const n=performance.getEntriesByType('navigation')[0];if(n)send('TTFB',n.responseStart)});addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){if(lcp)send('LCP',lcp);send('CLS',cls);if(inp)send('INP',inp)}},{once:true})})();`;
-
 export function insightsScript(): Response {
-  return new Response(SCRIPT, {
+  return new Response(BROWSER_ANALYTICS_SCRIPT, {
     headers: {
       "cache-control": "public, max-age=3600",
       "content-type": "text/javascript; charset=utf-8",
@@ -39,20 +42,32 @@ export async function collectVital(
       "web-vital",
       parsed.data.name,
       rating(parsed.data.name, parsed.data.value),
+      parsed.data.visitorId ?? "",
+      parsed.data.sessionId ?? "",
+      parsed.data.device,
+      parsed.data.browser,
     ],
     doubles: [parsed.data.value, 0, 0],
   });
   return new Response(null, { status: 204 });
 }
 
-export function instrumentHtml(response: Response): Response {
+export function instrumentHtml(
+  response: Response,
+  deployment: Pick<ControlResolution, "analyticsEnabled" | "speedInsightsEnabled">,
+): Response {
   const contentType = response.headers.get("content-type") ?? "";
-  if (!contentType.includes("text/html")) return response;
+  if (
+    !contentType.includes("text/html") ||
+    (!deployment.analyticsEnabled && !deployment.speedInsightsEnabled)
+  ) {
+    return response;
+  }
   return new HTMLRewriter()
     .on("head", {
       element(element) {
         element.append(
-          '<script defer src="/_multivrs/insights.js" data-multivrs-insights></script>',
+          `<script defer src="/_multivrs/analytics.js" data-analytics="${deployment.analyticsEnabled ? "1" : "0"}" data-speed="${deployment.speedInsightsEnabled ? "1" : "0"}"></script>`,
           { html: true },
         );
       },

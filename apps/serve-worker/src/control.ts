@@ -22,6 +22,10 @@ export interface ControlResolution {
   runtimeEnvironment: Record<string, string>;
   edgeTtl: number;
   speedInsightsEnabled: boolean;
+  cacheVersion: string;
+  defaultRevalidate: number;
+  runtimeConfigVersion: string;
+  staleWindow: number;
 }
 
 export function encodeRuntimeEnvironment(values: Record<string, string>): string {
@@ -42,5 +46,20 @@ export async function resolveDeployment(request: Request, env: Env): Promise<Con
   if (!response.ok) {
     throw new Error(`control plane returned ${response.status}`);
   }
+  return response.json<ControlResolution>();
+}
+
+export async function resolveProjectDeployment(
+  projectId: string,
+  env: Env,
+): Promise<ControlResolution> {
+  const endpoint = new URL("/api/serve/resolve", env.CONTROL_PLANE_URL);
+  endpoint.searchParams.set("projectId", projectId);
+  const headers = new Headers();
+  if (env.CONTROL_PLANE_TOKEN) {
+    headers.set("authorization", `Bearer ${env.CONTROL_PLANE_TOKEN}`);
+  }
+  const response = await fetch(endpoint, { headers });
+  if (!response.ok) throw new Error(`control plane returned ${response.status}`);
   return response.json<ControlResolution>();
 }

@@ -1,4 +1,4 @@
-import { evaluateFirewall } from "@multivrs/firewall";
+import { evaluateFirewall, verifyFirewallBypassToken } from "@multivrs/firewall";
 import type { ControlResolution } from "./control";
 import type { Env } from "./types";
 
@@ -15,6 +15,17 @@ export async function enforceFirewall(
   deployment: ControlResolution,
 ): Promise<Response | null> {
   const url = new URL(request.url);
+  const bypass = request.headers.get("x-multivrs-firewall-bypass");
+  if (
+    bypass &&
+    env.FIREWALL_BYPASS_SECRET &&
+    (await verifyFirewallBypassToken(bypass, env.FIREWALL_BYPASS_SECRET, {
+      path: url.pathname,
+      projectId: deployment.projectId,
+    }))
+  ) {
+    return null;
+  }
   const decision = evaluateFirewall(deployment.firewallRules, {
     country: typeof request.cf?.country === "string" ? request.cf.country : undefined,
     headers: Object.fromEntries(request.headers),

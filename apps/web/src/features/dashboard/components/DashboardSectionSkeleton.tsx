@@ -9,6 +9,7 @@ import {
   DeploymentsSectionSkeleton,
   DomainsSectionSkeleton,
   SandboxesSectionSkeleton,
+  WorkflowsSectionSkeleton,
 } from "./skeletons/DataSectionSkeletons";
 import { EnvironmentSectionSkeleton } from "./skeletons/EnvironmentSectionSkeleton";
 import { FirewallSectionSkeleton } from "./skeletons/FirewallSectionSkeleton";
@@ -49,6 +50,7 @@ export function DashboardSectionSkeleton({
     return <EnvironmentSectionSkeleton />;
   if (section === "integrations") return <IntegrationsSectionSkeleton />;
   if (section === "sandboxes") return <SandboxesSectionSkeleton />;
+  if (section === "workflows") return <WorkflowsSectionSkeleton />;
   return <ProjectPickerSkeleton />;
 }
 

@@ -1,4 +1,5 @@
 import "server-only";
+import type { AnalyticsRange } from "@/features/dashboard/types/analytics.types";
 import type { ObservabilityData } from "@/features/dashboard/types/observability.types";
 import { prisma } from "@/lib/prisma";
 import { getProjectAnalytics } from "@/lib/services/analytics.service";
@@ -7,11 +8,12 @@ import { getProject } from "@/lib/services/project.service";
 export async function getProjectObservability(
   userId: string,
   projectId: string,
+  range: AnalyticsRange = "24h",
 ): Promise<ObservabilityData> {
   await getProject(userId, projectId);
   const [analytics, activeDeployments, errorDeployments, errors] =
     await Promise.all([
-      getProjectAnalytics(projectId),
+      getProjectAnalytics(projectId, range),
       prisma.deployment.count({
         where: { projectId, status: { in: ["queued", "building", "ready"] } },
       }),
@@ -26,6 +28,7 @@ export async function getProjectObservability(
   return {
     activeDeployments,
     averageLatency: analytics.averageLatency,
+    bandwidthBytes: analytics.bandwidthBytes,
     errorDeployments,
     errorRate: analytics.errorRate,
     recentErrors: errors.map((error) => ({
@@ -33,6 +36,8 @@ export async function getProjectObservability(
       createdAt: error.createdAt.toISOString(),
     })),
     requests: analytics.requests,
+    range,
+    series: analytics.series,
     state: analytics.state,
   };
 }

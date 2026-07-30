@@ -2,6 +2,7 @@ import { z } from "zod";
 import { contentType } from "./content-type";
 import { resolveRequest } from "./resolve";
 import type { ArtifactManifest, Env } from "./types";
+import { recordUsage } from "./usage";
 
 const imageQuerySchema = z.object({
   q: z.coerce.number().int().min(1).max(100).default(82),
@@ -41,6 +42,7 @@ export async function serveImage(
   context: ExecutionContext,
   manifest: ArtifactManifest,
   artifactHash: string,
+  projectId: string,
 ): Promise<Response> {
   const options = parseImageRequest(new URL(request.url));
   if (!options) return new Response("Invalid image parameters", { status: 400 });
@@ -55,7 +57,10 @@ export async function serveImage(
   cacheUrl.searchParams.set("artifact", artifactHash);
   const cacheKey = new Request(cacheUrl, { method: "GET" });
   const cached = await caches.default.match(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    recordUsage(env, projectId, "image_cache_reads");
+    return cached;
+  }
   const object = await env.ARTIFACTS.get(`blobs/${resolved.file.hash}`);
   if (!object?.body) return new Response("Source image blob not found", { status: 404 });
   const result = await env.IMAGES.input(object.body)
@@ -65,5 +70,7 @@ export async function serveImage(
   response.headers.set("cache-control", "public, max-age=31536000, immutable");
   response.headers.set("vary", "Accept");
   context.waitUntil(caches.default.put(cacheKey, response.clone()));
+  recordUsage(env, projectId, "image_transformations");
+  recordUsage(env, projectId, "image_cache_writes");
   return response;
 }

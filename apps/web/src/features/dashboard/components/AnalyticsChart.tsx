@@ -1,14 +1,30 @@
 "use client";
 
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-} from "recharts";
+import dynamic from "next/dynamic";
 import type { AnalyticsPoint } from "@/features/dashboard/types/analytics.types";
+
+const Area = dynamic(() => import("recharts").then((module) => module.Area), {
+  ssr: false,
+});
+const AreaChart = dynamic(
+  () => import("recharts").then((module) => module.AreaChart),
+  { ssr: false },
+);
+const CartesianGrid = dynamic(
+  () => import("recharts").then((module) => module.CartesianGrid),
+  { ssr: false },
+);
+const ResponsiveContainer = dynamic(
+  () => import("recharts").then((module) => module.ResponsiveContainer),
+  { ssr: false },
+);
+const Tooltip = dynamic(
+  () => import("recharts").then((module) => module.Tooltip),
+  { ssr: false },
+);
+const XAxis = dynamic(() => import("recharts").then((module) => module.XAxis), {
+  ssr: false,
+});
 
 export function AnalyticsChart({ points }: { points: AnalyticsPoint[] }) {
   return (
@@ -52,7 +68,7 @@ export function AnalyticsChart({ points }: { points: AnalyticsPoint[] }) {
               />
               <Area
                 type="monotone"
-                dataKey="requests"
+                dataKey="pageviews"
                 stroke="#60a5fa"
                 strokeWidth={2}
                 fill="url(#edgeTraffic)"
@@ -85,7 +101,7 @@ function TrafficTooltip({
         {label}
       </p>
       <p className="mt-1 text-sm font-semibold text-white">
-        {payload[0]?.value?.toLocaleString()} requests
+        {payload[0]?.value?.toLocaleString()} pageviews
       </p>
     </div>
   );

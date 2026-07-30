@@ -76,7 +76,7 @@ export async function issueProjectOidcToken(
   projectId: string,
   audience: string,
 ) {
-  const project = await getProject(userId, projectId);
+  const project = await getProject(userId, projectId, "deploy");
   const now = Math.floor(Date.now() / 1_000);
   const key = privateKey();
   const publicPem = createPublicKey(key)

@@ -1,7 +1,8 @@
 import { getSandbox } from "@cloudflare/sandbox";
 import type { BuildJob } from "@multivrs/client";
 import { BuildCommandError, type BuildWorkerEnv } from "./build-worker.types";
-import { appendBuildLog } from "./control-plane";
+import { appendBuildLog, recordBuildUsage } from "./control-plane";
+import { restoreRemoteCache, saveRemoteCache } from "./remote-cache";
 import { publishRuntime } from "./runtime-publish";
 import { streamBuildCommand } from "./stream-build";
 
@@ -40,6 +41,7 @@ function commandEnvironment(job: BuildJob) {
 }
 
 export async function executeBuild(job: BuildJob, env: BuildWorkerEnv) {
+  const startedAt = Date.now();
   const sandbox = getSandbox(env.Sandbox, `deployment-${job.deploymentId}`, {
     sleepAfter: "10m",
   });
@@ -59,13 +61,30 @@ export async function executeBuild(job: BuildJob, env: BuildWorkerEnv) {
       `${cwd}/.multivrs/project.json`,
       JSON.stringify({ project_id: job.projectId }),
     );
+    const restoredBytes = await restoreRemoteCache(sandbox, job, env, cwd);
+    if (restoredBytes > 0) {
+      await Promise.all([
+        appendBuildLog(job, "info", "Restored Multivrs remote build cache"),
+        recordBuildUsage(job, "build_cache_read_bytes", restoredBytes),
+      ]);
+    }
     await streamBuildCommand(sandbox, job, {
       cwd,
       env: commandEnvironment(job),
       timeout: BUILD_TIMEOUT_MS,
     });
+    const savedBytes = await saveRemoteCache(sandbox, job, env, cwd);
+    if (savedBytes > 0) {
+      await Promise.all([
+        appendBuildLog(job, "info", "Published Multivrs remote build cache"),
+        recordBuildUsage(job, "build_cache_write_bytes", savedBytes),
+      ]);
+    }
     await publishRuntime(sandbox, job, env, cwd);
   } finally {
+    await recordBuildUsage(job, "build_duration_ms_standard", Date.now() - startedAt).catch(
+      () => undefined,
+    );
     await sandbox.destroy();
   }
 }

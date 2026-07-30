@@ -12,6 +12,7 @@ const SECTION_DESCRIPTIONS: Record<string, string> = {
   "environment-variables": "Encrypted build and runtime configuration.",
   integrations: "OIDC and cloud identity integrations.",
   sandboxes: "Ephemeral isolated development environments.",
+  workflows: "Durable steps, event runs and UTC schedules.",
   domains: "Custom domains, DNS and certificates.",
   emails: "Transactional delivery, templates and logs.",
   settings: "Account, members, billing and developer settings.",
@@ -35,8 +36,3 @@ export function getSectionMeta(slug: string): SectionMeta | null {
     description: SECTION_DESCRIPTIONS[slug] ?? "",
   };
 }
-
-/** Valid section slugs (excludes the empty scope-root slug). */
-export const SECTION_SLUGS = DASHBOARD_NAV_ITEMS.flatMap((item) =>
-  item.slug ? [item.slug] : [],
-);

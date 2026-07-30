@@ -9,6 +9,7 @@ import { SettingsPage } from "@/features/dashboard/components/SettingsPage";
 import { ALL_PROJECTS_SCOPE } from "@/features/dashboard/constants/navigation";
 import { getSectionMeta } from "@/features/dashboard/constants/sections";
 import { isPlatformProjectSection } from "@/features/dashboard/lib/project-platform-sections";
+import type { AnalyticsRange } from "@/features/dashboard/types/analytics.types";
 import { getServerSession } from "@/lib/auth/session";
 import { getAccountProfile } from "@/lib/services/account.service";
 import { listApiTokens } from "@/lib/services/api-token.service";
@@ -34,7 +35,7 @@ export default async function SectionPage({
   searchParams,
 }: {
   params: Promise<{ username: string; scope: string; section: string }>;
-  searchParams: Promise<{ compose?: string; view?: string }>;
+  searchParams: Promise<{ compose?: string; range?: string; view?: string }>;
 }) {
   const { username, scope, section } = await params;
   const meta = getSectionMeta(section);
@@ -43,7 +44,10 @@ export default async function SectionPage({
   }
 
   if (section === "deployments") {
+    const session = await getServerSession();
+    if (!session) notFound();
     const deployments = dashboardDeployments(
+      session.user.id,
       username,
       scope === ALL_PROJECTS_SCOPE ? undefined : scope,
     );
@@ -53,7 +57,7 @@ export default async function SectionPage({
   if (section === "logs") {
     const session = await getServerSession();
     if (!session) notFound();
-    const projects = await dashboardProjects(username);
+    const projects = await dashboardProjects(username, session.user.id);
     if (!projects) notFound();
     return (
       <LogsPage
@@ -77,7 +81,14 @@ export default async function SectionPage({
       getAccountProfile(session.user.id),
       listApiTokens(session.user.id),
     ]);
-    return <SettingsPage events={events} profile={profile} tokens={tokens} />;
+    return (
+      <SettingsPage
+        events={events}
+        profile={profile}
+        tokens={tokens}
+        twoFactorEnabled={session.user.twoFactorEnabled ?? false}
+      />
+    );
   }
 
   if (section === "settings") {
@@ -121,6 +132,7 @@ export default async function SectionPage({
     return (
       <PlatformSectionStream
         compose={mailSearch.compose}
+        analyticsRange={parseAnalyticsRange(mailSearch.range)}
         meta={meta}
         requestedView={mailSearch.view}
         scope={scope}
@@ -139,4 +151,8 @@ export default async function SectionPage({
       scopeLabel={scopeLabel}
     />
   );
+}
+
+function parseAnalyticsRange(value: string | undefined): AnalyticsRange {
+  return value === "7d" || value === "30d" ? value : "24h";
 }

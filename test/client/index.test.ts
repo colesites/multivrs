@@ -19,6 +19,7 @@ function projectBody(name: string) {
     framework: "nextjs",
     repositoryUrl: null,
     ownerId: "user_1",
+    organizationId: null,
     productionDeploymentId: null,
     createdAt: NOW,
     updatedAt: NOW,

@@ -1,6 +1,9 @@
 import { UnauthorizedError, ValidationError } from "@multivrs/error-utils";
 import { fail, ok } from "@/lib/api/respond";
-import { resolveHostname } from "@/lib/services/serve.service";
+import {
+  resolveHostname,
+  resolveProjectId,
+} from "@/lib/services/serve.service";
 
 function authorize(request: Request): void {
   const expected = process.env.MULTIVRS_SERVE_TOKEN;
@@ -15,11 +18,12 @@ function authorize(request: Request): void {
 export async function GET(request: Request) {
   try {
     authorize(request);
-    const hostname = new URL(request.url).searchParams.get("hostname");
-    if (!hostname) {
-      throw new ValidationError("hostname is required");
-    }
-    return ok(await resolveHostname(hostname));
+    const search = new URL(request.url).searchParams;
+    const projectId = search.get("projectId");
+    const hostname = search.get("hostname");
+    if (projectId) return ok(await resolveProjectId(projectId));
+    if (hostname) return ok(await resolveHostname(hostname));
+    throw new ValidationError("hostname or projectId is required");
   } catch (error) {
     return fail(error);
   }

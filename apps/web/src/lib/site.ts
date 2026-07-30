@@ -17,7 +17,4 @@ export const SITE_URL = (
   process.env.NEXT_PUBLIC_APP_URL || DEFAULT_SITE_URL
 ).replace(/\/$/, "");
 
-/** Host only, e.g. "multivrs.vercel.app" or "localhost:3000". */
-export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "");
-
 export const SITE_NAME = "MULTIVRS";

@@ -1,10 +1,6 @@
-import {
-  CalendarDays,
-  ChevronDown,
-  ChevronRight,
-  Search,
-  Sparkles,
-} from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronRight, Search } from "lucide-react";
+import Link from "next/link";
+import { ObservabilitySignalChart } from "@/features/dashboard/components/ObservabilitySignalChart";
 import type { ObservabilityData } from "@/features/dashboard/types/observability.types";
 
 const CHARTS = [
@@ -12,25 +8,29 @@ const CHARTS = [
     key: "requests",
     label: "Edge Requests",
     metric: "Invocations",
+    signal: "requests",
     value: (data: ObservabilityData) => data.requests.toLocaleString(),
+  },
+  {
+    key: "transfer",
+    label: "Fast Data Transfer",
+    metric: "Bytes served",
+    signal: "bandwidthBytes",
+    value: (data: ObservabilityData) => formatBytes(data.bandwidthBytes),
   },
   {
     key: "latency",
     label: "Average Latency",
     metric: "Duration",
+    signal: "latency",
     value: (data: ObservabilityData) => `${data.averageLatency} ms`,
   },
   {
     key: "errors",
     label: "Runtime Errors",
-    metric: "Error rate",
+    metric: "HTTP 5xx responses",
+    signal: "errors",
     value: (data: ObservabilityData) => `${data.errorRate.toFixed(2)}%`,
-  },
-  {
-    key: "deployments",
-    label: "Healthy Deployments",
-    metric: "Active",
-    value: (data: ObservabilityData) => data.activeDeployments.toLocaleString(),
   },
 ] as const;
 
@@ -51,26 +51,29 @@ export function ObservabilityPage({
           Production
           <ChevronDown className="size-3.5 text-muted-foreground" />
         </button>
-        <button
-          className="flex h-9 items-center gap-2 rounded-md border border-[var(--hairline)] bg-white/[0.015] px-3 text-xs text-foreground transition-colors hover:bg-white/[0.035]"
-          type="button"
-        >
+        <nav className="flex h-9 items-center gap-3 border-b border-[var(--hairline)] px-1 text-xs">
           <CalendarDays className="size-3.5 text-muted-foreground" />
-          Last 12 hours
-          <ChevronDown className="ml-3 size-3.5 text-muted-foreground" />
-        </button>
+          {(["24h", "7d", "30d"] as const).map((range) => (
+            <Link
+              className={
+                range === data.range
+                  ? "text-foreground"
+                  : "text-muted-foreground"
+              }
+              href={`?range=${range}`}
+              key={range}
+              scroll={false}
+            >
+              {range.toUpperCase()}
+            </Link>
+          ))}
+        </nav>
       </div>
 
-      <div className="flex min-h-12 items-center gap-3 rounded-lg border border-[var(--hairline)] bg-white/[0.045] px-4 py-2.5 text-xs text-muted-foreground">
-        <Sparkles className="size-4 shrink-0 text-foreground/80" />
-        <p className="min-w-0 flex-1">
-          Observability is in Beta. Live runtime signals will appear here as
-          Multivrs metering is connected.
-        </p>
-        <span className="hidden rounded-md bg-foreground px-3 py-1.5 font-medium text-background sm:inline-flex">
-          Beta
-        </span>
-      </div>
+      <p className="border-y border-[var(--hairline)] px-1 py-3 text-xs text-muted-foreground">
+        Live serving-edge signals for requests, transfer, latency, and HTTP
+        errors.
+      </p>
 
       {data.state !== "ready" ? (
         <p className="border-y border-amber-400/20 bg-amber-400/[0.035] px-4 py-2.5 text-xs text-amber-200">
@@ -99,7 +102,10 @@ export function ObservabilityPage({
               </div>
               <ChevronRight className="size-4 text-muted-foreground" />
             </div>
-            <SignalChart active={data.state === "ready"} />
+            <ObservabilitySignalChart
+              data={data.series}
+              signal={chart.signal}
+            />
           </article>
         ))}
       </section>
@@ -158,38 +164,9 @@ export function ObservabilityPage({
   );
 }
 
-function SignalChart({ active }: { active: boolean }) {
-  return (
-    <div className="relative mt-4 h-32 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 grid grid-rows-3">
-        <span className="border-b border-white/[0.045]" />
-        <span className="border-b border-white/[0.045]" />
-        <span className="border-b border-white/[0.045]" />
-      </div>
-      <svg
-        aria-hidden="true"
-        className="absolute inset-0 size-full"
-        preserveAspectRatio="none"
-        viewBox="0 0 600 120"
-      >
-        <path
-          d={
-            active
-              ? "M0 105 L35 104 L62 106 L94 102 L122 105 L150 104 L183 103 L212 104 L242 101 L270 104 L304 103 L332 104 L366 102 L394 104 L425 101 L455 104 L486 103 L518 105 L550 102 L600 104"
-              : "M0 104 L600 104"
-          }
-          fill="none"
-          stroke="rgb(59 130 246)"
-          strokeWidth="1.5"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
-      <span className="absolute bottom-0 left-0 font-geist-mono text-[9px] text-muted-foreground/70">
-        12h ago
-      </span>
-      <span className="absolute bottom-0 right-0 font-geist-mono text-[9px] text-muted-foreground/70">
-        Just now
-      </span>
-    </div>
-  );
+function formatBytes(value: number): string {
+  if (value < 1_024) return `${Math.round(value)} B`;
+  if (value < 1_048_576) return `${(value / 1_024).toFixed(1)} KB`;
+  if (value < 1_073_741_824) return `${(value / 1_048_576).toFixed(1)} MB`;
+  return `${(value / 1_073_741_824).toFixed(2)} GB`;
 }

@@ -6,7 +6,7 @@ import type { Env } from "./types";
 
 export { SwiftRustContainer };
 
-async function invoke(request: Request, env: Env): Promise<Response> {
+async function invoke(request: Request, env: Env, context: ExecutionContext): Promise<Response> {
   const runtimeRequest = parseRuntimeRequest(request);
   if (!runtimeRequest) {
     return new Response("Invalid runtime request", { status: 400 });
@@ -27,13 +27,15 @@ async function invoke(request: Request, env: Env): Promise<Response> {
     }
     await container.activateRuntime(runtimeRequest);
   }
-  return container.fetch(request);
+  const response = await container.fetch(request);
+  context.waitUntil(container.flushRuntimeLogs());
+  return response;
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, context: ExecutionContext): Promise<Response> {
     try {
-      return await invoke(request, env);
+      return await invoke(request, env, context);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Runtime failed";
       return Response.json({ error: message }, { status: 502 });

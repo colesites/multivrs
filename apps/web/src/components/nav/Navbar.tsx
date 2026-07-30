@@ -1,20 +1,13 @@
 "use client";
 
-import {
-  ArrowUpRight,
-  Bookmark,
-  ChevronDown,
-  Menu,
-  ShoppingCart,
-  X,
-} from "lucide-react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { MultivrsMark } from "@/components/brand/Logo";
-import SpecularButton from "@/components/SpecularButton";
 import { useDomainCommerce } from "@/features/domains/DomainCommerceProvider";
 import { cn } from "@/lib/utils";
+import { DesktopNavbarActions, MobileNavbarActions } from "./NavbarActions";
 import { NavbarMobile } from "./NavbarMobile";
 import {
   MEGA_MENUS,
@@ -22,6 +15,11 @@ import {
   NAV_LINKS,
   type NavColumn,
 } from "./navigation";
+
+function isDarkMarketingHeaderVisible() {
+  const darkSection = document.getElementById("dark-marketing-header");
+  return darkSection ? darkSection.getBoundingClientRect().bottom > 64 : false;
+}
 
 export function Navbar() {
   const pathname = usePathname();
@@ -33,18 +31,9 @@ export function Navbar() {
   // Which mega-menu is expanded (null = closed). Shared by triggers + panel.
   const [activeMenu, setActiveMenu] = useState<MegaMenuLabel | null>(null);
 
-  const checkDarkSection = useCallback(() => {
-    const darkSection = document.getElementById("dark-marketing-header");
-    if (!darkSection) {
-      setIsOverDarkSection(false);
-      return;
-    }
-    const rect = darkSection.getBoundingClientRect();
-    // Add a small buffer (e.g. 64px navbar height)
-    setIsOverDarkSection(rect.bottom > 64);
-  }, []);
-
   useEffect(() => {
+    const checkDarkSection = () =>
+      setIsOverDarkSection(isDarkMarketingHeaderVisible());
     const onScroll = () => {
       setScrolled(window.scrollY > 50);
       checkDarkSection();
@@ -56,16 +45,21 @@ export function Navbar() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", checkDarkSection);
     };
-  }, [checkDarkSection]);
+  }, []);
 
   // Re-check section when pathname changes (since Navbar doesn't unmount)
   useEffect(() => {
     if (pathname) {
-      checkDarkSection();
+      const checkDarkSection = () =>
+        setIsOverDarkSection(isDarkMarketingHeaderVisible());
+      const frame = requestAnimationFrame(checkDarkSection);
       const timeout = setTimeout(checkDarkSection, 100);
-      return () => clearTimeout(timeout);
+      return () => {
+        cancelAnimationFrame(frame);
+        clearTimeout(timeout);
+      };
     }
-  }, [pathname, checkDarkSection]);
+  }, [pathname]);
 
   // Close on Escape.
   useEffect(() => {
@@ -150,200 +144,29 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* Desktop right actions */}
-          <div className="hidden items-center gap-3 md:flex">
-            {pathname === "/domains" ? (
-              <>
-                {isSignedIn && (
-                  <SpecularButton
-                    size="sm"
-                    radius={10}
-                    tint="#ffffff"
-                    tintOpacity={0.05}
-                    baseColor="#333333"
-                    lineColor="#ffffff"
-                    textColor="currentColor"
-                    forceTheme={isOverDarkSection ? "dark" : undefined}
-                    onClick={() => setSavedOpen(true)}
-                  >
-                    <span className="flex items-center gap-1.5 font-medium">
-                      <Bookmark className="size-4" /> Saved
-                      {savedDomains.length ? (
-                        <span className="grid size-4 place-items-center rounded-full bg-foreground text-[9px] text-background">
-                          {savedDomains.length}
-                        </span>
-                      ) : null}
-                    </span>
-                  </SpecularButton>
-                )}
-                <SpecularButton
-                  size="sm"
-                  radius={10}
-                  tint="#ffffff"
-                  tintOpacity={0.05}
-                  baseColor="#333333"
-                  lineColor="#ffffff"
-                  textColor="currentColor"
-                  forceTheme={isOverDarkSection ? "dark" : undefined}
-                  onClick={() => setCartOpen(true)}
-                >
-                  <span className="flex items-center gap-1.5 font-semibold">
-                    <ShoppingCart className="size-4" /> Cart
-                    {cartItems.length ? (
-                      <span className="grid size-4 place-items-center rounded-full bg-foreground text-[9px] text-background">
-                        {cartItems.length}
-                      </span>
-                    ) : null}
-                  </span>
-                </SpecularButton>
-                {!isSignedIn && (
-                  <>
-                    <Link href="/login">
-                      <SpecularButton
-                        size="sm"
-                        radius={10}
-                        tint="#ffffff"
-                        tintOpacity={0.05}
-                        baseColor="#333333"
-                        lineColor="#ffffff"
-                        textColor="currentColor"
-                        forceTheme={isOverDarkSection ? "dark" : undefined}
-                      >
-                        Log In
-                      </SpecularButton>
-                    </Link>
-                    <Link href="/signup">
-                      <SpecularButton
-                        size="sm"
-                        radius={10}
-                        tint="#ffffff"
-                        tintOpacity={0.95}
-                        baseColor="#ffffff"
-                        lineColor="#ffffff"
-                        textColor="#000000"
-                        forceTheme={isOverDarkSection ? "dark" : undefined}
-                      >
-                        Sign Up
-                      </SpecularButton>
-                    </Link>
-                  </>
-                )}
-              </>
-            ) : isSignedIn ? (
-              <Link href="/dashboard">
-                <SpecularButton
-                  size="sm"
-                  radius={10}
-                  tint="#ffffff"
-                  tintOpacity={0.05}
-                  baseColor="#333333"
-                  lineColor="#ffffff"
-                  textColor="currentColor"
-                  forceTheme={isOverDarkSection ? "dark" : undefined}
-                >
-                  Dashboard
-                </SpecularButton>
-              </Link>
-            ) : (
-              <>
-                <Link href="/login">
-                  <SpecularButton
-                    size="sm"
-                    radius={10}
-                    tint="#ffffff"
-                    tintOpacity={0.05}
-                    baseColor="#333333"
-                    lineColor="#ffffff"
-                    textColor="currentColor"
-                    forceTheme={isOverDarkSection ? "dark" : undefined}
-                  >
-                    Log In
-                  </SpecularButton>
-                </Link>
-                <Link href="/signup">
-                  <SpecularButton
-                    size="sm"
-                    radius={10}
-                    tint="#ffffff"
-                    tintOpacity={0.95}
-                    baseColor="#ffffff"
-                    lineColor="#ffffff"
-                    textColor="#000000"
-                    forceTheme={isOverDarkSection ? "dark" : undefined}
-                  >
-                    Sign Up
-                  </SpecularButton>
-                </Link>
-              </>
-            )}
-          </div>
+          <DesktopNavbarActions
+            cartCount={cartItems.length}
+            isOverDarkSection={isOverDarkSection}
+            isSignedIn={isSignedIn}
+            mobileOpen={mobileOpen}
+            onCartOpen={() => setCartOpen(true)}
+            onMobileToggle={() => setMobileOpen((value) => !value)}
+            onSavedOpen={() => setSavedOpen(true)}
+            pathname={pathname}
+            savedCount={savedDomains.length}
+          />
 
-          {/* Mobile right actions & toggle */}
-          <div className="flex items-center gap-2 md:hidden">
-            {pathname === "/domains" && (
-              <>
-                {isSignedIn && (
-                  <SpecularButton
-                    size="sm"
-                    radius={10}
-                    tint="#ffffff"
-                    tintOpacity={0.05}
-                    baseColor="#333333"
-                    lineColor="#ffffff"
-                    textColor="currentColor"
-                    forceTheme={isOverDarkSection && !mobileOpen ? "dark" : undefined}
-                    className="px-2.5! py-2!"
-                    aria-label="Saved domains"
-                    onClick={() => setSavedOpen(true)}
-                  >
-                    <span className="relative">
-                      <Bookmark className="size-4" />
-                      {savedDomains.length ? (
-                        <span className="absolute -right-2 -top-2 grid size-4 place-items-center rounded-full bg-blue-500 text-[9px] text-white">
-                          {savedDomains.length}
-                        </span>
-                      ) : null}
-                    </span>
-                  </SpecularButton>
-                )}
-                <SpecularButton
-                  size="sm"
-                  radius={10}
-                  tint="#ffffff"
-                  tintOpacity={0.05}
-                  baseColor="#333333"
-                  lineColor="#ffffff"
-                  textColor="currentColor"
-                  forceTheme={isOverDarkSection && !mobileOpen ? "dark" : undefined}
-                  className="px-2.5! py-2!"
-                  aria-label="Shopping cart"
-                  onClick={() => setCartOpen(true)}
-                >
-                  <span className="relative">
-                    <ShoppingCart className="size-4" />
-                    {cartItems.length ? (
-                      <span className="absolute -right-2 -top-2 grid size-4 place-items-center rounded-full bg-blue-500 text-[9px] text-white">
-                        {cartItems.length}
-                      </span>
-                    ) : null}
-                  </span>
-                </SpecularButton>
-              </>
-            )}
-
-            <button
-              type="button"
-              className="ml-1 text-foreground/70"
-              onClick={() => setMobileOpen((v) => !v)}
-              aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            >
-              {mobileOpen ? (
-                <X className="size-5" />
-              ) : (
-                <Menu className="size-5" />
-              )}
-            </button>
-          </div>
+          <MobileNavbarActions
+            cartCount={cartItems.length}
+            isOverDarkSection={isOverDarkSection}
+            isSignedIn={isSignedIn}
+            mobileOpen={mobileOpen}
+            onCartOpen={() => setCartOpen(true)}
+            onMobileToggle={() => setMobileOpen((value) => !value)}
+            onSavedOpen={() => setSavedOpen(true)}
+            pathname={pathname}
+            savedCount={savedDomains.length}
+          />
         </nav>
 
         {/* Expanding mega-menu panel (desktop). The grid-rows 0fr→1fr trick

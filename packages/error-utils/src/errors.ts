@@ -13,6 +13,7 @@ export type ErrorCode =
   | "not_found"
   | "conflict"
   | "compute_not_configured"
+  | "configuration_error"
   | "internal_error";
 
 export class MultivrsError extends Error {
@@ -62,5 +63,11 @@ export class ConflictError extends MultivrsError {
 export class ComputeNotConfiguredError extends MultivrsError {
   constructor(message = "Deployment compute is not configured", details?: unknown) {
     super("compute_not_configured", message, 501, details);
+  }
+}
+
+export class ConfigurationError extends MultivrsError {
+  constructor(message = "Service is not configured", details?: unknown) {
+    super("configuration_error", message, 503, details);
   }
 }

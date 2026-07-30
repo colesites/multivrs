@@ -32,6 +32,17 @@ export async function markBuildFailed(job: BuildJob, message: string) {
   });
 }
 
+export async function recordBuildUsage(
+  job: BuildJob,
+  metric: "build_cache_read_bytes" | "build_cache_write_bytes" | "build_duration_ms_standard",
+  quantity: number,
+) {
+  await post(job, `/api/projects/${job.projectId}/deployments/${job.deploymentId}/usage`, {
+    metric,
+    quantity: Math.max(0, Math.round(quantity)),
+  });
+}
+
 export async function revokeBuildToken(job: BuildJob) {
   await fetch(new URL("/api/build/token", job.apiUrl), {
     method: "DELETE",

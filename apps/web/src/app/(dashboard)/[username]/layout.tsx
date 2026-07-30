@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { AccountChrome } from "@/features/dashboard/components/AccountChrome";
 import { getServerSession } from "@/lib/auth/session";
+import { canAccessDashboardWorkspace } from "@/lib/services/dashboard-scope.service";
 
 /**
  * Account-scoped chrome served around every page under /[username]. Renders the
@@ -22,7 +23,12 @@ export default async function AccountLayout({
     redirect("/login");
   }
 
-  if (session.user.username !== username) notFound();
+  if (
+    session.user.username !== username &&
+    !(await canAccessDashboardWorkspace(session.user.id, username))
+  ) {
+    notFound();
+  }
 
   return (
     <div className="dashboard-surface min-h-screen bg-[var(--ink)] text-foreground">

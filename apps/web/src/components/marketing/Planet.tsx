@@ -31,11 +31,14 @@ export function Planet({
   const shaderMatRef = useRef<THREE.ShaderMaterial>(null);
 
   // A perfectly smooth, high-resolution sphere
+  // react-doctor-disable-next-line react-doctor/react-compiler-no-manual-memoization
   const geometry = useMemo(
     () => new THREE.SphereGeometry(radius, 128, 128),
     [radius],
   );
 
+  // Uniform objects are mutated by the render loop and must retain identity.
+  // react-doctor-disable-next-line react-doctor/react-compiler-no-manual-memoization
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },

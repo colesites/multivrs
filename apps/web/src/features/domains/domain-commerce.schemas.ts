@@ -19,10 +19,6 @@ export function parseStoredCart(value: string | null): DomainSearchResult[] {
   return legacyItem ? [legacyItem] : [];
 }
 
-export function parseStoredDomains(value: string | null): DomainSearchResult[] {
-  return parseStoredValue(value, savedDomainsSchema) ?? [];
-}
-
 function parseStoredValue<T>(
   value: string | null,
   schema: z.ZodType<T>,

@@ -15,6 +15,7 @@ model User {
   username        String?  @unique
   displayUsername String?
   image           String?
+  twoFactorEnabled Boolean @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -51,6 +52,13 @@ model User {
   mailRoutingRules     MailRoutingRule[]
   mailSavedReplies     MailSavedReply[]
   mailIdempotencyKeys  MailIdempotency[]
+  usageEvents          UsageEvent[]
+  platformSandboxes    PlatformSandbox[]
+  workflows            PlatformWorkflow[]
+  logDrains             ProjectLogDrain[]
+  twoFactor             TwoFactor?
+  organizationMembers   Member[]
+  organizationInvites   Invitation[] @relation("InvitationInviter")
 
   @@index([email])
   @@index([username])
@@ -83,6 +91,7 @@ model Session {
   userAgent String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  activeOrganizationId String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -157,9 +166,25 @@ model Project {
   mailAutomations      MailAutomation[]
   mailCredentials      MailCredential[]
   mailWebhooks         MailWebhookEndpoint[]
+  contentSettings      ProjectContentSettings?
+  blobs                ProjectBlob[]
+  bulkRedirects        BulkRedirect[]
+  edgeConfigEntries    EdgeConfigEntry[]
+  cacheTags            ProjectCacheTag[]
+  sourceMicrofrontends MicrofrontendRoute[]       @relation("MicrofrontendSource")
+  targetMicrofrontends MicrofrontendRoute[]       @relation("MicrofrontendTarget")
+  usageEvents          UsageEvent[]
+  platformSandboxes    PlatformSandbox[]
+  workflows            PlatformWorkflow[]
+  workflowRuns         PlatformWorkflowRun[]
+  logDrains             ProjectLogDrain[]
+  organizationId        String?
+  organization          Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   @@unique([ownerId, slug])
+  @@unique([organizationId, slug])
   @@index([ownerId])
+  @@index([organizationId])
   @@map("projects")
 }
 
@@ -192,12 +217,17 @@ model DeploymentLog {
   id           String   @id @default(uuid())
   deploymentId String
   level        String   @default("info") // info|warn|error
+  source       String   @default("build") // build|deployment|runtime
+  requestId    String?
+  traceId      String?
   message      String
   createdAt    DateTime @default(now())
 
   deployment Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
 
   @@index([deploymentId, createdAt])
+  @@index([deploymentId, source, createdAt])
+  @@index([requestId])
   @@map("deployment_logs")
 }
 
@@ -311,6 +341,300 @@ model ProjectEdgeSettings {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("project_edge_settings")
+}
+
+model ProjectContentSettings {
+  projectId         String   @id
+  routingVersion    String   @default(uuid())
+  edgeConfigVersion String   @default(uuid())
+  cacheVersion      String   @default(uuid())
+  defaultRevalidate Int      @default(3600)
+  staleWindow       Int      @default(86400)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_content_settings")
+}
+
+model ProjectBlob {
+  id          String   @id @default(uuid())
+  projectId   String
+  pathname    String
+  storageKey  String   @unique
+  contentType String
+  size        BigInt   @default(0)
+  checksum    String?
+  visibility  String   @default("public") // public|private
+  status      String   @default("pending") // pending|ready|failed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, pathname])
+  @@index([projectId, status, createdAt])
+  @@map("project_blobs")
+}
+
+model BulkRedirect {
+  id            String   @id @default(uuid())
+  projectId     String
+  source        String
+  destination   String
+  statusCode    Int      @default(308)
+  preserveQuery Boolean  @default(true)
+  enabled       Boolean  @default(true)
+  priority      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, source])
+  @@index([projectId, enabled, priority])
+  @@map("bulk_redirects")
+}
+
+model EdgeConfigEntry {
+  id        String   @id @default(uuid())
+  projectId String
+  key       String
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, key])
+  @@index([projectId, updatedAt])
+  @@map("edge_config_entries")
+}
+
+model ProjectCacheTag {
+  projectId String
+  tag       String
+  version   String   @default(uuid())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, tag])
+  @@map("project_cache_tags")
+}
+
+model MicrofrontendRoute {
+  id              String   @id @default(uuid())
+  projectId       String
+  targetProjectId String
+  source          String
+  stripPrefix     Boolean  @default(false)
+  enabled         Boolean  @default(true)
+  priority        Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project       Project @relation("MicrofrontendSource", fields: [projectId], references: [id], onDelete: Cascade)
+  targetProject Project @relation("MicrofrontendTarget", fields: [targetProjectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, source])
+  @@index([projectId, enabled, priority])
+  @@index([targetProjectId])
+  @@map("microfrontend_routes")
+}
+
+model UsageEvent {
+  id         String   @id @default(uuid())
+  userId     String?
+  projectId  String?
+  metric     String
+  quantity   BigInt   @default(1)
+  metadata   Json?
+  occurredAt DateTime @default(now())
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId, metric, occurredAt])
+  @@index([projectId, metric, occurredAt])
+  @@map("usage_events")
+}
+
+model PlatformSandbox {
+  id           String    @id
+  userId       String
+  projectId    String
+  status       String    @default("creating") // creating|running|destroyed|error
+  createdAt    DateTime  @default(now())
+  lastActiveAt DateTime  @default(now())
+  destroyedAt  DateTime?
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, createdAt])
+  @@index([projectId, status, createdAt])
+  @@map("platform_sandboxes")
+}
+
+model DeploymentWebhookEvent {
+  id        String   @id
+  provider  String
+  event     String
+  createdAt DateTime @default(now())
+
+  @@index([provider, createdAt])
+  @@map("deployment_webhook_events")
+}
+
+model PlatformWorkflow {
+  id          String   @id @default(uuid())
+  userId      String
+  projectId   String
+  name        String
+  description String?
+  enabled     Boolean  @default(true)
+  version     Int      @default(1)
+  steps       Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  schedules PlatformWorkflowCron[]
+  runs      PlatformWorkflowRun[]
+
+  @@unique([projectId, name])
+  @@index([userId, createdAt])
+  @@index([projectId, enabled, createdAt])
+  @@map("platform_workflows")
+}
+
+model PlatformWorkflowCron {
+  id            String    @id @default(uuid())
+  workflowId    String
+  expression    String
+  enabled       Boolean   @default(true)
+  nextRunAt     DateTime
+  lastRunAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  workflow PlatformWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, expression])
+  @@index([enabled, nextRunAt])
+  @@map("platform_workflow_crons")
+}
+
+model PlatformWorkflowRun {
+  id                      String    @id @default(uuid())
+  workflowId              String
+  projectId               String
+  cloudflareInstanceId    String?   @unique
+  trigger                  String    @default("manual") // manual|schedule|webhook
+  status                   String    @default("queued") // queued|running|complete|errored|terminated
+  input                    Json?
+  output                   Json?
+  errorMessage             String?
+  payloadBytes             Int       @default(0)
+  outputBytes              Int       @default(0)
+  createdAt                DateTime  @default(now())
+  startedAt                DateTime?
+  finishedAt               DateTime?
+
+  workflow PlatformWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  project  Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId, createdAt])
+  @@index([projectId, status, createdAt])
+  @@map("platform_workflow_runs")
+}
+
+model ProjectLogDrain {
+  id              String   @id @default(uuid())
+  userId          String
+  projectId       String
+  name            String
+  endpoint        String
+  encryptedSecret String   @db.Text
+  secretIv        String
+  secretAuthTag   String
+  enabled         Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, name])
+  @@index([projectId, enabled, createdAt])
+  @@index([userId, createdAt])
+  @@map("project_log_drains")
+}
+
+model TwoFactor {
+  id          String  @id @default(uuid())
+  secret      String  @unique
+  backupCodes String  @db.Text
+  userId      String  @unique
+  verified    Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factors")
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  logo      String?
+  metadata  String?  @db.Text
+  createdAt DateTime @default(now())
+
+  members     Member[]
+  invitations Invitation[]
+  projects    Project[]
+
+  @@index([slug])
+  @@map("organizations")
+}
+
+model Member {
+  id             String   @id @default(uuid())
+  organizationId String
+  userId         String
+  role           String   @default("developer")
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@map("organization_members")
+}
+
+model Invitation {
+  id             String   @id @default(uuid())
+  organizationId String
+  email          String
+  role           String?
+  status         String   @default("pending")
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  inviterId      String
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inviter      User         @relation("InvitationInviter", fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([inviterId])
+  @@map("organization_invitations")
 }
 
 model FirewallRule {

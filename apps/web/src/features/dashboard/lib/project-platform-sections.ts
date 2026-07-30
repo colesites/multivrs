@@ -8,6 +8,7 @@ export const PLATFORM_PROJECT_SECTIONS = [
   "observability",
   "sandboxes",
   "speed-insights",
+  "workflows",
 ] as const;
 
 export type PlatformSection = (typeof PLATFORM_PROJECT_SECTIONS)[number];

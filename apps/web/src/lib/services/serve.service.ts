@@ -16,6 +16,10 @@ export interface ServeResolution {
   cacheMode: "aggressive" | "bypass" | "smart";
   edgeTtl: number;
   speedInsightsEnabled: boolean;
+  cacheVersion: string;
+  defaultRevalidate: number;
+  runtimeConfigVersion: string;
+  staleWindow: number;
 }
 
 async function readyResolution(
@@ -30,27 +34,39 @@ async function readyResolution(
   if (deployment?.status !== "ready" || !deployment.artifactHash) {
     throw new NotFoundError("Ready deployment not found");
   }
-  const [rows, settings, runtimeEnvironment] = await Promise.all([
-    prisma.firewallRule.findMany({
-      where: { projectId: deployment.projectId, enabled: true },
-      orderBy: [{ priority: "asc" }, { createdAt: "asc" }],
-    }),
-    prisma.projectEdgeSettings.findUnique({
-      where: { projectId: deployment.projectId },
-      select: {
-        analyticsEnabled: true,
-        attackMode: true,
-        browserTtl: true,
-        cacheMode: true,
-        edgeTtl: true,
-        speedInsightsEnabled: true,
-      },
-    }),
-    deploymentEnvironment(
-      deployment.projectId,
-      deployment.target === "production" ? "production" : "preview",
-    ),
-  ]);
+  const [rows, settings, contentSettings, runtimeEnvironment] =
+    await Promise.all([
+      prisma.firewallRule.findMany({
+        where: { projectId: deployment.projectId, enabled: true },
+        orderBy: [{ priority: "asc" }, { createdAt: "asc" }],
+      }),
+      prisma.projectEdgeSettings.findUnique({
+        where: { projectId: deployment.projectId },
+        select: {
+          analyticsEnabled: true,
+          attackMode: true,
+          browserTtl: true,
+          cacheMode: true,
+          edgeTtl: true,
+          speedInsightsEnabled: true,
+        },
+      }),
+      prisma.projectContentSettings.upsert({
+        where: { projectId: deployment.projectId },
+        create: { projectId: deployment.projectId },
+        update: {},
+        select: {
+          cacheVersion: true,
+          defaultRevalidate: true,
+          routingVersion: true,
+          staleWindow: true,
+        },
+      }),
+      deploymentEnvironment(
+        deployment.projectId,
+        deployment.target === "production" ? "production" : "preview",
+      ),
+    ]);
   const firewallRules = rows.map((row) =>
     firewallRuleSchema.parse({
       action: row.action,
@@ -74,7 +90,21 @@ async function readyResolution(
     projectId: deployment.projectId,
     runtimeEnvironment,
     speedInsightsEnabled: settings?.speedInsightsEnabled ?? true,
+    cacheVersion: contentSettings.cacheVersion,
+    defaultRevalidate: contentSettings.defaultRevalidate,
+    runtimeConfigVersion: contentSettings.routingVersion,
+    staleWindow: contentSettings.staleWindow,
   };
+}
+
+export async function resolveProjectId(
+  projectId: string,
+): Promise<ServeResolution> {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: { productionDeployment: true },
+  });
+  return readyResolution(project?.productionDeployment ?? null);
 }
 
 export async function resolveHostname(

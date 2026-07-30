@@ -40,6 +40,7 @@ function duration(createdAt: Date, updatedAt: Date, state: string): string {
 
 export const dashboardProjects = cache(async function dashboardProjects(
   username: string,
+  viewerId: string,
 ): Promise<DashboardProject[] | null> {
   const owner = await prisma.user.findUnique({
     where: { username },
@@ -47,7 +48,13 @@ export const dashboardProjects = cache(async function dashboardProjects(
   });
   if (!owner) return null;
   const projects = await prisma.project.findMany({
-    where: { ownerId: owner.id },
+    where: {
+      ownerId: owner.id,
+      OR: [
+        { ownerId: viewerId },
+        { organization: { members: { some: { userId: viewerId } } } },
+      ],
+    },
     include: {
       deployments: { orderBy: { createdAt: "desc" }, take: 1 },
       domains: { where: { verified: true }, take: 1 },
@@ -109,6 +116,7 @@ function faviconUrl(url: string): string | null {
 }
 
 export async function dashboardDeployments(
+  viewerId: string,
   username: string,
   projectSlug?: string,
 ): Promise<DashboardDeployment[] | null> {
@@ -122,6 +130,10 @@ export async function dashboardDeployments(
       project: {
         ownerId: owner.id,
         ...(projectSlug ? { slug: projectSlug } : {}),
+        OR: [
+          { ownerId: viewerId },
+          { organization: { members: { some: { userId: viewerId } } } },
+        ],
       },
     },
     include: { project: true },

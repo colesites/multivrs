@@ -10,15 +10,18 @@ import { ProjectEmailSection } from "@/features/dashboard/components/ProjectEmai
 import { ProjectSectionPicker } from "@/features/dashboard/components/ProjectSectionPicker";
 import { SandboxesPage } from "@/features/dashboard/components/SandboxesPage";
 import { SpeedInsightsPage } from "@/features/dashboard/components/SpeedInsightsPage";
+import { WorkflowsPage } from "@/features/dashboard/components/WorkflowsPage";
 import { ALL_PROJECTS_SCOPE } from "@/features/dashboard/constants/navigation";
 import type { SectionMeta } from "@/features/dashboard/constants/sections";
 import type { PlatformSection } from "@/features/dashboard/lib/project-platform-sections";
+import type { AnalyticsRange } from "@/features/dashboard/types/analytics.types";
 import type { MailView } from "@/features/mail/mail-navigation";
 import { auth } from "@/lib/auth";
 import {
   getProjectAnalytics,
   getProjectWebVitals,
 } from "@/lib/services/analytics.service";
+import { getContentPlatform } from "@/lib/services/content-platform.service";
 import { dashboardProjects } from "@/lib/services/dashboard.service";
 import { getScopedProject } from "@/lib/services/dashboard-scope.service";
 import { getEdgeSettings } from "@/lib/services/edge-settings.service";
@@ -26,8 +29,10 @@ import { listEnvironmentVariables } from "@/lib/services/environment-variable.se
 import { listFirewallRules } from "@/lib/services/firewall-rule.service";
 import { getProjectObservability } from "@/lib/services/observability.service";
 import { oidcIssuerOrStatus } from "@/lib/services/oidc.service";
+import { listPlatformWorkflows } from "@/lib/services/platform-workflow.service";
 
 export async function ProjectPlatformSection({
+  analyticsRange,
   meta,
   initialMailView = "overview",
   initialMailCompose = false,
@@ -35,6 +40,7 @@ export async function ProjectPlatformSection({
   section,
   username,
 }: {
+  analyticsRange: AnalyticsRange;
   meta: SectionMeta;
   initialMailView?: MailView;
   initialMailCompose?: boolean;
@@ -44,7 +50,7 @@ export async function ProjectPlatformSection({
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) notFound();
-  const projects = await dashboardProjects(username);
+  const projects = await dashboardProjects(username, session.user.id);
   if (!projects) notFound();
   if (section === "emails") {
     return (
@@ -77,7 +83,7 @@ export async function ProjectPlatformSection({
     return (
       <AnalyticsPage
         project={selected}
-        analytics={await getProjectAnalytics(project.id)}
+        analytics={await getProjectAnalytics(project.id, analyticsRange)}
       />
     );
   }
@@ -91,11 +97,16 @@ export async function ProjectPlatformSection({
     );
   }
   if (section === "cdn") {
+    const [initialSettings, initialContent] = await Promise.all([
+      getEdgeSettings(session.user.id, project.id),
+      getContentPlatform(session.user.id, project.id),
+    ]);
     return (
       <CdnPage
         projectId={project.id}
         projectName={project.name}
-        initialSettings={await getEdgeSettings(session.user.id, project.id)}
+        initialSettings={initialSettings}
+        initialContent={initialContent}
       />
     );
   }
@@ -120,18 +131,33 @@ export async function ProjectPlatformSection({
   if (section === "sandboxes") {
     return <SandboxesPage projectId={project.id} projectName={project.name} />;
   }
+  if (section === "workflows") {
+    return (
+      <WorkflowsPage
+        projectId={project.id}
+        projectName={project.name}
+        workflows={await listPlatformWorkflows(session.user.id, project.id)}
+      />
+    );
+  }
   if (section === "speed-insights") {
     return (
       <SpeedInsightsPage
         projectName={project.name}
-        vitals={await getProjectWebVitals(project.id)}
+        vitals={await getProjectWebVitals(project.id, analyticsRange)}
       />
     );
   }
   return (
     <ObservabilityPage
       projectName={project.name}
-      data={await getProjectObservability(session.user.id, project.id)}
+      data={
+        await getProjectObservability(
+          session.user.id,
+          project.id,
+          analyticsRange,
+        )
+      }
     />
   );
 }

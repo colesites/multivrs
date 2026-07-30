@@ -12,11 +12,13 @@
  */
 
 import type { BetterAuthOptions } from "better-auth";
-import { username } from "better-auth/plugins";
+import { organization, twoFactor, username } from "better-auth/plugins";
 import { emailOTP } from "better-auth/plugins/email-otp";
 import { sendOtpEmail } from "@/lib/email/auth-emails";
+import { sendOrganizationInvitation } from "@/lib/email/organization-emails";
 import { databaseHooks } from "./hooks";
 import { generateUniqueUsername } from "./oauth-username";
+import { organizationAccess, organizationRoles } from "./organization-access";
 import { usernameOptions } from "./plugins";
 import { adapter } from "./prisma-adapter";
 import { rateLimitConfig } from "./rate-limit";
@@ -147,6 +149,29 @@ export const authConfig = {
   // Requirements: 10.1, 10.2
   plugins: [
     username(usernameOptions),
+    twoFactor({
+      allowPasswordless: true,
+      issuer: "Multivrs",
+      trustDeviceMaxAge: 60 * 60 * 24 * 30,
+    }),
+    organization({
+      ac: organizationAccess,
+      roles: organizationRoles,
+      creatorRole: "owner",
+      invitationExpiresIn: 60 * 60 * 48,
+      invitationLimit: 100,
+      membershipLimit: 1_000,
+      requireEmailVerificationOnInvitation: true,
+      sendInvitationEmail: async (data) => {
+        await sendOrganizationInvitation({
+          email: data.email,
+          invitationId: data.id,
+          inviterName: data.inviter.user.name,
+          organizationName: data.organization.name,
+          role: data.role,
+        });
+      },
+    }),
     // Email verification via 6-digit OTP, delivered through Resend.
     // `sendVerificationOnSignUp` auto-emails a code right after registration.
     // NOTE: that auto-send hook only fires when `overrideDefaultEmailVerification`

@@ -41,8 +41,12 @@ export function DomainCheckoutPage({ sandboxEnabled, user }: Props) {
     if (!hydrated || !hostnameKey || !stripePromise) return;
 
     let cancelled = false;
-    setClientSecret(null);
-    setCheckoutError("");
+    const frame = requestAnimationFrame(() => {
+      if (!cancelled) {
+        setClientSecret(null);
+        setCheckoutError("");
+      }
+    });
 
     createCustomStripeCheckout(hostnameKey.split(","), checkoutAttempt)
       .then((secret) => {
@@ -60,6 +64,7 @@ export function DomainCheckoutPage({ sandboxEnabled, user }: Props) {
 
     return () => {
       cancelled = true;
+      cancelAnimationFrame(frame);
     };
   }, [checkoutAttempt, hostnameKey, hydrated]);
 

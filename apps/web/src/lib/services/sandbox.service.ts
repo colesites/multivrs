@@ -1,11 +1,19 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { MultivrsError, ValidationError } from "@multivrs/error-utils";
+import {
+  ConflictError,
+  MultivrsError,
+  ValidationError,
+} from "@multivrs/error-utils";
+import { prisma } from "@/lib/prisma";
 import {
   sandboxCommandResponseSchema,
   sandboxCreateResponseSchema,
 } from "@/lib/schemas/sandbox.schemas";
 import { getProject } from "@/lib/services/project.service";
+import { recordUsageEvent } from "@/lib/services/usage-event.service";
+
+const MAX_CONCURRENT_SANDBOXES = 1;
 
 function config() {
   const url = process.env.CLOUDFLARE_BUILD_WORKER_URL;
@@ -38,13 +46,40 @@ async function requestWorker(path: string, init: RequestInit) {
 }
 
 export async function createProjectSandbox(userId: string, projectId: string) {
-  await getProject(userId, projectId);
+  await getProject(userId, projectId, "deploy");
   const sandboxId = `${projectId}-${randomUUID()}`.toLowerCase();
-  const response = await requestWorker("/sandboxes", {
-    body: JSON.stringify({ sandboxId }),
-    method: "POST",
+  const active = await prisma.platformSandbox.count({
+    where: { projectId, status: { in: ["creating", "running"] } },
   });
-  return sandboxCreateResponseSchema.parse(await response.json());
+  if (active >= MAX_CONCURRENT_SANDBOXES) {
+    throw new ConflictError(
+      "This project has reached its concurrent sandbox limit",
+    );
+  }
+  await prisma.platformSandbox.create({
+    data: { id: sandboxId, projectId, userId },
+  });
+  try {
+    const response = await requestWorker("/sandboxes", {
+      body: JSON.stringify({ sandboxId }),
+      method: "POST",
+    });
+    const result = sandboxCreateResponseSchema.parse(await response.json());
+    await Promise.all([
+      prisma.platformSandbox.update({
+        where: { id: sandboxId },
+        data: { lastActiveAt: new Date(), status: "running" },
+      }),
+      recordUsageEvent(userId, projectId, "sandbox_creations"),
+    ]);
+    return result;
+  } catch (error) {
+    await prisma.platformSandbox.update({
+      where: { id: sandboxId },
+      data: { status: "error" },
+    });
+    throw error;
+  }
 }
 
 export async function runSandboxCommand(
@@ -53,13 +88,29 @@ export async function runSandboxCommand(
   sandboxId: string,
   command: string,
 ) {
-  await getProject(userId, projectId);
+  await getProject(userId, projectId, "deploy");
   assertProjectSandbox(projectId, sandboxId);
+  await assertRunningSandbox(userId, projectId, sandboxId);
+  const startedAt = Date.now();
   const response = await requestWorker(`/sandboxes/${sandboxId}`, {
     body: JSON.stringify({ command }),
     method: "POST",
   });
-  return sandboxCommandResponseSchema.parse(await response.json());
+  const result = sandboxCommandResponseSchema.parse(await response.json());
+  await Promise.all([
+    prisma.platformSandbox.update({
+      where: { id: sandboxId },
+      data: { lastActiveAt: new Date() },
+    }),
+    recordUsageEvent(
+      userId,
+      projectId,
+      "sandbox_active_ms",
+      Date.now() - startedAt,
+    ),
+    recordUsageEvent(userId, projectId, "sandbox_operations"),
+  ]);
+  return result;
 }
 
 export async function deleteProjectSandbox(
@@ -67,9 +118,35 @@ export async function deleteProjectSandbox(
   projectId: string,
   sandboxId: string,
 ) {
-  await getProject(userId, projectId);
+  await getProject(userId, projectId, "deploy");
   assertProjectSandbox(projectId, sandboxId);
+  const sandbox = await assertRunningSandbox(userId, projectId, sandboxId);
   await requestWorker(`/sandboxes/${sandboxId}`, { method: "DELETE" });
+  const destroyedAt = new Date();
+  await Promise.all([
+    prisma.platformSandbox.update({
+      where: { id: sandboxId },
+      data: { destroyedAt, lastActiveAt: destroyedAt, status: "destroyed" },
+    }),
+    recordUsageEvent(
+      userId,
+      projectId,
+      "sandbox_provisioned_ms",
+      destroyedAt.getTime() - sandbox.createdAt.getTime(),
+    ),
+  ]);
+}
+
+async function assertRunningSandbox(
+  userId: string,
+  projectId: string,
+  id: string,
+) {
+  const sandbox = await prisma.platformSandbox.findFirst({
+    where: { id, projectId, userId, status: "running" },
+  });
+  if (!sandbox) throw new ValidationError("Sandbox is not running");
+  return sandbox;
 }
 
 function assertProjectSandbox(projectId: string, sandboxId: string) {

@@ -25,12 +25,6 @@ const DEFAULT_TLDS = [
 ];
 const CHECK_BATCH_SIZE = 12;
 
-export async function searchOpenprovider(
-  name: string,
-): Promise<DomainSearchResult[] | null> {
-  return searchOpenproviderExtensions(name, DEFAULT_TLDS);
-}
-
 export async function searchOpenproviderExtensions(
   name: string,
   extensions: string[],

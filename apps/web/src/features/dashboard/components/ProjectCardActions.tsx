@@ -38,22 +38,23 @@ export function ProjectCardActions({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  async function removeProject() {
+  function removeProject() {
     if (deleting) return;
     setDeleting(true);
-    try {
-      await requestOk(
-        `/api/projects/${projectId}`,
-        { method: "DELETE" },
-        "Project deletion failed",
-      );
-      toast.success(`${projectName} deleted`);
-      setConfirmOpen(false);
-      router.refresh();
-    } catch (error) {
-      toast.error(readableError(error, "Project deletion failed"));
-      setDeleting(false);
-    }
+    void requestOk(
+      `/api/projects/${projectId}`,
+      { method: "DELETE" },
+      "Project deletion failed",
+    )
+      .then(() => {
+        toast.success(`${projectName} deleted`);
+        setConfirmOpen(false);
+        router.refresh();
+      })
+      .catch((error: unknown) => {
+        toast.error(readableError(error, "Project deletion failed"));
+      })
+      .finally(() => setDeleting(false));
   }
 
   return (

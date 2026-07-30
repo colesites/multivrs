@@ -30,6 +30,12 @@
       "new_sqlite_classes": ["Sandbox"]
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "BUILD_CACHE",
+      "bucket_name": "multivrs-build-cache"
+    }
+  ],
   "queues": {
     "producers": [
       {

@@ -1,12 +1,39 @@
 name = "multivrs-serve"
 main = "src/index.ts"
 compatibility_date = "2026-07-10"
+compatibility_flags = ["nodejs_compat"]
 
 # R2 bucket that stores every deployment's blobs + manifests.
 # Created automatically on first `wrangler deploy` (if it doesn't exist).
 [[r2_buckets]]
 binding = "ARTIFACTS"
 bucket_name = "multivrs-artifacts"
+
+[[r2_buckets]]
+binding = "CONTENT"
+bucket_name = "multivrs-content"
+
+[[kv_namespaces]]
+binding = "RUNTIME_CONFIG"
+
+[[queues.producers]]
+binding = "REVALIDATION_QUEUE"
+queue = "multivrs-revalidation"
+
+[[queues.consumers]]
+queue = "multivrs-revalidation"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 5
+dead_letter_queue = "multivrs-revalidation-dlq"
+
+[[durable_objects.bindings]]
+name = "CACHE_COORDINATOR"
+class_name = "CacheCoordinator"
+
+[[migrations]]
+tag = "content-cache-v1"
+new_sqlite_classes = ["CacheCoordinator"]
 
 # [[dispatch_namespaces]]
 # binding = "DISPATCHER"
@@ -23,6 +50,10 @@ binding = "IMAGES"
 binding = "ANALYTICS"
 dataset = "multivrs_requests"
 
+[[analytics_engine_datasets]]
+binding = "USAGE_ANALYTICS"
+dataset = "multivrs_usage"
+
 [[ratelimits]]
 name = "RATE_LIMITER"
 namespace_id = "1001"
@@ -31,7 +62,19 @@ namespace_id = "1001"
 limit = 100
 period = 60
 
+[[workflows]]
+binding = "WORKFLOWS"
+name = "multivrs-user-workflows"
+class_name = "MultivrsWorkflow"
+
+[triggers]
+crons = ["* * * * *"]
+
 # The control-plane API base URL used to resolve deployment IDs.
 # In production this is the deployed dashboard URL.
 [vars]
 CONTROL_PLANE_URL = "http://localhost:3000"
+
+[observability]
+enabled = true
+head_sampling_rate = 1

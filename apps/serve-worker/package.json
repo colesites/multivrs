@@ -4,12 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "dependencies": {
-    "@multivrs/firewall": "*"
+    "@multivrs/firewall": "*",
+    "@multivrs/routing-utils": "*"
   },
   "scripts": {
+    "configure:content-cors": "wrangler r2 bucket cors set multivrs-content --file r2-cors.json --force",
     "build:matcher": "bun run scripts/build-matcher.ts",
     "dev": "wrangler dev",
-    "deploy": "bun run build:matcher && wrangler deploy",
+    "deploy": "bun run build:matcher && wrangler deploy && bun run configure:content-cors",
     "deploy:dry": "bun run build:matcher && wrangler deploy --dry-run",
     "typecheck": "tsc --noEmit",
     "check-types": "tsc --noEmit"

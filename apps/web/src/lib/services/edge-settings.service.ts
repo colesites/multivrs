@@ -50,7 +50,7 @@ export async function updateEdgeSettings(
   projectId: string,
   input: UpdateEdgeSettingsInput,
 ): Promise<EdgeSettingsData> {
-  await getProject(userId, projectId);
+  await getProject(userId, projectId, "update");
   await prisma.projectEdgeSettings.upsert({
     where: { projectId },
     create: { projectId, ...input },
@@ -63,7 +63,7 @@ export async function purgeProjectCache(
   userId: string,
   projectId: string,
 ): Promise<void> {
-  await getProject(userId, projectId);
+  await getProject(userId, projectId, "update");
   const zoneId = process.env.CLOUDFLARE_ZONE_ID;
   const token = process.env.CLOUDFLARE_API_TOKEN;
   if (!zoneId || !token)

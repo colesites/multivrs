@@ -7,6 +7,7 @@ import {
   issueProjectOidcToken,
   oidcConfigured,
 } from "@/lib/services/oidc.service";
+import { getProject } from "@/lib/services/project.service";
 
 interface CloudBuildDispatch {
   apiUrl: string;
@@ -42,9 +43,10 @@ export async function dispatchCloudBuild({
   userId,
 }: CloudBuildDispatch) {
   const config = requireBuildWorkerConfig();
+  await getProject(userId, projectId, "deploy");
   const [project, githubAccount, projectEnvironment] = await Promise.all([
     prisma.project.findFirst({
-      where: { id: projectId, ownerId: userId },
+      where: { id: projectId },
       select: { framework: true },
     }),
     prisma.account.findFirst({

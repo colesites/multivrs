@@ -14,6 +14,8 @@ function Wormhole() {
   const shaderMaterialRef = useRef<THREE.ShaderMaterial>(null);
 
   // Generate 50,000 particles
+  // The typed GPU buffers are expensive resources whose identity must remain stable.
+  // react-doctor-disable-next-line react-doctor/react-compiler-no-manual-memoization
   const { positions, sizes, colors, ids } = useMemo(() => {
     const numPoints = 50000;
     const positions = new Float32Array(numPoints * 3);
@@ -53,6 +55,8 @@ function Wormhole() {
     return { positions, sizes, colors, ids };
   }, []);
 
+  // Uniforms are mutated on every frame and must not be recreated on rerender.
+  // react-doctor-disable-next-line react-doctor/react-compiler-no-manual-memoization
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },

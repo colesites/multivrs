@@ -21,3 +21,6 @@ new_sqlite_classes = ["SwiftRustContainer"]
 [[r2_buckets]]
 binding = "ARTIFACTS"
 bucket_name = "multivrs-artifacts"
+
+[vars]
+CONTROL_PLANE_URL = "http://localhost:3000"

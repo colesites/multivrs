@@ -55,6 +55,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
 
     if (isLoading) return;
     setIsLoading(true);
+    sessionStorage.setItem("multivrs.two-factor-return", returnTo);
     void authClient.signIn
       .email({
         email: formData.email,
@@ -66,6 +67,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
           toast.error(result.error.message || "Invalid email or password.");
           return;
         }
+        if (result.data && "twoFactorRedirect" in result.data) return;
         toast.success("Welcome back.");
         router.replace(returnTo);
         router.refresh();

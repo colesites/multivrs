@@ -3,7 +3,12 @@
  * This is the "does bot protection work" gate.
  */
 import { describe, expect, test } from "bun:test";
-import { evaluateFirewall, parseFirewallRules } from "@multivrs/firewall";
+import {
+  createFirewallBypassToken,
+  evaluateFirewall,
+  parseFirewallRules,
+  verifyFirewallBypassToken,
+} from "@multivrs/firewall";
 
 const base = { path: "/", method: "GET" };
 
@@ -83,5 +88,63 @@ describe("@multivrs/firewall evaluateFirewall", () => {
       },
     ]);
     expect(evaluateFirewall(rules, base).action).toBe("allow");
+  });
+});
+
+describe("@multivrs/firewall bypass tokens", () => {
+  test("accepts a signed token only for its project and path", async () => {
+    const secret = "a-long-test-secret-that-is-never-used-in-production";
+    const token = await createFirewallBypassToken(
+      {
+        expiresAt: Date.now() + 60_000,
+        pathPrefix: "/preview",
+        projectId: "project-one",
+        subject: "user-one",
+      },
+      secret,
+    );
+    expect(
+      await verifyFirewallBypassToken(token, secret, {
+        path: "/preview/dashboard",
+        projectId: "project-one",
+      }),
+    ).toBe(true);
+    expect(
+      await verifyFirewallBypassToken(token, secret, {
+        path: "/production",
+        projectId: "project-one",
+      }),
+    ).toBe(false);
+    expect(
+      await verifyFirewallBypassToken(token, secret, {
+        path: "/preview",
+        projectId: "project-two",
+      }),
+    ).toBe(false);
+  });
+
+  test("rejects expired and tampered tokens", async () => {
+    const secret = "another-long-test-secret-that-is-not-production";
+    const token = await createFirewallBypassToken(
+      {
+        expiresAt: Date.now() - 1,
+        pathPrefix: "/",
+        projectId: "project-one",
+        subject: "system",
+      },
+      secret,
+    );
+    expect(
+      await verifyFirewallBypassToken(token, secret, {
+        path: "/",
+        projectId: "project-one",
+      }),
+    ).toBe(false);
+    expect(
+      await verifyFirewallBypassToken(`${token}x`, secret, {
+        path: "/",
+        projectId: "project-one",
+      }),
+    ).toBe(false);
   });
 });

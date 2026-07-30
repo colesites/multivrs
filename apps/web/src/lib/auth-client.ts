@@ -13,8 +13,17 @@
  * - signOut() - End session
  */
 
-import { emailOTPClient, usernameClient } from "better-auth/client/plugins";
+import {
+  emailOTPClient,
+  organizationClient,
+  twoFactorClient,
+  usernameClient,
+} from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
+import {
+  organizationAccess,
+  organizationRoles,
+} from "@/lib/auth/organization-access";
 
 /**
  * Better Auth client instance
@@ -27,7 +36,12 @@ export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
 
   // Must mirror the server-side `username` + `emailOTP` plugins
-  plugins: [usernameClient(), emailOTPClient()],
+  plugins: [
+    usernameClient(),
+    emailOTPClient(),
+    twoFactorClient({ twoFactorPage: "/two-factor" }),
+    organizationClient({ ac: organizationAccess, roles: organizationRoles }),
+  ],
 });
 
 /**

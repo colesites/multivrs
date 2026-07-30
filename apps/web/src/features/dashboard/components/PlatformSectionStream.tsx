@@ -3,10 +3,12 @@ import { DashboardSectionSkeleton } from "@/features/dashboard/components/Dashbo
 import { ProjectPlatformSection } from "@/features/dashboard/components/ProjectPlatformSection";
 import type { SectionMeta } from "@/features/dashboard/constants/sections";
 import type { PlatformSection } from "@/features/dashboard/lib/project-platform-sections";
+import type { AnalyticsRange } from "@/features/dashboard/types/analytics.types";
 import { MailPageSkeleton } from "@/features/mail/MailPageSkeleton";
 import { parseMailView } from "@/features/mail/mail-view";
 
 export function PlatformSectionStream({
+  analyticsRange,
   compose,
   meta,
   requestedView,
@@ -14,6 +16,7 @@ export function PlatformSectionStream({
   section,
   username,
 }: {
+  analyticsRange: AnalyticsRange;
   compose?: string;
   meta: SectionMeta;
   requestedView?: string;
@@ -35,6 +38,7 @@ export function PlatformSectionStream({
       }
     >
       <ProjectPlatformSection
+        analyticsRange={analyticsRange}
         initialMailCompose={compose === "1"}
         initialMailView={parseMailView(requestedView)}
         meta={meta}

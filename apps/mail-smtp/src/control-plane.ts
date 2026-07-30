@@ -5,11 +5,7 @@ function addresses(value: AddressObject | AddressObject[] | undefined) {
   return values.flatMap((item) => item.value.map(({ address }) => address).filter(Boolean));
 }
 
-export async function authorize(
-  controlPlaneUrl: string,
-  username: string,
-  password: string,
-) {
+export async function authorize(controlPlaneUrl: string, username: string, password: string) {
   const response = await fetch(`${controlPlaneUrl}/api/v1/mail/smtp/auth`, {
     method: "POST",
     headers: { authorization: `Bearer ${password}`, "content-type": "application/json" },
@@ -18,11 +14,7 @@ export async function authorize(
   return response.ok;
 }
 
-export async function submitMail(
-  controlPlaneUrl: string,
-  password: string,
-  mail: ParsedMail,
-) {
+export async function submitMail(controlPlaneUrl: string, password: string, mail: ParsedMail) {
   const from = addresses(mail.from)[0];
   const to = addresses(mail.to);
   if (!from || !to.length) throw new Error("A sender and recipient are required");

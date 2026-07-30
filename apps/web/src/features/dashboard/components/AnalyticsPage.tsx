@@ -1,9 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { AnalyticsProjectPicker } from "@/features/dashboard/components/AnalyticsProjectPicker";
-import type { PlatformAnalytics } from "@/features/dashboard/types/analytics.types";
+import type {
+  AnalyticsRange,
+  PlatformAnalytics,
+} from "@/features/dashboard/types/analytics.types";
 import type { DashboardProject } from "@/features/dashboard/types/project.types";
 import { AnalyticsBreakdowns } from "./AnalyticsBreakdowns";
 import { AnalyticsMetrics } from "./AnalyticsMetrics";
@@ -47,27 +50,13 @@ export function AnalyticsPage({
 
         {/* Toggle Controls */}
         <div className="flex items-center gap-4 border-b border-[var(--hairline)]">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9 rounded-none border-b-2 border-foreground px-0 text-xs text-foreground"
-          >
-            24H
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9 rounded-none px-0 text-xs text-muted-foreground hover:text-foreground"
-          >
-            7D
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9 rounded-none px-0 text-xs text-muted-foreground hover:text-foreground"
-          >
-            30D
-          </Button>
+          {(["24h", "7d", "30d"] as const).map((range) => (
+            <RangeLink
+              active={analytics?.range === range}
+              key={range}
+              range={range}
+            />
+          ))}
         </div>
       </div>
 
@@ -84,8 +73,33 @@ export function AnalyticsPage({
         <AnalyticsBreakdowns
           paths={analytics.paths}
           countries={analytics.countries}
+          devices={analytics.devices}
+          referrers={analytics.referrers}
+          sources={analytics.sources}
         />
       )}
     </div>
+  );
+}
+
+function RangeLink({
+  active,
+  range,
+}: {
+  active: boolean;
+  range: AnalyticsRange;
+}) {
+  return (
+    <Link
+      className={`flex h-9 items-center rounded-none border-b-2 px-0 text-xs uppercase ${
+        active
+          ? "border-foreground text-foreground"
+          : "border-transparent text-muted-foreground hover:text-foreground"
+      }`}
+      href={`?range=${range}`}
+      scroll={false}
+    >
+      {range}
+    </Link>
   );
 }

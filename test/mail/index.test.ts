@@ -4,8 +4,8 @@ import { isMailView } from "../../apps/web/src/features/mail/mail-navigation";
 import { resourcePayload } from "../../apps/web/src/features/mail/mail-resource-form";
 import {
   absoluteMailDnsName,
-  isMailDomainInZone,
   isAuthenticatedSendingDomain,
+  isMailDomainInZone,
   normalizeMailDnsValue,
   relativeMailDnsName,
 } from "../../apps/web/src/lib/mail/mail-domain-dns";
@@ -129,15 +129,8 @@ describe("Multivrs Mail boundaries", () => {
   });
 
   test("maps delivery-provider DNS records into external and managed zones", () => {
-    expect(absoluteMailDnsName("mail.example.com", "multivrs")).toBe(
-      "multivrs.mail.example.com",
-    );
-    expect(
-      relativeMailDnsName(
-        "example.com",
-        "multivrs.mail.example.com",
-      ),
-    ).toBe("multivrs.mail");
+    expect(absoluteMailDnsName("mail.example.com", "multivrs")).toBe("multivrs.mail.example.com");
+    expect(relativeMailDnsName("example.com", "multivrs.mail.example.com")).toBe("multivrs.mail");
     expect(isMailDomainInZone("mail.example.com", "example.com")).toBe(true);
     expect(isMailDomainInZone("example.net", "example.com")).toBe(false);
     expect(normalizeMailDnsValue('"v=spf1 include:amazonses.com ~all"')).toBe(

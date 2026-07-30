@@ -36,7 +36,7 @@ async function loadProjects(params: Promise<{ username: string }>) {
   ]);
   if (!session) redirect("/login");
   if (session.user.username !== username) notFound();
-  return dashboardProjects(username);
+  return dashboardProjects(username, session.user.id);
 }
 
 async function loadUsage(params: Promise<{ username: string }>) {
@@ -46,5 +46,5 @@ async function loadUsage(params: Promise<{ username: string }>) {
   ]);
   if (!session) redirect("/login");
   if (session.user.username !== username) notFound();
-  return getAccountUsage(session.user.id);
+  return getAccountUsage(session.user.id, username);
 }

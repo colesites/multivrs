@@ -46,5 +46,9 @@ const server = new SMTPServer({
   },
 });
 
-server.on("error", (error) => console.error("SMTP gateway error", error));
-server.listen(config.port, () => console.info(`Multivrs SMTP listening on ${config.port}`));
+server.on("error", (error) => {
+  process.stderr.write(`SMTP gateway error: ${String(error)}\n`);
+});
+server.listen(config.port, () => {
+  process.stdout.write(`Multivrs SMTP listening on ${config.port}\n`);
+});

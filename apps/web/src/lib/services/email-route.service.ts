@@ -1,10 +1,7 @@
 import "server-only";
 import { ConflictError, NotFoundError } from "@multivrs/error-utils";
 import type { z } from "zod";
-import type {
-  DashboardEmailRoute,
-  EmailDomainOption,
-} from "@/features/dashboard/types/email-route.types";
+import type { DashboardEmailRoute } from "@/features/dashboard/types/email-route.types";
 import { prisma } from "@/lib/prisma";
 import type { createEmailRouteSchema } from "@/lib/schemas/email-route.schemas";
 import {
@@ -14,17 +11,6 @@ import {
 } from "@/lib/services/cloudflare-email.service";
 
 type CreateInput = z.infer<typeof createEmailRouteSchema>;
-
-export async function emailDomainOptions(
-  userId: string,
-  projectId?: string,
-): Promise<EmailDomainOption[]> {
-  return prisma.domain.findMany({
-    where: { userId, managed: true, ...(projectId ? { projectId } : {}) },
-    select: { hostname: true, projectId: true },
-    orderBy: { hostname: "asc" },
-  });
-}
 
 export async function listEmailRoutes(
   userId: string,

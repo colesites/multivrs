@@ -16,6 +16,20 @@ const errorResponseSchema = z.object({
   error: z.object({ message: z.string() }),
 });
 
+async function requestDomainVerification(domainId: string) {
+  const response = await fetch(`/api/mail/domains/${domainId}/verify`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    const body: unknown = await response.json().catch(() => null);
+    const error = errorResponseSchema.safeParse(body);
+    throw new Error(
+      error.success ? error.data.error.message : "DNS verification failed",
+    );
+  }
+  return verificationResponseSchema.parse(await response.json());
+}
+
 export function MailDomainVerifyButton({
   domainId,
   verified,
@@ -26,36 +40,29 @@ export function MailDomainVerifyButton({
   const router = useRouter();
   const [checking, setChecking] = useState(false);
 
-  async function verify() {
+  function verify() {
     setChecking(true);
-    try {
-      const response = await fetch(`/api/mail/domains/${domainId}/verify`, {
-        method: "POST",
-      });
-      const body: unknown = await response.json();
-      if (!response.ok) {
-        const error = errorResponseSchema.safeParse(body);
+    void requestDomainVerification(domainId)
+      .then((result) => {
+        if (result.verified) {
+          toast.success("Sending domain verified");
+        } else if (result.status === "failed") {
+          toast.error("Some DNS records are incorrect or missing");
+        } else {
+          toast.info(
+            "Verification is in progress. Check again in a few minutes.",
+          );
+        }
+        router.refresh();
+      })
+      .catch((error: unknown) => {
         toast.error(
-          error.success ? error.data.error.message : "DNS verification failed",
+          error instanceof Error
+            ? error.message
+            : "Unable to reach the mail verification service",
         );
-        return;
-      }
-      const result = verificationResponseSchema.parse(body);
-      if (result.verified) {
-        toast.success("Sending domain verified");
-      } else if (result.status === "failed") {
-        toast.error("Some DNS records are incorrect or missing");
-      } else {
-        toast.info(
-          "Verification is in progress. Check again in a few minutes.",
-        );
-      }
-      router.refresh();
-    } catch {
-      toast.error("Unable to reach the mail verification service");
-    } finally {
-      setChecking(false);
-    }
+      })
+      .then(() => setChecking(false));
   }
 
   return (

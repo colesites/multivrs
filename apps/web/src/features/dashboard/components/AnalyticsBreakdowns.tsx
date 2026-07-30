@@ -3,14 +3,23 @@ import type { AnalyticsBreakdownItem } from "@/features/dashboard/types/analytic
 export function AnalyticsBreakdowns({
   paths,
   countries,
+  devices,
+  referrers,
+  sources,
 }: {
   paths: AnalyticsBreakdownItem[];
   countries: AnalyticsBreakdownItem[];
+  devices: AnalyticsBreakdownItem[];
+  referrers: AnalyticsBreakdownItem[];
+  sources: AnalyticsBreakdownItem[];
 }) {
   return (
     <div className="grid divide-y divide-[var(--hairline)] border-y border-[var(--hairline)] lg:grid-cols-2 lg:divide-x lg:divide-y-0">
       <Breakdown title="Top paths" items={paths} />
       <Breakdown title="Top countries" items={countries} />
+      <Breakdown title="Referrers" items={referrers} />
+      <Breakdown title="UTM sources" items={sources} />
+      <Breakdown title="Devices" items={devices} />
     </div>
   );
 }
