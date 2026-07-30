@@ -71,6 +71,7 @@ export function HeroContent() {
             lineColor="#ffffff"
             textColor="#000000"
             className="group"
+            forceTheme="dark"
           >
             <span className="flex items-center gap-2 font-semibold">
               Start for free
@@ -88,6 +89,7 @@ export function HeroContent() {
             baseColor="#333333"
             lineColor="#ffffff"
             textColor="currentColor"
+            forceTheme="dark"
           >
             <span className="font-medium">Talk to sales</span>
           </SpecularButton>
