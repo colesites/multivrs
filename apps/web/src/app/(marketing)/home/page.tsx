@@ -23,7 +23,7 @@ export default function Home() {
         className="relative z-10 dark text-foreground bg-background"
       >
         {/* Overscroll buffer for mobile rubber-banding at the top */}
-        <div className="absolute inset-x-0 top-0 h-[50vh] -translate-y-full bg-[#0a0015]" />
+        <div className="absolute inset-x-0 bottom-full h-[50vh] bg-[#0a0015]" />
         <HeroSection />
         <CapabilitiesSection />
       </div>

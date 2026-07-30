@@ -21,8 +21,8 @@ export function NavbarMobile({ onClose }: NavbarMobileProps) {
   };
 
   return (
-    <div className="fixed inset-x-0 top-16 bottom-0 z-50 overflow-y-auto bg-background/95 backdrop-blur-xl md:hidden">
-      <div className="flex min-h-[calc(100vh-4rem)] flex-col p-6">
+    <div className="fixed inset-x-0 top-0 bottom-0 z-49 overflow-y-auto bg-background/95 backdrop-blur-xl md:hidden">
+      <div className="flex min-h-screen flex-col p-6 pt-22">
         <div className="space-y-1">
           {MEGA_MENUS.map((menu) => {
             const isOpen = openMenu === menu.label;
