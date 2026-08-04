@@ -50,14 +50,14 @@ export function AccountProfileForm({
   }
 
   return (
-    <section className="border-y border-[var(--hairline)] py-6">
-      <div className="mb-5">
-        <h2 className="text-base font-semibold text-foreground">Profile</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+    <section className="overflow-hidden rounded-2xl border border-(--hairline) bg-background/70">
+      <div className="border-b border-(--hairline) px-5 py-4">
+        <h2 className="text-sm font-semibold">Profile</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
           Your account identity and dashboard URL.
         </p>
       </div>
-      <div className="grid max-w-2xl gap-5 sm:grid-cols-2">
+      <div className="grid max-w-2xl gap-5 p-5 sm:grid-cols-2">
         <label
           htmlFor="profile-name"
           className="space-y-2 text-xs text-muted-foreground"
@@ -109,13 +109,17 @@ export function AccountProfileForm({
           />
         </label>
       </div>
-      <Button
-        className="mt-5"
-        onClick={save}
-        disabled={busy || !profile.name.trim() || !profile.username.trim()}
-      >
-        {busy ? "Saving…" : "Save profile"}
-      </Button>
+      <div className="flex items-center justify-between border-t border-(--hairline) bg-black/2 dark:bg-white/2 px-5 py-3">
+        <p className="text-xs text-muted-foreground">
+          Please use 32 characters at maximum.
+        </p>
+        <Button
+          onClick={save}
+          disabled={busy || !profile.name.trim() || !profile.username.trim()}
+        >
+          {busy ? "Saving…" : "Save profile"}
+        </Button>
+      </div>
     </section>
   );
 }

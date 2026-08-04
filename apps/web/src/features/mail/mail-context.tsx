@@ -10,6 +10,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import type {
   MailDashboardData,
   MailMessageDetail,
@@ -94,6 +95,18 @@ export function MailProvider({
     url.searchParams.set("view", nextView);
     window.history.pushState(null, "", url);
   };
+
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const nextView = searchParams.get("view");
+    if (nextView) {
+      setViewState(parseMailView(nextView));
+    } else if (pathname.endsWith("/emails")) {
+      setViewState(initialView);
+    }
+  }, [searchParams, pathname, initialView]);
 
   useEffect(() => {
     const syncView = () => {

@@ -43,27 +43,27 @@ export const DASHBOARD_NAV_ITEMS: readonly DashboardNavItem[] = [
   { name: "Projects", slug: "", icon: LayoutGrid, badge: "Beta" },
   { name: "Deployments", slug: "deployments", icon: Rocket, badge: "Beta" },
   { name: "Logs", slug: "logs", icon: ScrollText, badge: "Beta" },
-  { name: "Analytics", slug: "analytics", icon: Activity, badge: "Beta" },
+  { name: "Analytics", slug: "analytics", icon: Activity, badge: "Soon" },
   {
     name: "Speed Insights",
     slug: "speed-insights",
     icon: Gauge,
-    badge: "Beta",
+    badge: "Soon",
   },
-  { name: "Observability", slug: "observability", icon: Radar, badge: "Beta" },
-  { name: "Firewall", slug: "firewall", icon: ShieldCheck, badge: "Beta" },
-  { name: "CDN", slug: "cdn", icon: Network, badge: "Beta" },
+  { name: "Observability", slug: "observability", icon: Radar, badge: "Soon" },
+  { name: "Firewall", slug: "firewall", icon: ShieldCheck, badge: "Soon" },
+  { name: "CDN", slug: "cdn", icon: Network, badge: "Soon" },
   {
     name: "Environment Variables",
     slug: "environment-variables",
     icon: KeyRound,
-    badge: "Beta",
+    badge: "Soon",
   },
-  { name: "Integrations", slug: "integrations", icon: PlugZap, badge: "Beta" },
-  { name: "Sandboxes", slug: "sandboxes", icon: SquareTerminal, badge: "Beta" },
-  { name: "Workflows", slug: "workflows", icon: Workflow, badge: "Beta" },
-  { name: "Domains", slug: "domains", icon: Globe, badge: "Beta" },
-  { name: "Emails", slug: "emails", icon: AtSign, badge: "Beta" },
+  { name: "Integrations", slug: "integrations", icon: PlugZap, badge: "Soon" },
+  { name: "Sandboxes", slug: "sandboxes", icon: SquareTerminal, badge: "Soon" },
+  { name: "Workflows", slug: "workflows", icon: Workflow, badge: "Soon" },
+  { name: "Domains", slug: "domains", icon: Globe },
+  { name: "Emails", slug: "emails", icon: AtSign },
   { name: "Settings", slug: "settings", icon: Settings, badge: "Beta" },
 ] as const;
 
@@ -83,5 +83,9 @@ export function buildNavHref(
       ? `/${username}`
       : `/${username}/${scope}`;
   }
-  return `/${username}/${scope}/${slug}`;
+  const href = `/${username}/${scope}/${slug}`;
+  if (slug === "emails" || slug === "observability") {
+    return `${href}?view=overview`;
+  }
+  return href;
 }

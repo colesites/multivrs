@@ -13,8 +13,7 @@ export type UsageMetric =
   | "isr_reads"
   | "isr_writes"
   | "microfrontend_routing"
-  | "workflow_data_written_bytes"
-  | "workflow_events";
+  | "workflow_data_written_bytes";
 
 export function recordUsage(
   env: Env,

@@ -1,8 +1,10 @@
 # MULTIVRS — System Architecture
 
-> Status: **Draft v1** · Companion to [`apps/web/PLAN.md`](apps/web/PLAN.md).
-> This is the *whole-system* view ("what we need for everything"); PLAN.md is the
-> package-by-package engineering breakdown and language strategy.
+> Status: **Implemented architecture v2 (2026-08-01)** · Companion to
+> [`apps/web/PLAN.md`](apps/web/PLAN.md). Source implementation is complete
+> through Phase 6. Items marked operational require provider deployment,
+> credentials, contracts, or certifications and cannot be completed by source
+> code alone.
 
 Multivrs is a deployment platform (Vercel-class): connect a repo, we detect the
 framework, build it, optimize its assets, store immutable artifacts, and serve
@@ -38,28 +40,23 @@ Everything separates into three planes. Confusing them is the #1 mistake.
 
 ## 2. Component map — everything we need
 
-| Subsystem | Job | Lang | Phase |
+| Subsystem | Job | Lang | Status |
 |---|---|---|---|
-| Dashboard (`apps/web`) | Control-plane UI (projects, deploys, domains, …) | TS / Next | now |
-| Control-plane API | CRUD for projects/deploys/domains/env; webhooks | TS | 0 |
-| `config` | `multivrs.json` schema (zod) + types | TS | 0 |
-| `client` | typed API client (CLI + dashboard) | TS | 0 |
-| `fs-detectors` + `frameworks` | detect framework / package manager / monorepo | TS | 1 |
-| `builder-next` | build Next.js → assets + functions | TS | 1 |
-| `builder-swift-rust` | build swift-rust → binary + assets (per render mode) | TS→Rust | 1 |
-| **Asset optimizer** | compress/transcode public assets (see §5) | Rust | 1 |
-| `builder-core` | content hashing, tar, parallel upload, sandbox exec | Rust | 1 |
-| `cli` | single-binary deploy CLI | Rust | 1 |
-| `proxy` / edge router | TLS, route domain→deployment, static-vs-compute | Go / Cloudflare | 1–2 |
-| `functions-runtime` + `edge` | runtime helpers, middleware primitives | TS | 2 |
-| `routing-utils` | routes/redirects/rewrites/headers rule engine | TS (+Rust matcher) | 2 |
-| `firewall` | WAF/bot rules (control plane) + enforcement | TS + Go/Cloudflare | 3 |
-| Domains | register/resell (reseller API) + DNS/TLS (Cloudflare) + pricing/auto-config — §7 | TS + reseller + CF | 1–3 |
-| Email (platform) | transactional notifications | Resend | 0–1 |
-| Email (customer) | DNS-based: forwarding (CF Routing) or connect-your-own — §8 | — | later |
-| Analytics / Speed Insights | page views + Web Vitals ingest + query | TS + columnar store | 3 |
-| Logs | function + edge log streaming/tail | Go ingest + columnar | 3 |
-| Observability | OTel traces/metrics | TS/OTel | 3 |
+| Dashboard (`apps/web`) | Control-plane UI (projects, deploys, domains, Mail, usage) | TS / Next | ✅ built |
+| Control-plane API | CRUD for platform resources and signed webhooks | TS | ✅ built |
+| `config` + `client` | validated config and typed platform client | TS | ✅ built |
+| `fs-detectors` + `frameworks` | detect framework, package manager, and monorepo | TS | ✅ built |
+| `builder-next` + `builder-swift-rust` | build executable/static artifacts | TS→Rust | ✅ built |
+| Asset optimizer + `builder-core` | optimize, hash, package, and upload artifacts | Rust | ✅ built |
+| `cli` | native deploy/link/promote/log client | Rust | ✅ built |
+| Edge router | hostname, route, cache, firewall, static, and compute dispatch | TS / Cloudflare | ✅ built · deploy externally |
+| Runtime + routing | functions, middleware, redirects, rewrites, and WASM matcher | TS + Rust | ✅ built |
+| Firewall | tenant rules, attack mode, bot/IP controls, and rate limiting | TS / Cloudflare | ✅ built · managed entitlements vary |
+| Domains | registration, DNS, TLS, pricing, checkout, and auto-configuration | TS + Openprovider + CF | ✅ built · activate providers |
+| Email (platform) | authentication and system notifications | Resend | ✅ built |
+| Multivrs Mail | two-way mailboxes, domains, SMTP/API, campaigns, and events | TS + Resend + CF | ✅ built · deploy gateways/workers |
+| Analytics / Speed Insights | page views, requests, and Web Vitals ingestion/query | TS + Analytics Engine | ✅ built · bind production dataset |
+| Logs + Observability | runtime logs, metrics, traces, queries, and dashboards | TS + columnar store | ✅ built · configure retention |
 
 Full per-package mapping to Vercel's monorepo is in [PLAN.md §1](apps/web/PLAN.md).
 
@@ -228,8 +225,9 @@ guard: discountedRetail ≥ floor (cost + fees)   // unless an intentional loss-
 Because a domain registered through us has its **zone on Cloudflare**, we own its
 DNS and provision everything **automatically, no manual records**:
 - **Site**: A/AAAA/CNAME → our edge; TXT verification; **TLS auto-issued**.
-- **Email**: MX + SPF + DKIM + DMARC for free forwarding (Cloudflare Email
-  Routing), or the records for a "connect your own" provider (Google/Zoho).
+- **Email**: Resend MX + SPF + DKIM + DMARC records for Multivrs Mail, installed
+  automatically when Multivrs controls DNS. External DNS users receive the same
+  verified record set to install at their registrar/DNS provider.
 - **Routing**: alias the new hostname → the project's production deployment.
 
 One purchase → working site **and** email, instantly. (A domain a user *brings*
@@ -244,24 +242,19 @@ control its DNS, those steps are guided rather than automatic.)
 - **Firewall / bot**: TS control plane writes rules (rate limits, IP rules,
   managed rulesets, attack mode); enforcement via Cloudflare **WAF** + **Turnstile**
   + DDoS (later, our Go proxy).
-- **Email** — three roles, kept separate (Resend *sends*, Cloudflare *forwards*):
-  1. *Platform sending* (deploy alerts, resets, invites) → **Resend**, from a
-     verified domain (`c-technology-inc.com` and/or `noreply@multivrs.app`).
-     **Outbound only** — Resend does not receive or forward.
-  2. *Free-user forwarding perk* — each project can get
-     `projectname@multivrs.app` that **forwards to the user's own inbox** (e.g.
-     their Gmail) via **Cloudflare Email Routing** on the `multivrs.app` zone
-     (free). User verifies their inbox as the destination once; mail then lands
-     there. Per-zone rule limits are fine early; at large scale move to a
-     catch-all **Email Worker** or a dedicated forwarder (e.g. ForwardEmail).
-  3. *Paid add-on — à la carte, NOT bundled in any plan*: **buy a domain**
-     (Cloudflare **reseller**). Email on that domain is then just **DNS we manage**
-     — either free forwarding (#2) or **"connect your own email platform"**
-     (Google Workspace / Zoho / etc.: we write their MX/DKIM records). **We do NOT
-     host mailboxes** — owning the domain + DNS is what enables email.
+- **Email** — two separate products share provider infrastructure:
+  1. *Platform notifications* (authentication, deploy alerts, and invitations)
+     use Resend from a Multivrs-controlled verified domain.
+  2. *Multivrs Mail* is a tenant-scoped two-way mailbox product. Resend accepts
+     outbound messages and inbound MX delivery; Cloudflare queues/workers provide
+     durable scheduling, retries, normalized events, and private attachment/raw
+     MIME storage. Neon stores mailbox/thread metadata and sanitized content.
 
-  No-money users still get a working `*.multivrs.app` subdomain **and** a free
-  `@multivrs.app` forwarding address — $0 to them, ~$0 to us.
+  Mail domains bought through Multivrs receive SPF, DKIM, DMARC, MX, tracking,
+  and return-path records automatically. Bring-your-own domains show the exact
+  records to add wherever DNS is hosted. The source product is complete; Workers,
+  SMTP, inbound storage, provider webhooks, and paid volume must be activated as
+  production operations.
 - **Analytics / Speed Insights**: client beacon (page views + Core Web Vitals) +
   server request analytics → **columnar store** (Cloudflare Analytics Engine /
   ClickHouse / Tinybird). *Never Postgres* for this volume.
@@ -352,8 +345,10 @@ What we provision to run all of the above:
 | WAF + bot + DDoS | **Cloudflare WAF / Turnstile** |
 | SSR + binary compute | **Cloudflare Workers** (Next via OpenNext; swift-rust SSR via WASM). Fly.io / Oracle / own fleet only if an app outgrows Workers. |
 | Transactional email (platform) | **Resend** |
-| Customer email forwarding | **Cloudflare Email Routing** (free) |
-| Customer "connect your own email" | set MX/DKIM DNS → their provider (Google/Zoho). We don't host mailboxes. |
+| Multivrs Mail sending + receiving | **Resend** transactional sending/receiving |
+| Mail queue, scheduling, and inbound normalization | **Cloudflare Workers + Queues** |
+| Raw MIME and attachment bodies | Private **Cloudflare R2** bucket |
+| SMTP submission | `apps/mail-smtp` TLS gateway + tenant-scoped credentials |
 | Analytics + logs store | **Cloudflare Analytics Engine** or **Tinybird/ClickHouse** |
 | Auth | **Better Auth** (already wired) |
 | CI/build runners | **Cloudflare Queues + Sandbox SDK Containers** (Rust `builder-core` + Bun) |
@@ -379,7 +374,7 @@ free plan** instead. Nothing here costs money to start.
 | Next.js SSR | **OpenNext → Workers** (mind the 3 MiB worker size limit on free) | none |
 | swift-rust SSR | compile render core to **WASM → Workers** (Workers run WASM natively) | none |
 | swift-rust `wasm` / static export | Pages / Workers static — fully free | none |
-| Email | **Resend** — 3k/mo, 100/day | none |
+| Email | **Resend** — 3k sent-or-received units/mo, 100/day | none |
 | Bot | **Turnstile** | none |
 | Auth | **Better Auth** (self-host) | free |
 | Build/optimize runners | local runner or **GitHub Actions** for development; Cloudflare Sandbox requires Workers Paid for production | Sandbox: yes |
@@ -431,7 +426,18 @@ See [PLAN.md §6](apps/web/PLAN.md). Short version:
 **1** deploy loop for Next + swift-rust (detect/build/optimize/store/serve) →
 **2** edge + runtime + routing →
 **3** platform services (firewall, domains, logs, analytics, observability) →
-**4** more builders/adapters, OIDC, MCP, sandboxes.
+**4** more builders/adapters, OIDC, MCP, sandboxes →
+**5** production dashboard and operational hardening →
+**6** Sanity pricing, usage economics, and Multivrs Mail.
+
+Phases 0–6 application source is implemented, including the executable billing
+catalog, resource and usage enforcement, multi-item Stripe subscriptions,
+project/workspace add-ons, meter publication and retries, invoice reconciliation,
+Enterprise Quote overrides, spend controls, and the customer billing UI. The
+remaining work is operational rather than application code: apply migrations,
+create provider-side Stripe products/prices/meters, deploy workers and containers,
+configure secrets/webhooks/paid entitlements, and run real smoke tests. The exact
+go-live checklist is in [PLAN.md §6](apps/web/PLAN.md).
 
 **Phase gate:** each phase ends with tests in [`/test`](test) green
 (`bun test`). The phase isn't "done" until its gate passes — see

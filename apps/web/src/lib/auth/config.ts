@@ -11,11 +11,12 @@
  * - Database adapter (Prisma)
  */
 
-import type { BetterAuthOptions } from "better-auth";
+import { APIError, type BetterAuthOptions } from "better-auth";
 import { organization, twoFactor, username } from "better-auth/plugins";
 import { emailOTP } from "better-auth/plugins/email-otp";
 import { sendOtpEmail } from "@/lib/email/auth-emails";
 import { sendOrganizationInvitation } from "@/lib/email/organization-emails";
+import { assertOrganizationSeat } from "@/lib/services/organization-seat.service";
 import { databaseHooks } from "./hooks";
 import { generateUniqueUsername } from "./oauth-username";
 import { organizationAccess, organizationRoles } from "./organization-access";
@@ -161,6 +162,24 @@ export const authConfig = {
       invitationExpiresIn: 60 * 60 * 48,
       invitationLimit: 100,
       membershipLimit: 1_000,
+      organizationHooks: {
+        beforeCreateInvitation: async ({ invitation }) => {
+          try {
+            await assertOrganizationSeat(
+              invitation.inviterId,
+              invitation.organizationId,
+              invitation.role,
+            );
+          } catch (error) {
+            throw new APIError("FORBIDDEN", {
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "The workspace developer-seat limit has been reached.",
+            });
+          }
+        },
+      },
       requireEmailVerificationOnInvitation: true,
       sendInvitationEmail: async (data) => {
         await sendOrganizationInvitation({

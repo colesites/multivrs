@@ -32,13 +32,13 @@ export function MailComposeFields({
   return (
     <div className="flex-1 space-y-4 overflow-y-auto p-5 md:p-6">
       {!mailboxes.length ? (
-        <p className="rounded-lg border border-amber-300/20 bg-amber-300/[0.06] p-3 text-xs text-amber-100">
+        <p className="rounded-lg border border-amber-300/20 bg-amber-300/6 p-3 text-xs text-amber-100">
           Create a mailbox and verify its domain before sending.
         </p>
       ) : null}
       <ComposeField label="From">
         <select
-          className="h-10 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm outline-hidden"
+          className="h-10 w-full rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-3 text-sm outline-hidden"
           defaultValue={mailboxes[0]?.id}
           name="mailboxId"
           required

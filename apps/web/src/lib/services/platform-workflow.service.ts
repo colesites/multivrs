@@ -12,8 +12,12 @@ import type {
   PlatformWorkflowStep,
 } from "@/lib/schemas/platform-workflow.schemas";
 import { platformWorkflowStepSchema } from "@/lib/schemas/platform-workflow.schemas";
+import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
 import { getProject, type ProjectAction } from "@/lib/services/project.service";
-import { recordUsageEvent } from "@/lib/services/usage-event.service";
+import {
+  recordUsageEvent,
+  releaseUsageReservation,
+} from "@/lib/services/usage-event.service";
 
 interface WorkflowDispatchPayload {
   input?: Prisma.JsonValue;
@@ -21,6 +25,11 @@ interface WorkflowDispatchPayload {
   runId: string;
   steps: PlatformWorkflowStep[];
   workflowId: string;
+}
+
+interface ClaimedWorkflow extends WorkflowDispatchPayload {
+  payloadBytes: number;
+  userId: string;
 }
 
 const CRON_FIELDS = [
@@ -71,6 +80,28 @@ export async function createPlatformWorkflow(
   input: CreatePlatformWorkflowInput,
 ) {
   await requireOwnedProject(userId, projectId, "update");
+  const [workflowCount, cronCount] = await Promise.all([
+    prisma.platformWorkflow.count({ where: { projectId } }),
+    input.cron
+      ? prisma.platformWorkflowCron.count({
+          where: { workflow: { projectId } },
+        })
+      : Promise.resolve(0),
+  ]);
+  await assertResourceAvailable({
+    current: workflowCount,
+    projectId,
+    resource: "workflows",
+    userId,
+  });
+  if (input.cron) {
+    await assertResourceAvailable({
+      current: cronCount,
+      projectId,
+      resource: "cron_jobs",
+      userId,
+    });
+  }
   const nextRunAt = input.cron
     ? nextCronOccurrence(input.cron, new Date())
     : null;
@@ -119,7 +150,38 @@ export async function runPlatformWorkflow(
       workflowId,
     },
   });
+  const reservations: string[] = [];
   try {
+    reservations.push(
+      await recordUsageEvent(
+        userId,
+        projectId,
+        "workflow_events",
+        steps.length,
+        {
+          billingDimension: "step",
+          runId: run.id,
+          trigger: "manual",
+        },
+        {
+          deferMeterPublication: true,
+          idempotencyKey: `workflow:${run.id}:steps`,
+        },
+      ),
+    );
+    reservations.push(
+      await recordUsageEvent(
+        userId,
+        projectId,
+        "workflow_data_written_bytes",
+        payloadBytes,
+        { runId: run.id },
+        {
+          deferMeterPublication: true,
+          idempotencyKey: `workflow:${run.id}:input`,
+        },
+      ),
+    );
     await dispatchPlatformWorkflow({
       input,
       projectId,
@@ -128,6 +190,7 @@ export async function runPlatformWorkflow(
       workflowId,
     });
   } catch (error) {
+    await Promise.all(reservations.map(releaseUsageReservation));
     await prisma.platformWorkflowRun.update({
       where: { id: run.id },
       data: {
@@ -139,25 +202,12 @@ export async function runPlatformWorkflow(
     });
     throw error;
   }
-  await recordUsageEvent(userId, projectId, "workflow_events", 1, {
-    runId: run.id,
-    trigger: "manual",
-  });
-  await recordUsageEvent(
-    userId,
-    projectId,
-    "workflow_data_written_bytes",
-    payloadBytes,
-    {
-      runId: run.id,
-    },
-  );
   return run;
 }
 
 export async function claimDuePlatformWorkflowRuns(limit = 100) {
   const now = new Date();
-  return prisma.$transaction(async (tx) => {
+  const claimed = await prisma.$transaction(async (tx) => {
     const due = await tx.platformWorkflowCron.findMany({
       where: {
         enabled: true,
@@ -169,7 +219,7 @@ export async function claimDuePlatformWorkflowRuns(limit = 100) {
       take: Math.min(Math.max(limit, 1), 100),
     });
     const runs = await Promise.all(
-      due.map(async (schedule): Promise<WorkflowDispatchPayload | null> => {
+      due.map(async (schedule): Promise<ClaimedWorkflow | null> => {
         const nextRunAt = nextCronOccurrence(schedule.expression, now);
         const claimed = await tx.platformWorkflowCron.updateMany({
           where: { id: schedule.id, enabled: true, nextRunAt: { lte: now } },
@@ -191,36 +241,86 @@ export async function claimDuePlatformWorkflowRuns(limit = 100) {
             workflowId: schedule.workflowId,
           },
         });
-        const payload = {
+        return {
           input,
+          payloadBytes: run.payloadBytes,
           projectId,
           runId: run.id,
           steps,
+          userId,
           workflowId: schedule.workflowId,
-        } satisfies WorkflowDispatchPayload;
-        await tx.usageEvent.createMany({
-          data: [
-            {
-              metadata: { runId: run.id, trigger: "schedule" },
-              metric: "workflow_events",
-              projectId,
-              quantity: 1,
-              userId,
-            },
-            {
-              metadata: { runId: run.id },
-              metric: "workflow_data_written_bytes",
-              projectId,
-              quantity: run.payloadBytes,
-              userId,
-            },
-          ],
-        });
-        return payload;
+        } satisfies ClaimedWorkflow;
       }),
     );
-    return runs.filter((run): run is WorkflowDispatchPayload => run !== null);
+    return runs.filter((run): run is ClaimedWorkflow => run !== null);
   });
+  return authorizeClaimedWorkflows(claimed);
+}
+
+async function authorizeClaimedWorkflows(
+  claimed: ClaimedWorkflow[],
+  index = 0,
+): Promise<WorkflowDispatchPayload[]> {
+  const item = claimed[index];
+  if (!item) return [];
+  const reservations: string[] = [];
+  try {
+    reservations.push(
+      await recordUsageEvent(
+        item.userId,
+        item.projectId,
+        "workflow_events",
+        item.steps.length,
+        {
+          billingDimension: "step",
+          runId: item.runId,
+          trigger: "schedule",
+        },
+        {
+          deferMeterPublication: true,
+          // Keep the legacy identifier so a run claimed before this deployment
+          // cannot be charged again when its quantity changes from runs to steps.
+          idempotencyKey: `workflow:${item.runId}:event`,
+        },
+      ),
+    );
+    reservations.push(
+      await recordUsageEvent(
+        item.userId,
+        item.projectId,
+        "workflow_data_written_bytes",
+        item.payloadBytes,
+        { runId: item.runId },
+        {
+          deferMeterPublication: true,
+          idempotencyKey: `workflow:${item.runId}:input`,
+        },
+      ),
+    );
+    const rest = await authorizeClaimedWorkflows(claimed, index + 1);
+    return [
+      {
+        input: item.input,
+        projectId: item.projectId,
+        runId: item.runId,
+        steps: item.steps,
+        workflowId: item.workflowId,
+      },
+      ...rest,
+    ];
+  } catch (error) {
+    await Promise.all(reservations.map(releaseUsageReservation));
+    await prisma.platformWorkflowRun.update({
+      where: { id: item.runId },
+      data: {
+        errorMessage:
+          error instanceof Error ? error.message : "Usage limit reached",
+        finishedAt: new Date(),
+        status: "errored",
+      },
+    });
+    return authorizeClaimedWorkflows(claimed, index + 1);
+  }
 }
 
 export async function updatePlatformWorkflowRun(input: {

@@ -35,6 +35,13 @@ async function serveResolvedDeployment(
   context: ExecutionContext,
   deployment: ControlResolution,
 ): Promise<ServedDeployment> {
+  if (deployment.billingBlocked) {
+    return result(
+      deployment,
+      deployment.billingBlockReason ?? "This deployment has reached its usage limit",
+      402,
+    );
+  }
   const firewallResponse = await enforceFirewall(request, env, deployment);
   if (firewallResponse) return { ...deployment, response: firewallResponse };
   const pathname = new URL(request.url).pathname;

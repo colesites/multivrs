@@ -14,6 +14,7 @@ import { getServerSession } from "@/lib/auth/session";
 import { getAccountProfile } from "@/lib/services/account.service";
 import { listApiTokens } from "@/lib/services/api-token.service";
 import { listAuditEvents } from "@/lib/services/audit-event.service";
+import { getBillingOverview } from "@/lib/services/billing-overview.service";
 import {
   dashboardDeployments,
   dashboardProjects,
@@ -76,13 +77,15 @@ export default async function SectionPage({
   if (section === "settings" && scope === ALL_PROJECTS_SCOPE) {
     const session = await getServerSession();
     if (!session) notFound();
-    const [events, profile, tokens] = await Promise.all([
+    const [billing, events, profile, tokens] = await Promise.all([
+      getBillingOverview(session.user.id),
       listAuditEvents(session.user.id),
       getAccountProfile(session.user.id),
       listApiTokens(session.user.id),
     ]);
     return (
       <SettingsPage
+        billing={billing}
         events={events}
         profile={profile}
         tokens={tokens}

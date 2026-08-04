@@ -19,7 +19,7 @@ export function FormField({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="capitalize text-white/45" htmlFor={name}>
+      <Label className="capitalize text-black/45 dark:text-white/45" htmlFor={name}>
         {name.replace(/([A-Z])/g, " $1")}
       </Label>
       <Input
@@ -42,7 +42,7 @@ export function FormArea({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="capitalize text-white/45" htmlFor={name}>
+      <Label className="capitalize text-black/45 dark:text-white/45" htmlFor={name}>
         {name}
       </Label>
       <Textarea
@@ -65,9 +65,9 @@ export function FormChoice({
 }) {
   return (
     <label className="space-y-1.5">
-      <Label className="capitalize text-white/45">{name}</Label>
+      <Label className="capitalize text-black/45 dark:text-white/45">{name}</Label>
       <select
-        className="h-10 w-full rounded-lg border border-white/10 bg-[#0b0c10] px-3 text-sm capitalize"
+        className="h-10 w-full rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-[#0b0c10] px-3 text-sm capitalize"
         name={name}
       >
         {options.map((option) => (
@@ -87,11 +87,11 @@ export function AudienceChoice({
 }) {
   return (
     <label className="space-y-1.5">
-      <Label className="text-white/45">
+      <Label className="text-black/45 dark:text-white/45">
         Audience{optional ? " (optional)" : ""}
       </Label>
       <select
-        className="h-10 w-full rounded-lg border border-white/10 bg-[#0b0c10] px-3 text-sm"
+        className="h-10 w-full rounded-lg border border-black/10 dark:border-white/10 bg-white dark:bg-[#0b0c10] px-3 text-sm"
         name="audienceId"
         required={!optional}
       >
@@ -115,7 +115,7 @@ export function ComposeField({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-[11px] text-white/45">{label}</Label>
+      <Label className="text-[11px] text-black/45 dark:text-white/45">{label}</Label>
       {children}
     </div>
   );

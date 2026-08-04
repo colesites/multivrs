@@ -17,5 +17,5 @@ export interface ObservabilityData {
   requests: number;
   range: AnalyticsRange;
   series: AnalyticsPoint[];
-  state: "ready" | "unconfigured" | "error";
+  state: "ready" | "unconfigured" | "error" | "locked";
 }

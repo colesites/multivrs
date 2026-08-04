@@ -1,19 +1,14 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import {
-  ConflictError,
-  MultivrsError,
-  ValidationError,
-} from "@multivrs/error-utils";
+import { MultivrsError, ValidationError } from "@multivrs/error-utils";
 import { prisma } from "@/lib/prisma";
 import {
   sandboxCommandResponseSchema,
   sandboxCreateResponseSchema,
 } from "@/lib/schemas/sandbox.schemas";
+import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
 import { getProject } from "@/lib/services/project.service";
 import { recordUsageEvent } from "@/lib/services/usage-event.service";
-
-const MAX_CONCURRENT_SANDBOXES = 1;
 
 function config() {
   const url = process.env.CLOUDFLARE_BUILD_WORKER_URL;
@@ -51,11 +46,12 @@ export async function createProjectSandbox(userId: string, projectId: string) {
   const active = await prisma.platformSandbox.count({
     where: { projectId, status: { in: ["creating", "running"] } },
   });
-  if (active >= MAX_CONCURRENT_SANDBOXES) {
-    throw new ConflictError(
-      "This project has reached its concurrent sandbox limit",
-    );
-  }
+  await assertResourceAvailable({
+    current: active,
+    projectId,
+    resource: "concurrent_sandboxes",
+    userId,
+  });
   await prisma.platformSandbox.create({
     data: { id: sandboxId, projectId, userId },
   });

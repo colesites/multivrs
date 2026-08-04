@@ -86,18 +86,15 @@ export function AccountSecurity({
 
   return (
     <section
-      className="border-t border-[var(--hairline)] py-8"
+      className="overflow-hidden rounded-2xl border border-(--hairline) bg-background/70"
       aria-labelledby="account-security-title"
     >
-      <div className="flex items-start gap-4">
-        <span className="grid size-10 place-items-center rounded-xl border border-blue-400/20 bg-blue-400/[0.06]">
-          <ShieldCheck className="size-4 text-blue-400" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h2 id="account-security-title" className="text-base font-semibold">
+      <div className="flex items-center justify-between border-b border-(--hairline) px-5 py-4">
+        <div>
+          <h2 id="account-security-title" className="text-sm font-semibold">
             Multi-factor authentication
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             Require a time-based code after password or social sign-in.
           </p>
         </div>
@@ -106,7 +103,7 @@ export function AccountSecurity({
         </span>
       </div>
 
-      <div className="ml-14 mt-5 max-w-xl space-y-4">
+      <div className="p-5 max-w-xl space-y-4">
         <div className="space-y-2">
           <Label htmlFor="mfa-password">Current password</Label>
           <Input
@@ -129,7 +126,7 @@ export function AccountSecurity({
           </Button>
         )}
         {enrollment && (
-          <div className="space-y-4 border-t border-[var(--hairline)] pt-5">
+          <div className="space-y-4 border-t border-(--hairline) pt-5">
             <div>
               <p className="text-sm font-medium">Authenticator secret</p>
               <div className="mt-2 flex items-center gap-2 font-geist-mono text-xs text-muted-foreground">

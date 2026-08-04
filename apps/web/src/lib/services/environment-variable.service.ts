@@ -8,6 +8,7 @@ import type {
 } from "@/features/dashboard/types/environment-variable.types";
 import { prisma } from "@/lib/prisma";
 import type { saveEnvironmentVariableSchema } from "@/lib/schemas/environment-variable.schemas";
+import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
 import {
   decryptEnvironmentValue,
   encryptEnvironmentValue,
@@ -52,6 +53,21 @@ export async function saveEnvironmentVariable(
   input: SaveInput,
 ) {
   await getProject(userId, projectId, "update");
+  const existing = await prisma.environmentVariable.findUnique({
+    where: { projectId_key: { key: input.key, projectId } },
+    select: { id: true },
+  });
+  if (!existing) {
+    const current = await prisma.environmentVariable.count({
+      where: { projectId },
+    });
+    await assertResourceAvailable({
+      current,
+      projectId,
+      resource: "environment_variables",
+      userId,
+    });
+  }
   const encrypted = encryptEnvironmentValue(input.value);
   const row = await prisma.environmentVariable.upsert({
     where: { projectId_key: { key: input.key, projectId } },

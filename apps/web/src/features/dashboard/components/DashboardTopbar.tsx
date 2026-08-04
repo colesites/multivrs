@@ -33,7 +33,7 @@ export function DashboardTopbar({
   const mailStore = useGlobalMailStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-2.5 border-b border-[var(--hairline)] bg-[var(--ink)]/80 px-5 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-2.5 border-b border-(--hairline) bg-(--ink)/80 px-5 backdrop-blur-xl">
       {mobileNavigation}
       {projects ? (
         <Suspense fallback={<ProjectScopeSwitcher />}>
@@ -56,7 +56,7 @@ export function DashboardTopbar({
             value={mailStore.query}
           />
           <Button
-            className="hidden sm:flex h-8 bg-white text-black hover:bg-white/90"
+            className="hidden sm:flex h-8 bg-foreground text-background hover:bg-foreground/90"
             onClick={mailStore.openCompose}
             size="sm"
           >

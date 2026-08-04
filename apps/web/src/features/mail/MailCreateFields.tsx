@@ -21,7 +21,7 @@ export function MailCreateFields({
       <div className="space-y-4">
         <FormField name="domain" placeholder="example.com" />
         <input name="kind" type="hidden" value="sending" />
-        <div className="rounded-xl border border-blue-400/15 bg-blue-400/[0.045] px-4 py-3 text-xs leading-5 text-white/50">
+        <div className="rounded-xl border border-blue-400/15 bg-blue-400/4.5 px-4 py-3 text-xs leading-5 text-black/50 dark:text-white/50">
           If Multivrs manages this domain, email DNS records are installed
           automatically. Otherwise, you will receive records to add at your
           current DNS provider.

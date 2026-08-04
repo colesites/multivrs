@@ -1,0 +1,163 @@
+import type { MetricDefinition } from "@/lib/payments/billing.types";
+import { meter } from "@/lib/payments/billing-meter-definition";
+
+const GiB = 1024n ** 3n;
+const MiB = 1024n ** 2n;
+const HOUR_MS = 3_600_000n;
+const MINUTE_MS = 60_000n;
+const MB_MS_PER_GIB_HOUR = 1024n * HOUR_MS;
+
+export const METER_CATALOG: Record<string, MetricDefinition> = {
+  blob_advanced_operations: meter(
+    "blob_ops",
+    10_000n,
+    100_000n,
+    1_000_000n,
+    1_000,
+  ),
+  blob_data_transfer: meter("blob_transfer", 5n * GiB, 50n * GiB, GiB, 5),
+  blob_simple_operations: meter(
+    "blob_reads",
+    100_000n,
+    1_000_000n,
+    1_000_000n,
+    100,
+  ),
+  blob_storage_size: meter("blob_storage", GiB, 5n * GiB, GiB, 4),
+  build_cache_read_bytes: meter("build_cache_read", GiB, 10n * GiB, GiB, 4),
+  build_cache_write_bytes: meter("build_cache_write", GiB, 10n * GiB, GiB, 5),
+  build_duration_ms_standard: meter(
+    "build_standard",
+    100n * MINUTE_MS,
+    500n * MINUTE_MS,
+    MINUTE_MS,
+    2,
+  ),
+  bulk_redirect_writes: meter(
+    "bulk_redirect_writes",
+    100n,
+    1_000n,
+    25_000n,
+    5_000,
+  ),
+  edge_config_reads: meter(
+    "edge_config_reads",
+    100_000n,
+    1_000_000n,
+    1_000_000n,
+    150,
+  ),
+  edge_config_writes: meter(
+    "edge_config_writes",
+    1_000n,
+    10_000n,
+    1_000_000n,
+    1_200,
+  ),
+  edge_requests: meter("edge_requests", 100_000n, 1_000_000n, 1_000_000n, 100),
+  fast_data_transfer: meter("fast_data_transfer", 5n * GiB, 50n * GiB, GiB, 10),
+  fast_origin_transfer: meter(
+    "fast_origin_transfer",
+    5n * GiB,
+    50n * GiB,
+    GiB,
+    10,
+  ),
+  function_duration_ms: meter(
+    "function_cpu",
+    15n * MINUTE_MS,
+    2n * HOUR_MS,
+    HOUR_MS,
+    18,
+  ),
+  function_invocations: meter(
+    "function_invocations",
+    100_000n,
+    1_000_000n,
+    1_000_000n,
+    100,
+  ),
+  function_memory_mb_ms: meter(
+    "function_memory",
+    MB_MS_PER_GIB_HOUR,
+    8n * MB_MS_PER_GIB_HOUR,
+    MB_MS_PER_GIB_HOUR,
+    2.5,
+  ),
+  image_cache_reads: meter(
+    "image_cache_reads",
+    100_000n,
+    1_000_000n,
+    1_000_000n,
+    100,
+  ),
+  image_cache_writes: meter(
+    "image_cache_writes",
+    10_000n,
+    100_000n,
+    1_000_000n,
+    1_000,
+  ),
+  image_transformations: meter(
+    "image_transformations",
+    100n,
+    1_000n,
+    1_000n,
+    100,
+  ),
+  isr_reads: meter("isr_reads", 100_000n, 1_000_000n, 1_000_000n, 100),
+  isr_writes: meter("isr_writes", 10_000n, 100_000n, 1_000_000n, 1_000),
+  mail_email_units: meter("mail_email_units", 100n, 500n, 1_000n, 200),
+  microfrontend_routing: meter(
+    "microfrontend_routing",
+    50_000n,
+    500_000n,
+    1_000_000n,
+    100,
+  ),
+  sandbox_active_ms: meter(
+    "sandbox_active",
+    15n * MINUTE_MS,
+    HOUR_MS,
+    HOUR_MS,
+    18,
+  ),
+  sandbox_creations: meter("sandbox_creations", 5n, 25n, 100n, 100),
+  sandbox_memory_mb_ms: meter(
+    "sandbox_memory",
+    MB_MS_PER_GIB_HOUR,
+    4n * MB_MS_PER_GIB_HOUR,
+    MB_MS_PER_GIB_HOUR,
+    2.5,
+  ),
+  sandbox_network_bytes: meter("sandbox_network", GiB, 10n * GiB, GiB, 10),
+  sandbox_operations: meter("sandbox_operations", 100n, 1_000n, 1_000n, 10),
+  sandbox_provisioned_ms: meter(
+    "sandbox_provisioned",
+    3_600_000n,
+    36_000_000n,
+    3_600_000n,
+    3,
+  ),
+  sandbox_snapshot_bytes: meter("sandbox_snapshot", GiB, 5n * GiB, GiB, 4),
+  speed_insights_events: {
+    ...meter("speed_insights", 10_000n, 100_000n, 1_000_000n, 75),
+    projectScoped: true,
+  },
+  web_analytics_events: meter(
+    "web_analytics",
+    100_000n,
+    1_000_000n,
+    1_000_000n,
+    75,
+  ),
+  workflow_data_retained_bytes: meter(
+    "workflow_retained",
+    100n * MiB,
+    GiB,
+    GiB,
+    50,
+  ),
+  workflow_data_written_bytes: meter("workflow_data", 100n * MiB, GiB, GiB, 50),
+  workflow_events: meter("workflow_events", 10_000n, 100_000n, 100_000n, 200),
+};

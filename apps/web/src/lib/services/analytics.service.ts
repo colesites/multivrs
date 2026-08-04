@@ -80,6 +80,7 @@ function breakdown(
 export async function getProjectAnalytics(
   projectId: string,
   range: AnalyticsRange = "24h",
+  includeAttribution = false,
 ): Promise<PlatformAnalytics> {
   const id = PROJECT_ID.parse(projectId).replaceAll("'", "''");
   if (
@@ -126,9 +127,11 @@ export async function getProjectAnalytics(
       queryAnalytics(
         `SELECT blob5 label, SUM(_sample_interval) requests FROM ${DATASET} WHERE ${pageFilter} AND blob5 != '' GROUP BY label ORDER BY requests DESC LIMIT 8`,
       ),
-      queryAnalytics(
-        `SELECT blob10 label, SUM(_sample_interval) requests FROM ${DATASET} WHERE ${pageFilter} AND blob10 != '' GROUP BY label ORDER BY requests DESC LIMIT 8`,
-      ),
+      includeAttribution
+        ? queryAnalytics(
+            `SELECT blob10 label, SUM(_sample_interval) requests FROM ${DATASET} WHERE ${pageFilter} AND blob10 != '' GROUP BY label ORDER BY requests DESC LIMIT 8`,
+          )
+        : Promise.resolve([]),
       queryAnalytics(
         `SELECT blob8 label, SUM(_sample_interval) requests FROM ${DATASET} WHERE ${pageFilter} GROUP BY label ORDER BY requests DESC LIMIT 8`,
       ),

@@ -27,17 +27,17 @@ export function MailMobileMenu({
   return (
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent
-        className="w-[82vw] border-white/10 bg-[#090a0d]"
+        className="w-[82vw] border-black/10 dark:border-white/10 bg-background"
         side="left"
       >
-        <SheetHeader className="border-b border-white/[0.07]">
+        <SheetHeader className="border-b border-black/10 dark:border-white/10">
           <SheetTitle>Multivrs Mail</SheetTitle>
         </SheetHeader>
         <ScrollArea className="flex-1 p-3">
           {MAIL_NAVIGATION.map((item) =>
             "divider" in item ? (
               <p
-                className="mb-1 mt-5 px-3 font-mono text-[9px] tracking-[0.17em] text-white/25"
+                className="mb-1 mt-5 px-3 font-mono text-[9px] tracking-[0.17em] text-black/25 dark:text-white/25"
                 key={item.divider}
               >
                 {item.divider}

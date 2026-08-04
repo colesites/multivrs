@@ -58,23 +58,18 @@ export function OrganizationManager() {
 
   return (
     <section
-      className="border-t border-[var(--hairline)] py-8"
+      className="overflow-hidden rounded-2xl border border-(--hairline) bg-background/70"
       aria-labelledby="workspace-title"
     >
-      <div className="flex items-start gap-4">
-        <span className="grid size-10 place-items-center rounded-xl border border-blue-400/20 bg-blue-400/[0.06]">
-          <Building2 className="size-4 text-blue-400" />
-        </span>
-        <div>
-          <h2 className="text-base font-semibold" id="workspace-title">
-            Workspaces and team seats
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Assign admin, developer, viewer, or billing access.
-          </p>
-        </div>
+      <div className="border-b border-(--hairline) px-5 py-4">
+        <h2 className="text-sm font-semibold" id="workspace-title">
+          Workspaces and team seats
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Assign admin, developer, viewer, or billing access.
+        </p>
       </div>
-      <div className="ml-14 mt-5 grid gap-6 lg:grid-cols-2">
+      <div className="p-5 grid gap-6 lg:grid-cols-2">
         <div className="space-y-3">
           <h3 className="text-sm font-medium">Create workspace</h3>
           <Label htmlFor="workspace-name">Name</Label>

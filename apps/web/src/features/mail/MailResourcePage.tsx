@@ -49,12 +49,12 @@ export function MailResourcePage({
   return (
     <div className="w-full space-y-6 px-5 py-8 lg:px-8">
       <header className="flex items-end justify-between gap-5">
-        <p className="max-w-2xl text-sm leading-6 text-white/40">
+        <p className="max-w-2xl text-sm leading-6 text-black/60 dark:text-white/60">
           {descriptions[view]}
         </p>
         {isCreateMailView(view) ? (
           <Button
-            className="bg-white text-black hover:bg-white/90"
+            className="bg-foreground text-background hover:bg-foreground/90"
             onClick={() => setCreating(true)}
           >
             <Plus />
@@ -62,8 +62,8 @@ export function MailResourcePage({
           </Button>
         ) : null}
       </header>
-      <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#090a0d]">
-        <div className="grid grid-cols-[1.4fr_.9fr_.45fr_32px] border-b border-white/[0.08] bg-white/[0.025] px-4 py-2.5 font-mono text-[9px] uppercase tracking-[0.13em] text-white/25">
+      <section className="overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#090a0d]">
+        <div className="grid grid-cols-[1.4fr_.9fr_.45fr_32px] border-b border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-4 py-2.5 font-mono text-[9px] uppercase tracking-[0.13em] text-black/80 dark:text-white/80">
           <span>Name</span>
           <span>Detail</span>
           <span>Status</span>
@@ -75,9 +75,9 @@ export function MailResourcePage({
         {!items.length ? (
           <div className="grid min-h-64 place-items-center text-center">
             <div>
-              <CircleDashed className="mx-auto size-7 text-white/20" />
-              <p className="mt-3 text-sm text-white/50">Nothing here yet</p>
-              <p className="mt-1 text-xs text-white/25">
+              <CircleDashed className="mx-auto size-7 text-black/60 dark:text-white/60" />
+              <p className="mt-3 text-sm font-medium text-black dark:text-white">Nothing here yet</p>
+              <p className="mt-1 text-xs text-black/80 dark:text-white/80">
                 Create your first resource to get started.
               </p>
             </div>

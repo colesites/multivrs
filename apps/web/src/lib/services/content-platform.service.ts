@@ -23,6 +23,7 @@ import type {
   updateContentSettingsSchema,
   updateMicrofrontendRouteSchema,
 } from "@/lib/schemas/content-platform.schemas";
+import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
 import { publishRuntimeConfig } from "@/lib/services/cloudflare-runtime-kv.service";
 import { getProject } from "@/lib/services/project.service";
 import { recordUsageEvent } from "@/lib/services/usage-event.service";
@@ -194,6 +195,13 @@ export async function createBulkRedirect(
   input: CreateRedirectInput,
 ) {
   await getProject(userId, projectId, "update");
+  const current = await prisma.bulkRedirect.count({ where: { projectId } });
+  await assertResourceAvailable({
+    current,
+    projectId,
+    resource: "bulk_redirects",
+    userId,
+  });
   try {
     const row = await prisma.bulkRedirect.create({
       data: { projectId, ...input },
@@ -270,6 +278,21 @@ export async function setEdgeConfigEntry(
   input: SetEdgeConfigInput,
 ) {
   await getProject(userId, projectId, "update");
+  const existing = await prisma.edgeConfigEntry.findUnique({
+    where: { projectId_key: { projectId, key: input.key } },
+    select: { id: true },
+  });
+  if (!existing) {
+    const current = await prisma.edgeConfigEntry.count({
+      where: { projectId },
+    });
+    await assertResourceAvailable({
+      current,
+      projectId,
+      resource: "edge_config_entries",
+      userId,
+    });
+  }
   const row = await prisma.edgeConfigEntry.upsert({
     where: { projectId_key: { projectId, key: input.key } },
     create: {
@@ -323,6 +346,15 @@ export async function createMicrofrontend(
   ]);
   if (source.id === target.id)
     throw new ValidationError("A project cannot mount itself");
+  const current = await prisma.microfrontendRoute.count({
+    where: { projectId },
+  });
+  await assertResourceAvailable({
+    current,
+    projectId,
+    resource: "microfrontend_routes",
+    userId,
+  });
   const row = await prisma.microfrontendRoute.create({
     data: { projectId, ...input },
     include: { targetProject: { select: { name: true } } },

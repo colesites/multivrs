@@ -1,7 +1,10 @@
 # MULTIVRS Platform — Build & Deploy Engineering Plan
 
-> Status: **Phases 0–5 implemented (2026-07-26)** · Owner: Cole · Scope: the
-> complete deployment platform, control plane, integrations, and dashboard UI.
+> Status: **Phases 0–6 application source implementation complete
+> (2026-08-01); provider activation remains** · Owner:
+> Cole · Scope: the deployment platform, control plane, integrations, customer
+> Mail product, usage economics, and dashboard UI. Production provider
+> provisioning remains an explicit go-live operation.
 > Whole-system view (planes, infra, request lifecycle): [`/ARCHITECTURE.md`](../../ARCHITECTURE.md).
 
 Multivrs is a deployment platform in the spirit of Vercel: push a repo, we
@@ -17,10 +20,16 @@ default, Rust/Go where they earn their place** (see §5).
 
 ---
 
-## 1. Reference: every package in `vercel/vercel`
+## 1. Reference inventory: packages in `vercel/vercel`
 
 Pulled live from the repo. Grouped by role, with a one-line note and whether it
-is in our **starting set**.
+was in our **original starting set**. The `Start?` column is historical planning
+context, not a remaining-work tracker. Current delivery status lives in §6.
+Several rows originally marked “later” were subsequently delivered through
+consolidated Multivrs packages: Node/Bun, Go, Python, Ruby, and Remix through
+`builder-runtime`; Hono and h3 through the functions runtime; plus MCP, OIDC,
+Better Auth, and native CLI execution. The genuinely optional reference items
+still outside committed scope are listed after the phase plan.
 
 ### 1.1 Build pipeline — detection & shared utils
 | Package | What it does | Start? |
@@ -340,9 +349,61 @@ convex together.
   React Doctor with zero errors, a 54-page Next.js production build, and
   serve/build/compute Worker dry-runs.
 - ⏳ **Go-live operations (external, not source-code work):** publish the three
-  Workers and queues/bindings, build/push both container images with Docker running,
-  add production Cloudflare/Stripe/OpenProvider secrets, configure Stripe webhooks,
-  then run one real repository deploy and one low-cost domain purchase smoke test.
+  core Workers plus Mail Workers and queues/bindings, build/push both container
+  images with Docker running, deploy the TLS SMTP gateway, add production
+  Cloudflare/Stripe/OpenProvider/Resend secrets, configure Stripe and Resend
+  webhooks, then run real deployment, domain-purchase, outbound-mail, and
+  inbound-mail smoke tests.
+
+**Phase 6 — Pricing, usage, and Multivrs Mail** — ✅ application source complete
+- ✅ Sanity owns the nested Hobby/Pro/Enterprise comparison document: sections,
+  feature groups, standalone feature rows, values, explanations, and search.
+- ✅ The public pricing comparison renders concrete entitlements only. Internal
+  implementation readiness remains editorial metadata and is not exposed as
+  customer-facing “Preview” or “Planned” badges.
+- ✅ Recommended provider-rate floors and retail overages are encoded in tested
+  pricing economics. Hobby usage hard-stops; paid overages require spend control.
+- ✅ Multivrs Mail has provider-neutral Neon models, tenant ownership checks,
+  domain authentication, two-way messages and threads, attachments, aliases,
+  shared mailbox members, templates, audiences, broadcasts, automations,
+  suppressions, signed webhooks, credentials, a durable outbound worker, inbound
+  normalization, Resend adapters, and a TLS SMTP gateway.
+- ✅ The comparison includes mailbox/domain counts, combined sent-and-received
+  email units, attachments, API/SMTP access, and operational Mail capabilities.
+- ✅ Provider boundaries match Resend: sent recipients and received messages both
+  consume quota, and a single outbound message is capped at 50 total recipients.
+- ✅ The executable catalog resolves Hobby, Pro, Enterprise, negotiated overrides,
+  and active add-ons at protected service boundaries. Billing-period aggregation,
+  hard limits, paid-overage opt-in, spend alerts, hard spend caps, usage blocking,
+  and hourly Cloudflare reconciliation are implemented.
+- ✅ Stripe synchronization persists every subscription item and invoice; supports
+  add-on quantities, project-scoped Speed Insights, activation/cancellation with
+  proration, idempotent meter outbox delivery and retries, Customer Portal access,
+  and Quote-provisioned Enterprise entitlement/rate overrides.
+- ✅ Sanity remains the editable public presentation layer. The normal seed creates
+  a missing comparison without overwriting Studio edits; only the explicit
+  `sanity:seed:pricing:force` command replaces the document.
+- ✅ Gates: 121 Bun tests, Prisma validation/generation, 30-workspace TypeScript,
+  repository-wide Biome, React Doctor 100/100, Sanity seed validation, and the production
+  Next.js build.
+- ⏳ **External activation only:** deploy Mail infrastructure, register
+  `email.received` and `domain.updated` webhooks, provision private MIME storage,
+  enable the selected Resend paid tier/overages, apply the billing migration,
+  create Stripe prices/meters with the catalog lookup keys, register subscription,
+  invoice, Checkout, and Quote webhook events, and add production secrets before
+  selling paid volume.
+
+### Optional reference-parity work (not a Phase 6 launch blocker)
+
+- Standalone `static-config`, agent detection, and related-project discovery
+  packages. Equivalent behavior may stay consolidated until reuse justifies a
+  separate package.
+- Additional Express, Fastify, Koa, Nest, Elysia, React Router, Redwood,
+  Hydrogen, and Gatsby-specific adapters beyond the implemented Hono, h3,
+  Remix, and generic runtime paths.
+- Vercel-internal study equivalents (`backends`, `cervel`, `vc-native`) and AWS
+  credential helpers. Multivrs already has its own native Rust CLI and
+  Cloudflare-first data plane, so these are not required for launch.
 
 ---
 

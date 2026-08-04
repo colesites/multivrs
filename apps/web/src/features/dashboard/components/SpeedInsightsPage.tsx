@@ -173,9 +173,11 @@ function formatValue(metric: WebVitalMetric): string {
 function InsightState({ state }: { state: WebVitalsData["state"] }) {
   return (
     <div className="border-y border-amber-400/20 bg-amber-400/[0.04] px-4 py-3 text-xs text-amber-200">
-      {state === "error"
-        ? "Web Vitals could not be loaded from Cloudflare."
-        : "Configure Cloudflare Analytics Engine to collect live Web Vitals."}
+      {state === "locked"
+        ? "Activate Speed Insights for this project from Billing to collect and query Web Vitals."
+        : state === "error"
+          ? "Web Vitals could not be loaded from Cloudflare."
+          : "Configure Cloudflare Analytics Engine to collect live Web Vitals."}
     </div>
   );
 }

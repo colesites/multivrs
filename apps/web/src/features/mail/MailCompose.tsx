@@ -58,7 +58,7 @@ export function MailCompose({
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent
         className={cn(
-          "w-full border-white/10 bg-[#090a0d] transition-[max-width] duration-200 sm:max-w-xl",
+          "w-full border-black/10 dark:border-white/10 bg-white dark:bg-[#07080a] transition-[max-width] duration-200 sm:max-w-xl",
           expanded && "sm:max-w-[min(92vw,1100px)]",
         )}
         side={side}
@@ -86,7 +86,7 @@ export function MailCompose({
             : undefined
         }
       >
-        <SheetHeader className="relative border-b border-white/[0.07] pr-14">
+        <SheetHeader className="relative border-b border-black/10 dark:border-white/10 pr-14">
           <SheetTitle>
             {reply ? "Reply" : forward ? "Forward message" : "New message"}
           </SheetTitle>
@@ -110,12 +110,12 @@ export function MailCompose({
             mailboxes={mailboxes}
             reply={reply}
           />
-          <SheetFooter className="border-t border-white/[0.07]">
+          <SheetFooter className="border-t border-black/10 dark:border-white/10">
             <Button disabled={sending || !mailboxes.length} type="submit">
               <Send />
               {sending ? "Queuing…" : "Send message"}
             </Button>
-            <p className="flex items-center gap-1 text-[10px] text-white/30">
+            <p className="flex items-center gap-1 text-[10px] text-black/30 dark:text-white/30">
               <Clock3 className="size-3" />
               Scheduled mail is held until its send time.
             </p>

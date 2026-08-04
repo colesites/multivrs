@@ -26,6 +26,7 @@ import {
 } from "@/lib/mail/resend-domain.provider";
 import { prisma } from "@/lib/prisma";
 import type { createMailDomainSchema } from "@/lib/schemas/mail-resource.schemas";
+import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
 import { assertMailProject } from "@/lib/services/mail-access.service";
 
 type DomainInput = z.infer<typeof createMailDomainSchema>;
@@ -39,6 +40,13 @@ export async function createMailDomain(userId: string, input: DomainInput) {
     select: { id: true },
   });
   if (existing) throw new ConflictError("This mail domain already exists");
+  const current = await prisma.mailDomain.count({ where: { userId } });
+  await assertResourceAvailable({
+    current,
+    projectId: input.projectId,
+    resource: "mail_domains",
+    userId,
+  });
 
   const [snapshot, managedZone] = await Promise.all([
     createResendDomain(input.domain),

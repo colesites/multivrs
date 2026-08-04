@@ -90,7 +90,7 @@ export function MailCreateDialog({
       }}
       open={open}
     >
-      <DialogContent className="border border-white/10 bg-[#090a0d]">
+      <DialogContent className="border border-black/10 dark:border-white/10 bg-white dark:bg-[#090a0d]">
         <DialogHeader>
           <DialogTitle>
             {secret
@@ -106,16 +106,16 @@ export function MailCreateDialog({
         {secret ? (
           <div className="space-y-3">
             {connection ? (
-              <div className="grid grid-cols-2 gap-2 rounded-lg border border-white/10 bg-white/[0.025] p-3 text-xs">
-                <span className="text-white/40">Host</span>
+              <div className="grid grid-cols-2 gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/2.5 dark:bg-white/2.5 p-3 text-xs">
+                <span className="text-black/40 dark:text-white/40">Host</span>
                 <code>{connection.host}</code>
-                <span className="text-white/40">Port / security</span>
+                <span className="text-black/40 dark:text-white/40">Port / security</span>
                 <code>{connection.port} / TLS</code>
-                <span className="text-white/40">Username</span>
+                <span className="text-black/40 dark:text-white/40">Username</span>
                 <code className="break-all">{connection.username}</code>
               </div>
             ) : null}
-            <code className="block break-all rounded-lg border border-accent/20 bg-accent/[0.05] p-4 text-xs text-accent">
+            <code className="block break-all rounded-lg border border-accent/20 bg-accent/5 p-4 text-xs text-accent">
               {secret}
             </code>
             <Button

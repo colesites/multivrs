@@ -14,10 +14,10 @@ import { authClient } from "@/lib/auth-client";
 import type { StripePlan } from "@/lib/payments/pricing";
 
 export function PricingSection({
-  freePlan,
+  hobbyPlan,
   proPlan,
 }: {
-  freePlan: StripePlan;
+  hobbyPlan: StripePlan;
   proPlan: StripePlan;
 }) {
   const router = useRouter();
@@ -70,17 +70,17 @@ export function PricingSection({
         </div>
         <div className="grid grid-cols-1 divide-y divide-border border border-border bg-background shadow-2xl lg:grid-cols-3 lg:divide-x lg:divide-y-0">
           <PricingCard
-            title={freePlan.name}
-            price={freePlan.priceLabel}
-            suffix={freePlan.priceSuffix}
-            description={freePlan.description}
-            features={freePlan.features.map((text) => ({
+            title={hobbyPlan.name}
+            price={hobbyPlan.priceLabel}
+            suffix={hobbyPlan.priceSuffix}
+            description={hobbyPlan.description}
+            features={hobbyPlan.features.map((text) => ({
               text,
               icon: iconForPricingFeature(text),
             }))}
-            action={freePlan.configured ? "Start building" : "Contact us"}
+            action={hobbyPlan.configured ? "Start building" : "Contact us"}
             onAction={() =>
-              router.push(freePlan.configured ? "/signup" : "/contact/sales")
+              router.push(hobbyPlan.configured ? "/signup" : "/contact/sales")
             }
           />
           <PricingCard

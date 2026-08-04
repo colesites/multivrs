@@ -69,7 +69,6 @@ export class MultivrsWorkflow extends WorkflowEntrypoint<Env, PlatformWorkflowPa
           () => safeWorkflowFetch(definition),
         );
         results.push(result);
-        recordUsage(this.env, payload.projectId, "workflow_events", 1, ["http"]);
         recordUsage(this.env, payload.projectId, "workflow_data_written_bytes", byteLength(result));
       }
       const output = { input: payload.input ?? null, results };

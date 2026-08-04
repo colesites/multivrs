@@ -23,7 +23,7 @@ STRIPE_SECRET_KEY="sk_test_..."
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
 STRIPE_DOMAIN_WEBHOOK_SECRET="whsec_..."
 STRIPE_SUBSCRIPTION_WEBHOOK_SECRET="whsec_..."
-STRIPE_FREE_MONTHLY_LOOKUP_KEY="multivrs_free_monthly"
+STRIPE_HOBBY_MONTHLY_LOOKUP_KEY="multivrs_hobby_monthly"
 STRIPE_PRO_MONTHLY_LOOKUP_KEY="multivrs_pro_monthly"
 OPENPROVIDER_API_URL="https://api.openprovider.eu"
 OPENPROVIDER_USERNAME="..."
@@ -43,7 +43,7 @@ stripe listen \
 
 ```bash
 stripe listen \
-  --events checkout.session.completed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,customer.subscription.paused,customer.subscription.resumed,customer.subscription.trial_will_end,invoice.paid,invoice.payment_failed,invoice.payment_action_required,invoice.finalization_failed \
+  --events checkout.session.completed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,customer.subscription.paused,customer.subscription.resumed,customer.subscription.trial_will_end,invoice.paid,invoice.payment_failed,invoice.payment_action_required,invoice.finalization_failed,quote.accepted \
   --forward-to localhost:3000/api/stripe/webhooks/subscriptions
 ```
 
@@ -61,16 +61,17 @@ three-digit CVC.
 Create separate Hobby and Pro products with recurring monthly Prices in Stripe.
 Do not put both Prices on one Product: Product names, descriptions, and
 marketing features are shared by every Price attached to that Product.
-Assign the lookup keys configured in `STRIPE_FREE_MONTHLY_LOOKUP_KEY` and
+Assign the lookup keys configured in `STRIPE_HOBBY_MONTHLY_LOOKUP_KEY` and
 `STRIPE_PRO_MONTHLY_LOOKUP_KEY`. The pricing page loads both Products' names,
 descriptions, marketing features, active amounts, currencies, and intervals
-from Stripe. Enterprise is a sales-led plan without a Stripe Price.
+from Stripe. Enterprise is sales-led and uses a customer-specific recurring
+Price through a Stripe Quote rather than a public checkout Price.
 
 In the Stripe product editor, open **More options**, then use **Marketing feature
 list → Add line**. Put the plan summary in the Product **Description**, not the
 Price description.
 
-You can instead set `STRIPE_FREE_MONTHLY_PRICE_ID="price_..."` and
+You can instead set `STRIPE_HOBBY_MONTHLY_PRICE_ID="price_..."` and
 `STRIPE_PRO_MONTHLY_PRICE_ID="price_..."`. A Price ID takes priority over its
 lookup key. Prefer lookup keys because Stripe Price amounts are immutable: when
 pricing changes, create a replacement Price and transfer the lookup key without

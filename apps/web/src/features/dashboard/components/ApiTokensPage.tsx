@@ -67,59 +67,55 @@ export function ApiTokensPage({
   }
 
   return (
-    <div
-      className={
-        embedded
-          ? "space-y-6 py-8"
-          : "mx-auto max-w-[1000px] space-y-8 px-5 py-8"
-      }
-    >
+    <div className={embedded ? "" : "mx-auto w-full max-w-4xl space-y-7 px-5 py-8"}>
       {!embedded ? (
-        <header>
-          <h1 className="text-2xl font-semibold">Developer tokens</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage CLI access to your account.
-          </p>
+        <header className="flex items-start justify-between gap-6">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Developer tokens</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Manage CLI access to your account.
+            </p>
+          </div>
         </header>
-      ) : (
-        <div>
-          <h2 className="text-base font-semibold">Developer tokens</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+      ) : null}
+
+      <section className="overflow-hidden rounded-2xl border border-(--hairline) bg-background/70">
+        <div className="border-b border-(--hairline) px-5 py-4">
+          <h2 className="text-sm font-semibold">Developer tokens</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
             Manage CLI access to your account.
           </p>
         </div>
-      )}
-
-      <section className="border-y border-border py-6">
-        <div className="flex max-w-xl gap-2">
-          <Input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            maxLength={80}
-          />
-          <Button onClick={createToken} disabled={busy || !name.trim()}>
-            <Plus /> Create
-          </Button>
-        </div>
-        {created ? (
-          <div className="mt-5 flex max-w-2xl items-center gap-2 border border-emerald-500/30 bg-emerald-500/5 p-3">
-            <Check className="size-4 shrink-0 text-emerald-500" />
-            <code className="min-w-0 flex-1 overflow-x-auto text-xs">
-              {created}
-            </code>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={copyToken}
-              title="Copy token"
-            >
-              <Clipboard />
+        <div className="p-5">
+          <div className="flex max-w-xl gap-2">
+            <Input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              maxLength={80}
+            />
+            <Button onClick={createToken} disabled={busy || !name.trim()}>
+              <Plus className="mr-2 size-4" /> Create
             </Button>
           </div>
-        ) : null}
+          {created ? (
+            <div className="mt-5 flex max-w-2xl items-center gap-2 border border-emerald-500/30 bg-emerald-500/5 p-3">
+              <Check className="size-4 shrink-0 text-emerald-500" />
+              <code className="min-w-0 flex-1 overflow-x-auto text-xs">
+                {created}
+              </code>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={copyToken}
+                title="Copy token"
+              >
+                <Clipboard className="size-4" />
+              </Button>
+            </div>
+          ) : null}
+        </div>
+        <ApiTokenList tokens={tokens} onRevoke={(id) => void revokeToken(id)} />
       </section>
-
-      <ApiTokenList tokens={tokens} onRevoke={(id) => void revokeToken(id)} />
     </div>
   );
 }

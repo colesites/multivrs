@@ -58,7 +58,13 @@ const OBSERVABILITY_NAVIGATION = [
   { label: "Queues", view: "queues", icon: Send },
 ] as const;
 
-export function SidebarObservabilityNav() {
+export function SidebarObservabilityNav({ 
+  onLinkClick,
+  onBack,
+}: { 
+  onLinkClick?: () => void;
+  onBack?: () => void;
+} = {}) {
   const { username, scope } = useDashboardScope();
   const searchParams = useSearchParams();
   const activeView = searchParams.get("view") ?? "overview";
@@ -67,16 +73,30 @@ export function SidebarObservabilityNav() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="px-3 pb-1 pt-2">
-        <Link
-          className="group flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] text-muted-foreground transition-colors hover:bg-white/[0.025] hover:text-foreground"
-          href={backHref}
-        >
-          <ArrowLeft
-            className="size-[17px] transition-transform group-hover:-translate-x-0.5"
-            strokeWidth={1.75}
-          />
-          <span className="font-medium">Observability</span>
-        </Link>
+        {onBack ? (
+          <button
+            type="button"
+            className="group flex w-full h-9 items-center gap-3 rounded-lg px-3 text-[13px] text-muted-foreground transition-colors hover:bg-white/2.5 hover:text-foreground"
+            onClick={onBack}
+          >
+            <ArrowLeft
+              className="size-4.25 transition-transform group-hover:-translate-x-0.5"
+              strokeWidth={1.75}
+            />
+            <span className="font-medium">Observability</span>
+          </button>
+        ) : (
+          <Link
+            className="group flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] text-muted-foreground transition-colors hover:bg-white/2.5 hover:text-foreground"
+            href={backHref}
+          >
+            <ArrowLeft
+              className="size-4.25 transition-transform group-hover:-translate-x-0.5"
+              strokeWidth={1.75}
+            />
+            <span className="font-medium">Observability</span>
+          </Link>
+        )}
       </div>
 
       <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 pb-3 hide-scrollbar">
@@ -99,18 +119,19 @@ export function SidebarObservabilityNav() {
                 <Link
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "group relative flex h-9 w-full items-center gap-3 rounded-lg px-3 text-[13px] transition-colors duration-150",
+                    "nav-item group flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] transition-colors duration-150",
                     isActive
-                      ? "nav-rail-active bg-accent/12 font-medium text-foreground"
-                      : "text-muted-foreground hover:bg-white/[0.025] hover:text-foreground",
+                      ? "nav-rail-active bg-white/8 font-medium text-foreground"
+                      : "text-muted-foreground hover:bg-white/2.5 hover:text-foreground",
                   )}
                   href={`/${username}/${scope}/observability?view=${item.view}`}
+                  onClick={() => onLinkClick?.()}
                 >
-                  <Icon
+                  <item.icon
                     className={cn(
-                      "size-[17px] shrink-0 transition-colors",
+                      "size-4.25 shrink-0 transition-colors",
                       isActive
-                        ? "text-accent"
+                        ? "text-foreground"
                         : "text-muted-foreground/70 group-hover:text-foreground",
                     )}
                     strokeWidth={1.75}

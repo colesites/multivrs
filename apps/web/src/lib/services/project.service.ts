@@ -18,6 +18,7 @@ import {
 import type { Project as ProjectRow } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { recordAuditEvent } from "@/lib/services/audit-event.service";
+import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
 import { slugify } from "@/lib/services/slug";
 
 function toProject(row: ProjectRow): Project {
@@ -66,6 +67,17 @@ export async function createProject(
   if (existing) {
     throw new ConflictError(`A project with slug "${slug}" already exists`);
   }
+  const currentProjects = await prisma.project.count({
+    where: input.organizationId
+      ? { organizationId: input.organizationId }
+      : { organizationId: null, ownerId },
+  });
+  await assertResourceAvailable({
+    current: currentProjects,
+    organizationId: input.organizationId,
+    resource: "projects",
+    userId: ownerId,
+  });
   const row = await prisma.project.create({
     data: {
       name: input.name,

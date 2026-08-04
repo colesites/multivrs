@@ -10,7 +10,6 @@
  * Uses Prisma 7.x with Neon's serverless driver adapter.
  */
 
-import { neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "@prisma/client";
 

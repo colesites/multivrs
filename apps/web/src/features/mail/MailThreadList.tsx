@@ -19,11 +19,11 @@ export function MailThreadList({
   threads: MailThreadSummary[];
 }) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-col border-r border-white/[0.07] bg-[#090a0d] md:w-[340px] md:shrink-0">
-      <div className="flex h-12 shrink-0 items-center justify-between border-b border-white/[0.07] px-4">
+    <div className="flex h-full min-h-0 w-full flex-col border-r border-black/10 dark:border-white/10 bg-background dark:bg-[#090a0d] md:w-85 md:shrink-0">
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-black/10 dark:border-white/10 px-4">
         <p className="text-xs font-medium">Conversations</p>
         <div className="flex items-center gap-1">
-          <span className="mr-1 font-mono text-[10px] text-white/30">
+          <span className="mr-1 font-mono text-[10px] text-black/30 dark:text-white/30">
             {threads.length}
           </span>
           <Button
@@ -50,8 +50,8 @@ export function MailThreadList({
         {threads.map((thread) => (
           <button
             className={cn(
-              "group relative flex w-full gap-3 border-b border-white/[0.055] p-4 text-left transition hover:bg-white/[0.025]",
-              selectedId === thread.id && "bg-accent/[0.08]",
+              "group relative flex w-full gap-3 border-b border-black/5 dark:border-white/5 p-4 text-left transition hover:bg-black/5 dark:bg-white/5",
+              selectedId === thread.id && "bg-accent/8",
             )}
             key={thread.id}
             onClick={() => onSelect(thread.id)}
@@ -68,34 +68,34 @@ export function MailThreadList({
                   className={cn(
                     "truncate text-xs",
                     thread.unread
-                      ? "font-semibold text-white"
-                      : "text-white/65",
+                      ? "font-semibold text-black dark:text-white"
+                      : "text-black/65 dark:text-white/65",
                   )}
                 >
                   {thread.correspondent}
                 </span>
-                <span className="ml-auto shrink-0 text-[9px] text-white/25">
+                <span className="ml-auto shrink-0 text-[9px] text-black/25 dark:text-white/25">
                   {new Date(thread.lastMessageAt).toLocaleDateString("en-US", {
                     timeZone: "UTC",
                   })}
                 </span>
               </span>
               <span className="mt-1 flex items-center gap-1">
-                <span className="truncate text-xs text-white/70">
+                <span className="truncate text-xs text-black/70 dark:text-white/70">
                   {thread.subject}
                 </span>
                 {thread.starred ? (
                   <Star className="size-3 fill-amber-300 text-amber-300" />
                 ) : null}
               </span>
-              <span className="mt-1 block truncate text-[11px] text-white/30">
+              <span className="mt-1 block truncate text-[11px] text-black/30 dark:text-white/30">
                 {thread.preview}
               </span>
             </span>
           </button>
         ))}
         {!threads.length ? (
-          <p className="p-8 text-center text-xs text-white/35">
+          <p className="p-8 text-center text-xs text-black/35 dark:text-white/35">
             Nothing in this folder.
           </p>
         ) : null}

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { ValidationError } from "@multivrs/error-utils";
 import {
   type DomainRecords,
   type DomainRegion,
@@ -83,7 +84,7 @@ export async function createResendDomain(
   if (response.error) {
     const existing = await existingResendDomain(resend, name, response.error);
     if (existing) return existing;
-    throw new Error(
+    throw new ValidationError(
       `Mail domain provider rejected ${name}: ${response.error.message}`,
     );
   }

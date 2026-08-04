@@ -2,6 +2,7 @@ import "server-only";
 import type { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import type { createMailboxSchema } from "@/lib/schemas/mail-resource.schemas";
+import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
 import { assertMailProject } from "@/lib/services/mail-access.service";
 
 export {
@@ -22,6 +23,23 @@ type MailboxInput = z.infer<typeof createMailboxSchema>;
 
 export async function createMailbox(userId: string, input: MailboxInput) {
   await assertMailProject(userId, input.projectId);
+  const project = input.projectId
+    ? await prisma.project.findUniqueOrThrow({
+        where: { id: input.projectId },
+        select: { organizationId: true },
+      })
+    : null;
+  const current = await prisma.mailbox.count({
+    where: project?.organizationId
+      ? { project: { organizationId: project.organizationId } }
+      : { userId },
+  });
+  await assertResourceAvailable({
+    current,
+    projectId: input.projectId,
+    resource: "mailboxes",
+    userId,
+  });
   const domainName = input.address.split("@")[1];
   const domain = domainName
     ? await prisma.mailDomain.findFirst({

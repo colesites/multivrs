@@ -20,6 +20,7 @@ interface AnalyticsPageProps {
   projects?: DashboardProject[];
   project?: DashboardProject;
   analytics?: PlatformAnalytics;
+  plusEnabled?: boolean;
 }
 
 export function AnalyticsPage({
@@ -27,6 +28,7 @@ export function AnalyticsPage({
   projects,
   project,
   analytics,
+  plusEnabled = false,
 }: AnalyticsPageProps) {
   if (username && projects && !project) {
     return <AnalyticsProjectPicker username={username} projects={projects} />;
@@ -50,7 +52,9 @@ export function AnalyticsPage({
 
         {/* Toggle Controls */}
         <div className="flex items-center gap-4 border-b border-[var(--hairline)]">
-          {(["24h", "7d", "30d"] as const).map((range) => (
+          {(
+            ["24h", "7d", ...(plusEnabled ? ["30d" as const] : [])] as const
+          ).map((range) => (
             <RangeLink
               active={analytics?.range === range}
               key={range}
@@ -58,6 +62,12 @@ export function AnalyticsPage({
             />
           ))}
         </div>
+        {!plusEnabled ? (
+          <p className="text-xs text-muted-foreground">
+            Activate Web Analytics Plus in Billing for 30-day reporting and UTM
+            attribution.
+          </p>
+        ) : null}
       </div>
 
       {analytics?.state !== "ready" && (

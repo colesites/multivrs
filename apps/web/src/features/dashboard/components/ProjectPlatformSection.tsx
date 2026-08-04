@@ -21,6 +21,10 @@ import {
   getProjectAnalytics,
   getProjectWebVitals,
 } from "@/lib/services/analytics.service";
+import {
+  entitledAnalyticsRange,
+  getProjectBillingFeatures,
+} from "@/lib/services/billing-feature-access.service";
 import { getContentPlatform } from "@/lib/services/content-platform.service";
 import { dashboardProjects } from "@/lib/services/dashboard.service";
 import { getScopedProject } from "@/lib/services/dashboard-scope.service";
@@ -80,10 +84,25 @@ export async function ProjectPlatformSection({
   if (!selected) notFound();
   const project = await getScopedProject(session.user.id, username, scope);
   if (section === "analytics") {
+    const features = await getProjectBillingFeatures(
+      session.user.id,
+      project.id,
+    );
+    const range = entitledAnalyticsRange(
+      analyticsRange,
+      features.webAnalyticsPlus,
+    );
     return (
       <AnalyticsPage
         project={selected}
-        analytics={await getProjectAnalytics(project.id, analyticsRange)}
+        analytics={
+          await getProjectAnalytics(
+            project.id,
+            range,
+            features.webAnalyticsPlus,
+          )
+        }
+        plusEnabled={features.webAnalyticsPlus}
       />
     );
   }
@@ -141,23 +160,41 @@ export async function ProjectPlatformSection({
     );
   }
   if (section === "speed-insights") {
+    const features = await getProjectBillingFeatures(
+      session.user.id,
+      project.id,
+    );
+    const range = entitledAnalyticsRange(
+      analyticsRange,
+      features.speedInsights,
+    );
     return (
       <SpeedInsightsPage
         projectName={project.name}
-        vitals={await getProjectWebVitals(project.id, analyticsRange)}
+        vitals={
+          features.speedInsights
+            ? await getProjectWebVitals(project.id, range)
+            : {
+                devices: [],
+                metrics: [],
+                range,
+                routes: [],
+                state: "locked",
+              }
+        }
       />
     );
   }
+  const features = await getProjectBillingFeatures(session.user.id, project.id);
+  const range = entitledAnalyticsRange(
+    analyticsRange,
+    features.observabilityPlus,
+  );
   return (
     <ObservabilityPage
+      plusEnabled={features.observabilityPlus}
       projectName={project.name}
-      data={
-        await getProjectObservability(
-          session.user.id,
-          project.id,
-          analyticsRange,
-        )
-      }
+      data={await getProjectObservability(session.user.id, project.id, range)}
     />
   );
 }

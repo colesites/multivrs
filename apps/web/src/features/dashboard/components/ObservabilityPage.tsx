@@ -37,9 +37,11 @@ const CHARTS = [
 export function ObservabilityPage({
   projectName,
   data,
+  plusEnabled,
 }: {
   projectName: string;
   data: ObservabilityData;
+  plusEnabled: boolean;
 }) {
   return (
     <main className="w-full space-y-3 px-4 py-4 lg:px-5">
@@ -53,7 +55,9 @@ export function ObservabilityPage({
         </button>
         <nav className="flex h-9 items-center gap-3 border-b border-[var(--hairline)] px-1 text-xs">
           <CalendarDays className="size-3.5 text-muted-foreground" />
-          {(["24h", "7d", "30d"] as const).map((range) => (
+          {(
+            ["24h", "7d", ...(plusEnabled ? ["30d" as const] : [])] as const
+          ).map((range) => (
             <Link
               className={
                 range === data.range
@@ -74,6 +78,13 @@ export function ObservabilityPage({
         Live serving-edge signals for requests, transfer, latency, and HTTP
         errors.
       </p>
+
+      {!plusEnabled ? (
+        <p className="border-y border-[var(--hairline)] px-1 py-3 text-xs text-muted-foreground">
+          Activate Observability Plus in Billing for 30-day retention and
+          advanced queries.
+        </p>
+      ) : null}
 
       {data.state !== "ready" ? (
         <p className="border-y border-amber-400/20 bg-amber-400/[0.035] px-4 py-2.5 text-xs text-amber-200">

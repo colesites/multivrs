@@ -91,11 +91,11 @@ export const COMPUTE_CAPABILITIES = capabilities([
   },
   {
     id: "workflow-events",
-    name: "Events (Multivrs Workflows)",
+    name: "Workflow Steps (Multivrs Workflows)",
     status: "available",
     provider: "multivrs+cloudflare",
     metered: true,
-    evidence: "Cloudflare Workflows binding, durable runner, manual triggers, and cron dispatcher",
+    evidence: "Configured durable steps are reserved before manual and scheduled dispatch",
   },
   {
     id: "workflow-written",

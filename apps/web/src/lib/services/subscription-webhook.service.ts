@@ -1,14 +1,10 @@
 import "server-only";
 import type Stripe from "stripe";
-import { z } from "zod";
+import { parseQuoteBillingTerms } from "@/lib/payments/billing-quote-metadata";
 import { getStripe } from "@/lib/payments/stripe-client";
 import { prisma } from "@/lib/prisma";
-
-type PaymentStatus =
-  | "paid"
-  | "failed"
-  | "action_required"
-  | "finalization_failed";
+import { syncBillingInvoice } from "@/lib/services/billing-invoice-sync.service";
+import { syncBillingSubscription } from "@/lib/services/billing-subscription-sync.service";
 
 export async function handleSubscriptionEvent(
   event: Stripe.Event,
@@ -18,7 +14,7 @@ export async function handleSubscriptionEvent(
     select: { id: true },
   });
   if (processed) return;
-  await dispatchSubscriptionEvent(event);
+  await dispatch(event);
   await prisma.stripeWebhookEvent.upsert({
     where: { id: event.id },
     create: { id: event.id, type: event.type },
@@ -26,107 +22,77 @@ export async function handleSubscriptionEvent(
   });
 }
 
-async function dispatchSubscriptionEvent(event: Stripe.Event): Promise<void> {
+async function dispatch(event: Stripe.Event): Promise<void> {
   switch (event.type) {
     case "checkout.session.completed":
-      await syncCheckoutSession(event.data.object);
-      break;
+      await syncCheckout(event.data.object);
+      return;
     case "customer.subscription.created":
     case "customer.subscription.updated":
     case "customer.subscription.deleted":
     case "customer.subscription.paused":
     case "customer.subscription.resumed":
     case "customer.subscription.trial_will_end":
-      await syncSubscription(event.data.object);
-      break;
+      await syncBillingSubscription(event.data.object);
+      return;
+    case "invoice.created":
+    case "invoice.finalized":
+    case "invoice.updated":
+    case "invoice.voided":
+    case "invoice.marked_uncollectible":
+      await syncBillingInvoice(event.data.object);
+      return;
     case "invoice.paid":
-      await syncInvoiceSubscription(event.data.object, "paid");
-      break;
+      await syncBillingInvoice(event.data.object, "paid");
+      return;
     case "invoice.payment_failed":
-      await syncInvoiceSubscription(event.data.object, "failed");
-      break;
+      await syncBillingInvoice(event.data.object, "failed");
+      return;
     case "invoice.payment_action_required":
-      await syncInvoiceSubscription(event.data.object, "action_required");
-      break;
+      await syncBillingInvoice(event.data.object, "action_required");
+      return;
     case "invoice.finalization_failed":
-      await syncInvoiceSubscription(event.data.object, "finalization_failed");
-      break;
+      await syncBillingInvoice(event.data.object, "finalization_failed");
+      return;
+    case "quote.accepted":
+      await syncAcceptedQuote(event.data.object);
+      return;
     default:
-      break;
+      return;
   }
 }
 
-async function syncCheckoutSession(
-  session: Stripe.Checkout.Session,
-): Promise<void> {
+async function syncCheckout(session: Stripe.Checkout.Session): Promise<void> {
   if (session.metadata?.checkoutType !== "subscription") return;
   const subscriptionId = stripeId(session.subscription);
   if (!subscriptionId) throw new Error("Subscription ID is missing");
-  const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
-  await syncSubscription(
-    subscription,
-    undefined,
-    session.metadata.userId ?? session.client_reference_id ?? undefined,
+  const subscription = await getStripe().subscriptions.retrieve(
+    subscriptionId,
+    {
+      expand: ["items.data.price.product"],
+    },
   );
+  await syncBillingSubscription(subscription, {
+    organizationId: session.metadata.organizationId,
+    userId: session.metadata.userId ?? session.client_reference_id ?? undefined,
+  });
 }
 
-async function syncInvoiceSubscription(
-  invoice: Stripe.Invoice,
-  paymentStatus: PaymentStatus,
-): Promise<void> {
-  const subscriptionId = stripeId(
-    invoice.parent?.subscription_details?.subscription,
-  );
+async function syncAcceptedQuote(quote: Stripe.Quote): Promise<void> {
+  const subscriptionId = stripeId(quote.subscription);
   if (!subscriptionId) return;
-  const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
-  await syncSubscription(subscription, paymentStatus);
-}
-
-async function syncSubscription(
-  subscription: Stripe.Subscription,
-  paymentStatus?: PaymentStatus,
-  suppliedUserId?: string,
-): Promise<void> {
-  const item = subscription.items.data[0];
-  if (!item) throw new Error("Subscription has no price item");
-  const existing = await prisma.billingSubscription.findUnique({
-    where: { stripeSubscriptionId: subscription.id },
-    select: { userId: true },
-  });
-  const userId = await resolveUserId(
-    suppliedUserId ?? subscription.metadata.userId,
-    existing?.userId,
+  const subscription = await getStripe().subscriptions.retrieve(
+    subscriptionId,
+    {
+      expand: ["items.data.price.product"],
+    },
   );
-  const data = {
-    userId,
-    stripeCustomerId: stripeId(subscription.customer) ?? "",
-    stripePriceId: item.price.id,
-    stripeProductId: stripeId(item.price.product) ?? "",
-    status: subscription.status,
-    cancelAtPeriodEnd: subscription.cancel_at_period_end,
-    currentPeriodStart: new Date(item.current_period_start * 1000),
-    currentPeriodEnd: new Date(item.current_period_end * 1000),
-    ...(paymentStatus ? { lastPaymentStatus: paymentStatus } : {}),
-  };
-  await prisma.billingSubscription.upsert({
-    where: { stripeSubscriptionId: subscription.id },
-    create: { stripeSubscriptionId: subscription.id, ...data },
-    update: data,
+  await syncBillingSubscription(subscription, {
+    ...parseQuoteBillingTerms(quote.metadata),
+    organizationId: quote.metadata.organizationId,
+    quoteId: quote.id,
+    userId: quote.metadata.userId,
   });
-}
-
-async function resolveUserId(
-  candidate?: string,
-  existing?: string | null,
-): Promise<string | null> {
-  if (!candidate || !z.uuid().safeParse(candidate).success) {
-    return existing ?? null;
-  }
-  const user = await prisma.user.findUnique({
-    where: { id: candidate },
-    select: { id: true },
-  });
-  return user?.id ?? existing ?? null;
 }
 
 function stripeId(

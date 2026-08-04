@@ -4,6 +4,7 @@ import type { z } from "zod";
 import type { EdgeSettingsData } from "@/features/dashboard/types/edge-settings.types";
 import { prisma } from "@/lib/prisma";
 import type { updateEdgeSettingsSchema } from "@/lib/schemas/edge-settings.schemas";
+import { assertAddOnEnabled } from "@/lib/services/billing-entitlement.service";
 import { getProject } from "@/lib/services/project.service";
 
 type UpdateEdgeSettingsInput = z.infer<typeof updateEdgeSettingsSchema>;
@@ -51,6 +52,13 @@ export async function updateEdgeSettings(
   input: UpdateEdgeSettingsInput,
 ): Promise<EdgeSettingsData> {
   await getProject(userId, projectId, "update");
+  if (input.speedInsightsEnabled) {
+    await assertAddOnEnabled({
+      addOn: "speed_insights",
+      projectId,
+      userId,
+    });
+  }
   await prisma.projectEdgeSettings.upsert({
     where: { projectId },
     create: { projectId, ...input },

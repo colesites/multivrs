@@ -148,9 +148,9 @@ function usageGroups(usage: AccountUsage): UsageGroup[] {
       label: "Workflows",
       metrics: [
         {
-          description: "Durable manual and scheduled workflow runs",
+          description: "Durable workflow steps executed this period",
           icon: GitBranch,
-          label: "Workflow Events",
+          label: "Workflow Steps",
           used: compact(metric("workflow_events")),
         },
         {

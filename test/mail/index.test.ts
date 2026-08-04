@@ -34,6 +34,19 @@ describe("Multivrs Mail boundaries", () => {
     expect(composeMailSchema.safeParse({ ...parsed, text: undefined }).success).toBe(false);
   });
 
+  test("enforces Resend's 50-recipient limit across To, CC, and BCC", () => {
+    const recipients = Array.from({ length: 51 }, (_, index) => `person-${index}@example.com`);
+    expect(
+      composeMailSchema.safeParse({
+        mailboxId: "cbd91bb6-0fb5-48eb-a047-9ec1e0b40483",
+        to: recipients.slice(0, 25),
+        cc: recipients.slice(25),
+        subject: "Too many recipients",
+        text: "Message",
+      }).success,
+    ).toBe(false);
+  });
+
   test("requires HTTPS webhook endpoints", () => {
     expect(
       createMailWebhookSchema.safeParse({ url: "http://example.com/hook", events: ["email.sent"] })

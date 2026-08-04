@@ -88,30 +88,30 @@ export function MailResourceRow({
   return (
     <div
       {...interactiveProps}
-      className={`grid grid-cols-[1.4fr_.9fr_.45fr_32px] items-center gap-3 border-b border-white/5.5 px-4 py-3.5 text-xs last:border-0 ${view === "domains" ? "cursor-pointer hover:bg-white/2" : ""}`}
+      className={`grid grid-cols-[1.4fr_.9fr_.45fr_32px] items-center gap-3 border-b border-border px-4 py-3.5 text-xs last:border-0 ${view === "domains" ? "cursor-pointer hover:bg-muted/50" : ""}`}
     >
       <div className="min-w-0">
-        <p className="truncate text-white/75">{item.name}</p>
+        <p className="truncate text-black/75 dark:text-white/75">{item.name}</p>
         {item.createdAt ? (
-          <p className="mt-1 text-[9px] text-white/25">
+          <p className="mt-1 text-[9px] text-black/50 dark:text-white/50">
             {new Date(item.createdAt).toLocaleDateString("en-US", {
               timeZone: "UTC",
             })}
           </p>
         ) : null}
       </div>
-      <p className="truncate text-white/35">{item.detail}</p>
-      <span className="flex items-center gap-1.5 text-[10px] text-white/45">
+      <p className="truncate text-black/35 dark:text-white/35">{item.detail}</p>
+      <span className="flex items-center gap-1.5 text-[10px] text-black/45 dark:text-white/45">
         {healthy ? (
           <CheckCircle2 className="size-3 text-emerald-400" />
         ) : (
-          <CircleDashed className="size-3 text-white/30" />
+          <CircleDashed className="size-3 text-black/30 dark:text-white/30" />
         )}
         {item.status}
       </span>
       {view === "domains" && item.status !== "verified" ? (
         <button aria-label="Verify DNS" onClick={verify} type="button">
-          <RefreshCw className="size-3.5 text-white/40" />
+          <RefreshCw className="size-3.5 text-black/40 dark:text-white/40" />
         </button>
       ) : (
         <DropdownMenu>
@@ -121,7 +121,7 @@ export function MailResourceRow({
               type="button"
               onClick={(e) => e.stopPropagation()}
             >
-              <MoreHorizontal className="size-4 text-white/30 hover:text-white/70 transition-colors" />
+              <MoreHorizontal className="size-4 text-black/30 dark:text-white/30 hover:text-black/70 dark:hover:text-white/70 transition-colors" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>

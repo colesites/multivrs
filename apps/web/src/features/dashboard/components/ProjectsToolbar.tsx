@@ -41,13 +41,13 @@ export function ProjectsToolbar(props: ProjectsToolbarProps) {
         <h1 className="text-sm font-semibold">
           {props.view === "projects" ? "All Projects" : "Usage"}
         </h1>
-        <div className="flex rounded-lg border border-[var(--hairline)] bg-black/20 p-1 text-xs">
+        <div className="flex rounded-lg border border-(--hairline) bg-black/5 dark:bg-black/20 p-1 text-xs">
           <button
             type="button"
             onClick={() => props.onViewChange("projects")}
             className={
               props.view === "projects"
-                ? "flex h-7 items-center gap-1.5 rounded-md bg-white/10 px-2.5"
+                ? "flex h-7 items-center gap-1.5 rounded-md bg-black/10 dark:bg-white/10 px-2.5"
                 : "flex h-7 items-center gap-1.5 px-2.5 text-muted-foreground"
             }
           >
@@ -58,7 +58,7 @@ export function ProjectsToolbar(props: ProjectsToolbarProps) {
             onClick={() => props.onViewChange("usage")}
             className={
               props.view === "usage"
-                ? "flex h-7 items-center gap-1.5 rounded-md bg-white/10 px-2.5"
+                ? "flex h-7 items-center gap-1.5 rounded-md bg-black/10 dark:bg-white/10 px-2.5"
                 : "flex h-7 items-center gap-1.5 px-2.5 text-muted-foreground"
             }
           >
@@ -82,7 +82,7 @@ export function ProjectsToolbar(props: ProjectsToolbarProps) {
                 size="icon-lg"
                 aria-label="Filter and sort projects"
                 className={cn(
-                  "relative border-[var(--hairline)] bg-black/20",
+                  "relative border-(--hairline) bg-black/5 dark:bg-black/20",
                   props.filter !== "all" &&
                     "border-foreground/30 text-foreground",
                 )}
@@ -129,7 +129,7 @@ export function ProjectsToolbar(props: ProjectsToolbarProps) {
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-          <div className="flex rounded-lg border border-[var(--hairline)] bg-black/20 p-1">
+          <div className="flex rounded-lg border border-(--hairline) bg-black/5 dark:bg-black/20 p-1">
             <button
               type="button"
               onClick={() => props.onLayoutChange("grid")}
@@ -137,7 +137,7 @@ export function ProjectsToolbar(props: ProjectsToolbarProps) {
               aria-pressed={props.layout === "grid"}
               className={
                 props.layout === "grid"
-                  ? "flex size-7 items-center justify-center rounded-md bg-white/10"
+                  ? "flex size-7 items-center justify-center rounded-md bg-black/10 dark:bg-white/10"
                   : "flex size-7 items-center justify-center rounded-md text-muted-foreground"
               }
             >
@@ -150,7 +150,7 @@ export function ProjectsToolbar(props: ProjectsToolbarProps) {
               aria-pressed={props.layout === "list"}
               className={
                 props.layout === "list"
-                  ? "flex size-7 items-center justify-center rounded-md bg-white/10"
+                  ? "flex size-7 items-center justify-center rounded-md bg-black/10 dark:bg-white/10"
                   : "flex size-7 items-center justify-center rounded-md text-muted-foreground"
               }
             >

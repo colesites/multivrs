@@ -84,8 +84,8 @@ export function MailRichEditor({ initialHtml = "" }: { initialHtml?: string }) {
   ];
 
   return (
-    <div className="overflow-hidden rounded-xl border border-white/10 bg-black/20 focus-within:border-white/20">
-      <div className="flex items-center gap-0.5 border-b border-white/[0.07] p-1.5">
+    <div className="overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-black/20 focus-within:border-black/20 dark:focus-within:border-white/20">
+      <div className="flex items-center gap-0.5 border-b border-black/10 dark:border-white/10 p-1.5">
         {tools.map((tool) => (
           <Button
             aria-label={tool.label}
@@ -102,7 +102,7 @@ export function MailRichEditor({ initialHtml = "" }: { initialHtml?: string }) {
             <tool.icon className="size-3.5" />
           </Button>
         ))}
-        <label className="grid size-8 cursor-pointer place-items-center rounded-md text-white/55 hover:bg-white/[0.06] hover:text-white">
+        <label className="grid size-8 cursor-pointer place-items-center rounded-md text-black/55 dark:text-white/55 hover:bg-black/5 dark:hover:bg-white/5 hover:text-black dark:hover:text-white">
           <ImagePlus className="size-3.5" />
           <span className="sr-only">Insert inline image</span>
           <input
@@ -115,7 +115,7 @@ export function MailRichEditor({ initialHtml = "" }: { initialHtml?: string }) {
       </div>
       {/* biome-ignore lint/a11y/useSemanticElements: contentEditable is required for rich-text authoring. */}
       <div
-        className="min-h-56 px-4 py-3 text-sm leading-6 text-white/80 outline-hidden [&_a]:text-cyan-300 [&_a]:underline [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg"
+        className="min-h-56 px-4 py-3 text-sm leading-6 text-black/80 dark:text-white/80 outline-hidden [&_a]:text-cyan-300 [&_a]:underline [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg"
         contentEditable
         aria-label="Message body"
         onBlur={syncHtml}

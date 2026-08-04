@@ -26,7 +26,7 @@ export function MailAttachmentPicker() {
 
   return (
     <div>
-      <label className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-md px-2.5 text-xs text-white/55 hover:bg-white/[0.06] hover:text-white">
+      <label className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-md px-2.5 text-xs text-black/55 dark:text-white/55 hover:bg-black/5 dark:bg-white/5 hover:text-black dark:hover:text-white">
         <Paperclip className="size-3.5" /> Attach files
         <input
           className="sr-only"
@@ -41,7 +41,7 @@ export function MailAttachmentPicker() {
         <div className="mt-2 flex flex-wrap gap-2">
           {files.map((file, index) => (
             <span
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[10px] text-white/60"
+              className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-1.5 text-[10px] text-black/60 dark:text-white/60"
               key={`${file.name}-${file.lastModified}`}
             >
               <span className="max-w-48 truncate">{file.name}</span>

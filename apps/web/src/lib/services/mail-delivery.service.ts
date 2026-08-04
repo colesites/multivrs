@@ -3,6 +3,11 @@ import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
 import { configuredMailProvider } from "@/lib/mail/resend-mail.provider";
 import { prisma } from "@/lib/prisma";
 import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.service";
+import { publishBillingMeterEvents } from "@/lib/services/stripe-meter.service";
+import {
+  recordUsageEvent,
+  releaseUsageReservation,
+} from "@/lib/services/usage-event.service";
 
 export async function deliverMailMessage(userId: string, messageId: string) {
   const message = await prisma.mailMessage.findFirst({
@@ -32,7 +37,24 @@ export async function deliverMailMessage(userId: string, messageId: string) {
     where: { id: message.id },
     data: { status: "processing" },
   });
+  let usageReservation: string | null = null;
+  let providerAccepted = false;
   try {
+    const recipients =
+      message.toAddresses.length +
+      message.ccAddresses.length +
+      message.bccAddresses.length;
+    usageReservation = await recordUsageEvent(
+      userId,
+      message.mailbox.projectId,
+      "mail_email_units",
+      recipients,
+      { messageId: message.id },
+      {
+        deferMeterPublication: true,
+        idempotencyKey: `mail:outbound:${message.id}`,
+      },
+    );
     const result = await configuredMailProvider().send({
       from: message.fromName
         ? `${message.fromName} <${message.fromAddress}>`
@@ -57,6 +79,7 @@ export async function deliverMailMessage(userId: string, messageId: string) {
           : [],
       ),
     });
+    providerAccepted = true;
     const event = await prisma.$transaction(async (tx) => {
       await tx.mailMessage.update({
         where: { id: message.id },
@@ -77,7 +100,11 @@ export async function deliverMailMessage(userId: string, messageId: string) {
       });
     });
     await enqueueMailWebhooks(event.id);
+    await publishBillingMeterEvents(10);
   } catch (error) {
+    if (usageReservation && !providerAccepted) {
+      await releaseUsageReservation(usageReservation);
+    }
     await markFailed(
       message.id,
       userId,

@@ -28,7 +28,7 @@ export interface PlatformAnalytics {
   visitors: number;
   paths: AnalyticsBreakdownItem[];
   countries: AnalyticsBreakdownItem[];
-  state: "ready" | "unconfigured" | "error";
+  state: "ready" | "unconfigured" | "error" | "locked";
 }
 
 export type AnalyticsRange = "24h" | "7d" | "30d";
@@ -51,5 +51,5 @@ export interface WebVitalsData {
   metrics: WebVitalMetric[];
   range: AnalyticsRange;
   routes: WebVitalRoute[];
-  state: "ready" | "unconfigured" | "error";
+  state: "ready" | "unconfigured" | "error" | "locked";
 }

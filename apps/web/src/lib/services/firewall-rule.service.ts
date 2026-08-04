@@ -5,6 +5,7 @@ import type { z } from "zod";
 import type { DashboardFirewallRule } from "@/features/dashboard/types/firewall-rule.types";
 import { prisma } from "@/lib/prisma";
 import type { createFirewallRuleSchema } from "@/lib/schemas/firewall-rule.schemas";
+import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
 import { getProject } from "@/lib/services/project.service";
 
 type CreateFirewallRuleInput = z.infer<typeof createFirewallRuleSchema>;
@@ -64,6 +65,13 @@ export async function createFirewallRule(
   input: CreateFirewallRuleInput,
 ): Promise<DashboardFirewallRule> {
   await getProject(userId, projectId, "update");
+  const current = await prisma.firewallRule.count({ where: { projectId } });
+  await assertResourceAvailable({
+    current,
+    projectId,
+    resource: "firewall_rules",
+    userId,
+  });
   const highest = await prisma.firewallRule.aggregate({
     where: { projectId },
     _max: { priority: true },

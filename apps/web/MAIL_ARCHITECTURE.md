@@ -68,6 +68,22 @@ Postmark, or a Multivrs MTA can be added without changing product APIs. Inbound
 and provider-specific webhooks should terminate in small adapters that emit the
 signed normalized contracts used by the control plane.
 
+## Product limits and provider economics
+
+Multivrs plan limits are customer entitlements, not copies of Resend's account
+tiers. Resend bills the Multivrs team for the combined number of outbound
+recipients and inbound messages. Multivrs therefore meters the same email unit:
+one outbound recipient or one received message. The public comparison recommends
+100 monthly units for Hobby, 500 included units for Pro, and a $10 Mail add-on
+with 5,000 units. Additional paid usage is priced at $2 per 1,000 units against
+the conservative Resend overage floor of $0.90 per 1,000.
+
+Mailbox and alias counts are Multivrs database limits; Resend does not sell
+mailboxes. Provider constraints still apply globally: 50 total recipients per
+message, the team's rate-limit pool, domain reputation, bounce/spam thresholds,
+and the selected Resend account tier. Paid volume must not be enabled until
+tenant metering and spend controls are active.
+
 ## SMTP submission
 
 `apps/mail-smtp` is the TLS submission gateway on port 587. A customer uses the
@@ -77,11 +93,20 @@ message, then enters the same durable queue and provider pipeline as the REST
 API. It never stores the clear password and it rejects senders outside the key's
 project scope.
 
-## Operations still requiring infrastructure
+## Completion and go-live checklist
 
-Deploy the Cloudflare worker, both queues, and the TLS SMTP gateway; provision
-the receiving MX gateway and private MIME storage; register the Resend
-`domain.updated` webhook at `/api/mail/resend-events`; and operate the DNS
-provider integration.
-The application deliberately fails closed when production worker or provider
-credentials are absent; it does not generate fake delivery activity.
+- ✅ Relational models, tenant ownership checks, services, APIs, validation, and UI.
+- ✅ Resend sending/domain adapters and signed provider event normalization.
+- ✅ Durable outbound queue, scheduler, retries, DLQ, and idempotent event updates.
+- ✅ Inbound message/thread normalization and attachment metadata pipeline.
+- ✅ TLS SMTP submission gateway and tenant-scoped credential authentication.
+- ✅ Managed/external DNS record workflow and automatic domain reconciliation.
+- ⏳ Deploy Workers, queues, and the TLS SMTP gateway.
+- ⏳ Provision receiving MX routing and private raw-MIME/attachment storage.
+- ⏳ Register `email.received` and `domain.updated` Resend webhook events.
+- ⏳ Enable production Resend tier, overages, metering alerts, and spend controls.
+
+The source implementation is complete; the remaining items mutate external
+infrastructure. The application deliberately fails closed when production
+worker or provider credentials are absent and never generates fake delivery
+activity.

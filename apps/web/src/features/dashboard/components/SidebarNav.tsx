@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import {
   buildNavHref,
@@ -8,7 +9,11 @@ import {
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
 import { cn } from "@/lib/utils";
 
-export function SidebarNav() {
+export function SidebarNav({
+  onLinkClick,
+}: {
+  onLinkClick?: (slug: string) => void;
+} = {}) {
   const { username, scope, activeSlug } = useDashboardScope();
 
   return (
@@ -20,28 +25,39 @@ export function SidebarNav() {
             <li key={item.name}>
               <Link
                 href={buildNavHref(username, scope, item.slug)}
+                onClick={(e) => {
+                  if (isActive) {
+                    e.preventDefault();
+                  }
+                  onLinkClick?.(item.slug);
+                }}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "nav-item group relative flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] transition-colors duration-150",
                   isActive
-                    ? "nav-rail-active bg-accent/12 font-medium text-foreground"
-                    : "text-muted-foreground hover:bg-white/[0.025] hover:text-foreground",
+                    ? "nav-rail-active bg-white/8 font-medium text-foreground"
+                    : "text-muted-foreground hover:bg-white/2.5 hover:text-foreground",
                 )}
               >
                 <item.icon
                   className={cn(
-                    "size-[17px] shrink-0 transition-colors",
+                    "size-4.25 shrink-0 transition-colors",
                     isActive
-                      ? "text-accent"
+                      ? "text-foreground"
                       : "text-muted-foreground/70 group-hover:text-foreground",
                   )}
                   strokeWidth={1.75}
                 />
-                <span className="truncate tracking-[-0.01em]">{item.name}</span>
-                {item.badge && (
-                  <span className="ml-auto rounded-md border border-accent/30 bg-accent/10 px-1.5 py-0.5 font-geist-mono text-[9px] font-medium uppercase tracking-widest text-accent">
-                    {item.badge}
-                  </span>
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="truncate tracking-[-0.01em]">{item.name}</span>
+                  {item.badge && (
+                    <span className="shrink-0 rounded-lg border border-accent/20 bg-accent/10 px-1.5 py-px text-[9.5px] font-medium text-accent">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+                {(item.slug === "emails" || item.slug === "observability") && (
+                  <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground/80" />
                 )}
               </Link>
             </li>

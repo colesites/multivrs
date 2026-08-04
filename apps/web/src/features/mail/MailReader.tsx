@@ -31,14 +31,14 @@ export function MailReader({
 }) {
   if (!thread)
     return (
-      <div className="hidden h-full min-h-0 flex-1 place-items-center bg-[#07080a] text-xs text-white/30 md:grid">
+      <div className="hidden h-full min-h-0 flex-1 place-items-center bg-background dark:bg-[#07080a] text-xs text-black/30 dark:text-white/30 md:grid">
         Select a conversation to read it.
       </div>
     );
   const latest = messages.at(-1);
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-[#07080a]">
-      <div className="flex min-h-14 shrink-0 items-center gap-2 border-b border-white/[0.07] px-4">
+    <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background dark:bg-[#07080a]">
+      <div className="flex min-h-14 shrink-0 items-center gap-2 border-b border-black/10 dark:border-white/10 px-4">
         <h2 className="min-w-0 flex-1 truncate text-sm font-medium">
           {thread.subject}
         </h2>
@@ -101,23 +101,23 @@ export function MailReader({
         <div className="mx-auto max-w-3xl space-y-4">
           {messages.map((message) => (
             <article
-              className="rounded-xl border border-white/[0.08] bg-[#0b0c10]"
+              className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#0b0c10]"
               key={message.id}
             >
-              <header className="flex gap-3 border-b border-white/[0.06] p-4">
-                <span className="grid size-8 place-items-center rounded-full bg-white/[0.06] text-[10px]">
+              <header className="flex gap-3 border-b border-black/10 dark:border-white/10 p-4">
+                <span className="grid size-8 place-items-center rounded-full bg-black/5 dark:bg-white/5 text-[10px]">
                   {message.fromAddress.slice(0, 2).toUpperCase()}
                 </span>
                 <div className="min-w-0">
                   <p className="truncate text-xs font-medium">
                     {message.fromName || message.fromAddress}
                   </p>
-                  <p className="truncate text-[10px] text-white/35">
+                  <p className="truncate text-[10px] text-black/35 dark:text-white/35">
                     to {message.to.join(", ")} ·{" "}
                     {new Date(message.createdAt).toLocaleString("en-US")}
                   </p>
                 </div>
-                <span className="ml-auto h-fit rounded-full border border-white/10 px-2 py-1 font-mono text-[8px] uppercase text-white/35">
+                <span className="ml-auto h-fit rounded-full border border-black/10 dark:border-white/10 px-2 py-1 font-mono text-[8px] uppercase text-black/35 dark:text-white/35">
                   {message.status}
                 </span>
               </header>

@@ -8,6 +8,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Settings } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -89,15 +90,30 @@ export function ProjectSettingsPage({
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-5 py-10">
-      <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
-        Project configuration
-      </p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">Settings</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Configure how {project.name} is identified and built.
-      </p>
-      <section className="mt-8 space-y-5 border-y border-[var(--hairline)] py-6">
+    <div className="mx-auto w-full max-w-4xl space-y-7 px-5 py-8">
+      <header className="flex items-start justify-between gap-6">
+        <div>
+          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+            Project configuration
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Settings</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Configure how {project.name} is identified and built.
+          </p>
+        </div>
+        <div className="flex size-10 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-400/6">
+          <Settings className="size-5 text-blue-300" />
+        </div>
+      </header>
+
+      <section className="overflow-hidden rounded-2xl border border-(--hairline) bg-background/70">
+        <div className="border-b border-(--hairline) px-5 py-4">
+          <h2 className="text-sm font-semibold">General configuration</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Update your project's basic settings and deployment configuration.
+          </p>
+        </div>
+        <div className="space-y-6 p-5">
         <label
           htmlFor="project-name"
           className="block max-w-xl space-y-2 text-xs text-muted-foreground"
@@ -150,24 +166,35 @@ export function ProjectSettingsPage({
             }
           />
         </label>
-        <Button onClick={save} disabled={busy !== null || !name.trim()}>
-          {busy === "save" ? "Saving…" : "Save changes"}
-        </Button>
+        </div>
+        <div className="flex items-center justify-between border-t border-(--hairline) bg-black/2 dark:bg-white/2 px-5 py-3">
+          <p className="text-xs text-muted-foreground">
+            Please use 32 characters at maximum.
+          </p>
+          <Button onClick={save} disabled={busy !== null || !name.trim()}>
+            {busy === "save" ? "Saving…" : "Save changes"}
+          </Button>
+        </div>
       </section>
-      <section className="mt-10 border border-red-500/25 bg-red-500/[0.035] p-5">
-        <h2 className="text-sm font-semibold text-red-300">Delete project</h2>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          Permanently removes deployments, logs, settings, and project
-          connections.
-        </p>
-        <Button
-          className="mt-4"
-          variant="destructive"
-          onClick={remove}
-          disabled={busy !== null}
-        >
-          {busy === "delete" ? "Deleting…" : "Delete project"}
-        </Button>
+      <section className="overflow-hidden rounded-2xl border border-red-500/20 bg-red-500/2">
+        <div className="px-5 py-5">
+          <h2 className="text-sm font-semibold text-red-600 dark:text-red-400">Delete project</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The project will be permanently deleted, including its deployments and domains. This action is irreversible and can not be undone.
+          </p>
+        </div>
+        <div className="flex items-center justify-between border-t border-red-500/20 bg-red-500/5 px-5 py-3">
+          <p className="text-xs text-red-600 dark:text-red-400">
+            Proceed with caution.
+          </p>
+          <Button
+            variant="destructive"
+            onClick={remove}
+            disabled={busy !== null}
+          >
+            {busy === "delete" ? "Deleting…" : "Delete project"}
+          </Button>
+        </div>
       </section>
     </div>
   );

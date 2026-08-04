@@ -20,6 +20,8 @@ export interface ServeResolution {
   defaultRevalidate: number;
   runtimeConfigVersion: string;
   staleWindow: number;
+  billingBlocked: boolean;
+  billingBlockReason: string | null;
 }
 
 async function readyResolution(
@@ -34,7 +36,7 @@ async function readyResolution(
   if (deployment?.status !== "ready" || !deployment.artifactHash) {
     throw new NotFoundError("Ready deployment not found");
   }
-  const [rows, settings, contentSettings, runtimeEnvironment] =
+  const [rows, settings, contentSettings, runtimeEnvironment, billing] =
     await Promise.all([
       prisma.firewallRule.findMany({
         where: { projectId: deployment.projectId, enabled: true },
@@ -66,6 +68,10 @@ async function readyResolution(
         deployment.projectId,
         deployment.target === "production" ? "production" : "preview",
       ),
+      prisma.project.findUnique({
+        where: { id: deployment.projectId },
+        select: { usageBlockedUntil: true, usageBlockReason: true },
+      }),
     ]);
   const firewallRules = rows.map((row) =>
     firewallRuleSchema.parse({
@@ -80,6 +86,10 @@ async function readyResolution(
     artifactHash: deployment.artifactHash,
     attackMode: settings?.attackMode ?? false,
     browserTtl: settings?.browserTtl ?? 0,
+    billingBlocked: Boolean(
+      billing?.usageBlockedUntil && billing.usageBlockedUntil > new Date(),
+    ),
+    billingBlockReason: billing?.usageBlockReason ?? null,
     cacheMode:
       settings?.cacheMode === "aggressive" || settings?.cacheMode === "bypass"
         ? settings.cacheMode

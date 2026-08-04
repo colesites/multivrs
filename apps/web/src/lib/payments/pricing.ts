@@ -81,9 +81,9 @@ async function resolvePrice(
 async function getStripePlan(
   name: string,
   lookupKeyName:
-    | "STRIPE_FREE_MONTHLY_LOOKUP_KEY"
+    | "STRIPE_HOBBY_MONTHLY_LOOKUP_KEY"
     | "STRIPE_PRO_MONTHLY_LOOKUP_KEY",
-  priceIdName: "STRIPE_FREE_MONTHLY_PRICE_ID" | "STRIPE_PRO_MONTHLY_PRICE_ID",
+  priceIdName: "STRIPE_HOBBY_MONTHLY_PRICE_ID" | "STRIPE_PRO_MONTHLY_PRICE_ID",
 ): Promise<StripePlan> {
   const config = priceConfigSchema.safeParse({
     priceId: process.env[priceIdName] || undefined,
@@ -125,20 +125,20 @@ export function getProPlan(): Promise<StripePlan> {
 }
 
 export async function getPricingPlans(): Promise<{
-  freePlan: StripePlan;
+  hobbyPlan: StripePlan;
   proPlan: StripePlan;
 }> {
   "use cache";
   cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
   cacheTag("pricing");
 
-  const [freePlan, proPlan] = await Promise.all([
+  const [hobbyPlan, proPlan] = await Promise.all([
     getStripePlan(
       "Hobby",
-      "STRIPE_FREE_MONTHLY_LOOKUP_KEY",
-      "STRIPE_FREE_MONTHLY_PRICE_ID",
+      "STRIPE_HOBBY_MONTHLY_LOOKUP_KEY",
+      "STRIPE_HOBBY_MONTHLY_PRICE_ID",
     ),
     getProPlan(),
   ]);
-  return { freePlan, proPlan };
+  return { hobbyPlan, proPlan };
 }

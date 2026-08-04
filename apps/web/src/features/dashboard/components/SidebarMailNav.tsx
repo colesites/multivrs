@@ -21,7 +21,13 @@ import { cn } from "@/lib/utils";
  * when the user enters the Emails section. Designed to slot into the
  * existing Sidebar's middle zone, inheriting its width and design tokens.
  */
-export function SidebarMailNav() {
+export function SidebarMailNav({ 
+  onLinkClick,
+  onBack,
+}: { 
+  onLinkClick?: () => void;
+  onBack?: () => void;
+} = {}) {
   const pathname = usePathname();
   const { username, scope } = useDashboardScope();
   const localContext = useOptionalMailContext();
@@ -37,18 +43,31 @@ export function SidebarMailNav() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      {/* Back link */}
       <div className="px-3 pt-2 pb-1">
-        <Link
-          href={backHref}
-          className="group flex items-center gap-2 rounded-lg px-2 py-1.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft
-            className="size-3.5 transition-transform group-hover:-translate-x-0.5"
-            strokeWidth={1.75}
-          />
-          <span>Back</span>
-        </Link>
+        {onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="group flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft
+              className="size-3.5 transition-transform group-hover:-translate-x-0.5"
+              strokeWidth={1.75}
+            />
+            <span className="font-medium">Email</span>
+          </button>
+        ) : (
+          <Link
+            href={backHref}
+            className="group flex items-center gap-2 rounded-lg px-2 py-1.5 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft
+              className="size-3.5 transition-transform group-hover:-translate-x-0.5"
+              strokeWidth={1.75}
+            />
+            <span className="font-medium">Email</span>
+          </Link>
+        )}
       </div>
 
       {/* Compose button */}
@@ -56,7 +75,10 @@ export function SidebarMailNav() {
         {ctx ? (
           <Button
             className="w-full bg-foreground text-background hover:bg-foreground/90"
-            onClick={ctx.openCompose}
+            onClick={() => {
+              ctx.openCompose();
+              onLinkClick?.();
+            }}
             size="sm"
           >
             Compose
@@ -69,6 +91,7 @@ export function SidebarMailNav() {
               size: "sm",
             })}
             href={`/${username}/${scope}/emails?view=inbox&compose=1`}
+            onClick={() => onLinkClick?.()}
           >
             Compose
           </Link>
@@ -102,22 +125,26 @@ export function SidebarMailNav() {
                 <Link
                   href={href}
                   onClick={(event) => {
-                    if (!ctx) return;
+                    if (!ctx) {
+                      onLinkClick?.();
+                      return;
+                    }
                     event.preventDefault();
                     ctx.setView(item.view as MailView);
+                    onLinkClick?.();
                   }}
                   className={cn(
-                    "group relative flex h-9 w-full items-center gap-3 rounded-lg px-3 text-[13px] transition-colors duration-150",
+                    "nav-item group flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] transition-colors duration-150",
                     isActive
-                      ? "nav-rail-active bg-accent/12 font-medium text-foreground"
-                      : "text-muted-foreground hover:bg-white/[0.025] hover:text-foreground",
+                      ? "nav-rail-active bg-white/8 font-medium text-foreground"
+                      : "text-muted-foreground hover:bg-white/2.5 hover:text-foreground",
                   )}
                 >
                   <Icon
                     className={cn(
-                      "size-[17px] shrink-0 transition-colors",
+                      "size-4.25 shrink-0 transition-colors",
                       isActive
-                        ? "text-accent"
+                        ? "text-foreground"
                         : "text-muted-foreground/70 group-hover:text-foreground",
                     )}
                     strokeWidth={1.75}

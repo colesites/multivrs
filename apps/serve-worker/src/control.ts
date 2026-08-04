@@ -26,6 +26,8 @@ export interface ControlResolution {
   defaultRevalidate: number;
   runtimeConfigVersion: string;
   staleWindow: number;
+  billingBlocked: boolean;
+  billingBlockReason: string | null;
 }
 
 export function encodeRuntimeEnvironment(values: Record<string, string>): string {

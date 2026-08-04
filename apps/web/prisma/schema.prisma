@@ -8,16 +8,16 @@ generator client {
 
 // User model - stores core user identity data
 model User {
-  id              String   @id @default(uuid())
-  email           String   @unique
-  emailVerified   Boolean  @default(false)
-  name            String
-  username        String?  @unique
-  displayUsername String?
-  image           String?
-  twoFactorEnabled Boolean @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String   @id @default(uuid())
+  email            String   @unique
+  emailVerified    Boolean  @default(false)
+  name             String
+  username         String?  @unique
+  displayUsername  String?
+  image            String?
+  twoFactorEnabled Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   sessions             Session[]
   accounts             Account[]
@@ -55,14 +55,27 @@ model User {
   usageEvents          UsageEvent[]
   platformSandboxes    PlatformSandbox[]
   workflows            PlatformWorkflow[]
-  logDrains             ProjectLogDrain[]
-  twoFactor             TwoFactor?
-  organizationMembers   Member[]
-  organizationInvites   Invitation[] @relation("InvitationInviter")
+  logDrains            ProjectLogDrain[]
+  twoFactor            TwoFactor?
+  organizationMembers  Member[]
+  organizationInvites  Invitation[]          @relation("InvitationInviter")
 
   @@index([email])
   @@index([username])
   @@map("users")
+}
+
+// Email-based exceptions to billing limits. Entries can exist before a user
+// signs up, so this intentionally does not reference the users table.
+model BillingEntitlementWhitelist {
+  email     String   @id @db.VarChar(320)
+  reason    String?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([enabled])
+  @@map("billing_entitlement_whitelist")
 }
 
 model ApiToken {
@@ -83,14 +96,14 @@ model ApiToken {
 
 // Session model - stores active user sessions
 model Session {
-  id        String   @id @default(uuid())
-  userId    String
-  expiresAt DateTime
-  token     String   @unique
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   String   @id @default(uuid())
+  userId               String
+  expiresAt            DateTime
+  token                String   @unique
+  ipAddress            String?
+  userAgent            String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
   activeOrganizationId String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -138,20 +151,22 @@ model Verification {
 
 // Project model - a deployable unit owned by a user (control plane)
 model Project {
-  id                     String   @id @default(uuid())
+  id                     String    @id @default(uuid())
   name                   String
   slug                   String
   framework              String? // "nextjs" | "swift-rust" | "vite" | "static" | null (auto)
   repositoryUrl          String?
   ownerId                String
   // The production alias pointer: which deployment production serves.
-  productionDeploymentId String?  @unique
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  productionDeploymentId String?   @unique
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  usageBlockedUntil      DateTime?
+  usageBlockReason       String?
 
-  owner                User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  deployments          Deployment[]          @relation("ProjectDeployments")
-  productionDeployment Deployment?           @relation("ProductionDeployment", fields: [productionDeploymentId], references: [id], onDelete: SetNull)
+  owner                User                    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  deployments          Deployment[]            @relation("ProjectDeployments")
+  productionDeployment Deployment?             @relation("ProductionDeployment", fields: [productionDeploymentId], references: [id], onDelete: SetNull)
   domains              Domain[]
   domainOrders         DomainOrder[]
   edgeSettings         ProjectEdgeSettings?
@@ -171,15 +186,15 @@ model Project {
   bulkRedirects        BulkRedirect[]
   edgeConfigEntries    EdgeConfigEntry[]
   cacheTags            ProjectCacheTag[]
-  sourceMicrofrontends MicrofrontendRoute[]       @relation("MicrofrontendSource")
-  targetMicrofrontends MicrofrontendRoute[]       @relation("MicrofrontendTarget")
+  sourceMicrofrontends MicrofrontendRoute[]    @relation("MicrofrontendSource")
+  targetMicrofrontends MicrofrontendRoute[]    @relation("MicrofrontendTarget")
   usageEvents          UsageEvent[]
   platformSandboxes    PlatformSandbox[]
   workflows            PlatformWorkflow[]
   workflowRuns         PlatformWorkflowRun[]
-  logDrains             ProjectLogDrain[]
-  organizationId        String?
-  organization          Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  logDrains            ProjectLogDrain[]
+  organizationId       String?
+  organization         Organization?           @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   @@unique([ownerId, slug])
   @@unique([organizationId, slug])
@@ -300,23 +315,107 @@ model SavedDomain {
 model BillingSubscription {
   id                   String    @id @default(uuid())
   userId               String?
+  organizationId       String?
   stripeCustomerId     String
   stripeSubscriptionId String    @unique
   stripePriceId        String
   stripeProductId      String
+  stripeQuoteId        String?
+  planKey              String    @default("pro")
+  entitlementOverrides Json?
+  overageRateOverrides Json?
   status               String
   lastPaymentStatus    String    @default("unknown")
+  overagesEnabled      Boolean   @default(false)
+  spendLimitCents      Int?
+  spendAlertCents      Int?
   currentPeriodStart   DateTime?
   currentPeriodEnd     DateTime?
   cancelAtPeriodEnd    Boolean   @default(false)
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user         User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization?             @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  items        BillingSubscriptionItem[]
+  invoices     BillingInvoice[]
+  meterEvents  BillingMeterEvent[]
+  usageEvents  UsageEvent[]
 
   @@index([userId, status])
+  @@index([organizationId, status])
   @@index([stripeCustomerId])
+  @@index([stripeQuoteId])
   @@map("billing_subscriptions")
+}
+
+model BillingSubscriptionItem {
+  id                       String    @id @default(uuid())
+  billingSubscriptionId    String
+  stripeSubscriptionItemId String    @unique
+  stripePriceId            String
+  stripeProductId          String
+  lookupKey                String?
+  productKey               String
+  kind                     String
+  quantity                 Int       @default(1)
+  projectIds               String[]
+  active                   Boolean   @default(true)
+  currentPeriodStart       DateTime?
+  currentPeriodEnd         DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  subscription BillingSubscription @relation(fields: [billingSubscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([billingSubscriptionId, active])
+  @@index([productKey, active])
+  @@map("billing_subscription_items")
+}
+
+model BillingInvoice {
+  id                    String    @id @default(uuid())
+  billingSubscriptionId String?
+  stripeInvoiceId       String    @unique
+  status                String
+  currency              String
+  amountDueCents        Int
+  amountPaidCents       Int
+  amountRemainingCents  Int
+  hostedInvoiceUrl      String?
+  periodStart           DateTime?
+  periodEnd             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  subscription BillingSubscription? @relation(fields: [billingSubscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([billingSubscriptionId, createdAt])
+  @@index([status, createdAt])
+  @@map("billing_invoices")
+}
+
+model BillingMeterEvent {
+  id                    String    @id @default(uuid())
+  usageEventId          String    @unique
+  billingSubscriptionId String
+  identifier            String    @unique
+  eventName             String
+  quantity              BigInt
+  estimatedCostCents    Int
+  status                String    @default("pending")
+  attempts              Int       @default(0)
+  lastError             String?
+  publishedAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  usageEvent   UsageEvent          @relation(fields: [usageEventId], references: [id], onDelete: Cascade)
+  subscription BillingSubscription @relation(fields: [billingSubscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([billingSubscriptionId, createdAt])
+  @@map("billing_meter_events")
 }
 
 model StripeWebhookEvent {
@@ -445,19 +544,27 @@ model MicrofrontendRoute {
 }
 
 model UsageEvent {
-  id         String   @id @default(uuid())
-  userId     String?
-  projectId  String?
-  metric     String
-  quantity   BigInt   @default(1)
-  metadata   Json?
-  occurredAt DateTime @default(now())
+  id                    String   @id @default(uuid())
+  idempotencyKey        String?  @unique
+  userId                String?
+  projectId             String?
+  billingSubscriptionId String?
+  billingScopeKey       String?
+  metric                String
+  quantity              BigInt   @default(1)
+  overageQuantity       BigInt   @default(0)
+  metadata              Json?
+  occurredAt            DateTime @default(now())
 
-  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  user         User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  project      Project?             @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  subscription BillingSubscription? @relation(fields: [billingSubscriptionId], references: [id], onDelete: SetNull)
+  billingEvent BillingMeterEvent?
 
   @@index([userId, metric, occurredAt])
   @@index([projectId, metric, occurredAt])
+  @@index([billingSubscriptionId, metric, occurredAt])
+  @@index([billingScopeKey, metric, occurredAt])
   @@map("usage_events")
 }
 
@@ -500,8 +607,8 @@ model PlatformWorkflow {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project  Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project                @relation(fields: [projectId], references: [id], onDelete: Cascade)
   schedules PlatformWorkflowCron[]
   runs      PlatformWorkflowRun[]
 
@@ -512,14 +619,14 @@ model PlatformWorkflow {
 }
 
 model PlatformWorkflowCron {
-  id            String    @id @default(uuid())
-  workflowId    String
-  expression    String
-  enabled       Boolean   @default(true)
-  nextRunAt     DateTime
-  lastRunAt     DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id         String    @id @default(uuid())
+  workflowId String
+  expression String
+  enabled    Boolean   @default(true)
+  nextRunAt  DateTime
+  lastRunAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   workflow PlatformWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
@@ -529,20 +636,20 @@ model PlatformWorkflowCron {
 }
 
 model PlatformWorkflowRun {
-  id                      String    @id @default(uuid())
-  workflowId              String
-  projectId               String
-  cloudflareInstanceId    String?   @unique
-  trigger                  String    @default("manual") // manual|schedule|webhook
-  status                   String    @default("queued") // queued|running|complete|errored|terminated
-  input                    Json?
-  output                   Json?
-  errorMessage             String?
-  payloadBytes             Int       @default(0)
-  outputBytes              Int       @default(0)
-  createdAt                DateTime  @default(now())
-  startedAt                DateTime?
-  finishedAt               DateTime?
+  id                   String    @id @default(uuid())
+  workflowId           String
+  projectId            String
+  cloudflareInstanceId String?   @unique
+  trigger              String    @default("manual") // manual|schedule|webhook
+  status               String    @default("queued") // queued|running|complete|errored|terminated
+  input                Json?
+  output               Json?
+  errorMessage         String?
+  payloadBytes         Int       @default(0)
+  outputBytes          Int       @default(0)
+  createdAt            DateTime  @default(now())
+  startedAt            DateTime?
+  finishedAt           DateTime?
 
   workflow PlatformWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   project  Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -594,9 +701,10 @@ model Organization {
   metadata  String?  @db.Text
   createdAt DateTime @default(now())
 
-  members     Member[]
-  invitations Invitation[]
-  projects    Project[]
+  members       Member[]
+  invitations   Invitation[]
+  projects      Project[]
+  subscriptions BillingSubscription[]
 
   @@index([slug])
   @@map("organizations")

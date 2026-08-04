@@ -4,6 +4,7 @@ import { NotFoundError, ValidationError } from "@multivrs/error-utils";
 import type { RuntimeLogLevel } from "@/features/dashboard/types/runtime-log.types";
 import { prisma } from "@/lib/prisma";
 import { recordAuditEvent } from "@/lib/services/audit-event.service";
+import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
 import {
   decryptEnvironmentValue,
   encryptEnvironmentValue,
@@ -38,6 +39,13 @@ export async function createLogDrain(
   input: { endpoint: string; name: string; secret: string },
 ) {
   await requireOwnedProject(userId, projectId, "update");
+  const current = await prisma.projectLogDrain.count({ where: { projectId } });
+  await assertResourceAvailable({
+    current,
+    projectId,
+    resource: "log_drains",
+    userId,
+  });
   validateDrainUrl(input.endpoint);
   const encrypted = encryptEnvironmentValue(input.secret);
   const drain = await prisma.projectLogDrain.create({

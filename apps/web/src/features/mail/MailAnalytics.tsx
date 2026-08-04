@@ -11,11 +11,11 @@ export function MailAnalytics({ data }: { data: MailDashboardData }) {
   ];
   return (
     <div className="w-full px-5 py-8 lg:px-8">
-      <div className="grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 md:grid-cols-4">
+      <div className="grid gap-px overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/10 md:grid-cols-4">
         {stats.map(([label, value]) => (
-          <div className="bg-[#090a0d] p-6" key={label}>
+          <div className="bg-white dark:bg-[#090a0d] p-6" key={label}>
             <p className="text-3xl tracking-tight">{value}</p>
-            <p className="mt-2 text-xs text-white/35">{label}</p>
+            <p className="mt-2 text-xs text-black/35 dark:text-white/35">{label}</p>
             <div className="mt-8 h-12 bg-[linear-gradient(150deg,transparent_45%,rgba(37,99,235,.55)_46%,transparent_48%)]" />
           </div>
         ))}
@@ -27,7 +27,7 @@ export function MailAnalytics({ data }: { data: MailDashboardData }) {
 export function MailSettings() {
   return (
     <div className="w-full px-5 py-8 lg:px-8">
-      <section className="rounded-xl border border-white/10 bg-[#090a0d] p-6">
+      <section className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#090a0d] p-6">
         <h2 className="text-sm font-medium">Mail policy</h2>
         <div className="mt-6 space-y-4">
           <Setting
@@ -51,9 +51,9 @@ export function MailSettings() {
 
 function Setting({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col justify-between gap-1 border-b border-white/[0.06] pb-4 text-xs sm:flex-row">
-      <span className="text-white/65">{label}</span>
-      <span className="text-white/30">{value}</span>
+    <div className="flex flex-col justify-between gap-1 border-b border-black/10 dark:border-white/10 pb-4 text-xs sm:flex-row">
+      <span className="text-black/65 dark:text-white/65">{label}</span>
+      <span className="text-black/30 dark:text-white/30">{value}</span>
     </div>
   );
 }

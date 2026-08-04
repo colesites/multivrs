@@ -9,12 +9,14 @@ function title(action: string): string {
 
 export function AccountActivity({ events }: { events: DashboardAuditEvent[] }) {
   return (
-    <section className="border-y border-[var(--hairline)] py-6">
-      <h2 className="text-base font-semibold">Account activity</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Security-sensitive changes and platform lifecycle events.
-      </p>
-      <div className="mt-5 divide-y divide-[var(--hairline)]">
+    <section className="overflow-hidden rounded-2xl border border-(--hairline) bg-background/70">
+      <div className="border-b border-(--hairline) px-5 py-4">
+        <h2 className="text-sm font-semibold">Account activity</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Security-sensitive changes and platform lifecycle events.
+        </p>
+      </div>
+      <div className="divide-y divide-(--hairline) px-5">
         {events.map((event) => (
           <div key={event.id} className="flex items-center gap-4 py-3 text-sm">
             <span className="size-2 rounded-full bg-blue-400" />

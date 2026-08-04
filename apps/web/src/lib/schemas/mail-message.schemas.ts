@@ -37,6 +37,13 @@ export const composeMailSchema = composeMailBaseSchema
     message: "An email body is required",
   })
   .refine(
+    (value) => value.to.length + value.cc.length + value.bcc.length <= 50,
+    {
+      message: "An email cannot have more than 50 total recipients",
+      path: ["to"],
+    },
+  )
+  .refine(
     (value) =>
       value.attachments.reduce((total, item) => total + item.size, 0) <=
       10 * 1024 * 1024,
@@ -87,4 +94,11 @@ export const smtpSubmissionSchema = composeMailBaseSchema
   })
   .refine((value) => value.text || value.html, {
     message: "An email body is required",
-  });
+  })
+  .refine(
+    (value) => value.to.length + value.cc.length + value.bcc.length <= 50,
+    {
+      message: "An email cannot have more than 50 total recipients",
+      path: ["to"],
+    },
+  );
