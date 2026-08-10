@@ -67,27 +67,29 @@ export function MailOverview({
           </div>
           {data.threads.slice(0, 5).map((thread) => (
             <button
-              className="flex w-full items-center gap-3 border-b border-black/5 dark:border-white/5 px-4 py-3 text-left last:border-0 hover:bg-black/5 dark:bg-white/5"
+              className="block w-full border-b border-black/5 dark:border-white/5 px-4 py-3 text-left last:border-0 hover:bg-black/5 dark:bg-white/5"
               key={thread.id}
               onClick={() => onView("inbox")}
               type="button"
             >
-              <span className="grid size-8 shrink-0 place-items-center rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[10px]">
-                {thread.correspondent.slice(0, 2).toUpperCase()}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-xs text-black/80 dark:text-white/80">
-                  {thread.subject}
+              <div className="flex w-full items-center gap-3">
+                <span className="grid size-8 shrink-0 place-items-center rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[10px]">
+                  {thread.correspondent.slice(0, 2).toUpperCase()}
                 </span>
-                <span className="block truncate text-[11px] text-black/35 dark:text-white/35">
-                  {thread.preview}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-xs text-black/80 dark:text-white/80">
+                    {thread.subject}
+                  </span>
+                  <span className="block truncate text-[11px] text-black/35 dark:text-white/35">
+                    {thread.preview}
+                  </span>
                 </span>
-              </span>
-              <span className="ml-auto shrink-0 text-[10px] text-black/25 dark:text-white/25">
-                {new Date(thread.lastMessageAt).toLocaleDateString("en-US", {
-                  timeZone: "UTC",
-                })}
-              </span>
+                <span className="ml-auto shrink-0 text-[10px] text-black/25 dark:text-white/25">
+                  {new Date(thread.lastMessageAt).toLocaleDateString("en-US", {
+                    timeZone: "UTC",
+                  })}
+                </span>
+              </div>
             </button>
           ))}
           {!data.threads.length ? <EmptyMail /> : null}
