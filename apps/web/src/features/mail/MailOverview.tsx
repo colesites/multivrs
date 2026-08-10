@@ -72,19 +72,26 @@ export function MailOverview({
               onClick={() => onView("inbox")}
               type="button"
             >
-              <div className="flex w-full items-center gap-3">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[10px]">
+              <div className="flex w-full flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                <span className="hidden sm:grid size-8 shrink-0 place-items-center rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[10px]">
                   {thread.correspondent.slice(0, 2).toUpperCase()}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-xs text-black/80 dark:text-white/80">
-                    {thread.subject}
-                  </span>
-                  <span className="block truncate text-[11px] text-black/35 dark:text-white/35">
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <span className="block truncate text-sm sm:text-xs font-medium sm:font-normal text-black/80 dark:text-white/80">
+                      {thread.subject}
+                    </span>
+                    <span className="shrink-0 sm:hidden text-xs sm:text-[10px] text-black/40 sm:text-black/25 dark:text-white/40 sm:dark:text-white/25">
+                      {new Date(thread.lastMessageAt).toLocaleDateString("en-US", {
+                        timeZone: "UTC",
+                      })}
+                    </span>
+                  </div>
+                  <span className="line-clamp-2 sm:line-clamp-none sm:block sm:truncate text-xs sm:text-[11px] leading-snug sm:leading-normal text-black/45 sm:text-black/35 dark:text-white/45 sm:dark:text-white/35 mt-0.5 sm:mt-0">
                     {thread.preview}
                   </span>
                 </span>
-                <span className="ml-auto shrink-0 text-[10px] text-black/25 dark:text-white/25">
+                <span className="hidden sm:block ml-auto shrink-0 text-[10px] text-black/25 dark:text-white/25">
                   {new Date(thread.lastMessageAt).toLocaleDateString("en-US", {
                     timeZone: "UTC",
                   })}
