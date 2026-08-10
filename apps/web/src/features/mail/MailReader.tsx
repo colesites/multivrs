@@ -1,4 +1,5 @@
 import {
+  ArrowLeft,
   Archive,
   Forward,
   Inbox,
@@ -22,12 +23,16 @@ export function MailReader({
   onForward,
   onReply,
   thread,
+  onClose,
+  className,
 }: {
   messages: MailMessageDetail[];
   onAction: (messageId: string, action: string) => void;
   onForward: (message: MailMessageDetail) => void;
   onReply: (message: MailMessageDetail) => void;
   thread?: MailThreadSummary;
+  onClose?: () => void;
+  className?: string;
 }) {
   if (!thread)
     return (
@@ -37,8 +42,19 @@ export function MailReader({
     );
   const latest = messages.at(-1);
   return (
-    <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background dark:bg-[#07080a]">
-      <div className="flex min-h-14 shrink-0 items-center gap-2 border-b border-black/10 dark:border-white/10 px-4">
+    <section className={className || "flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background dark:bg-[#07080a]"}>
+      <div className="flex min-h-14 shrink-0 items-center gap-2 border-b border-black/10 dark:border-white/10 px-2 md:px-4">
+        {onClose ? (
+          <Button
+            aria-label="Back to messages"
+            className="md:hidden"
+            onClick={onClose}
+            size="icon-sm"
+            variant="ghost"
+          >
+            <ArrowLeft className="size-4" />
+          </Button>
+        ) : null}
         <h2 className="min-w-0 flex-1 truncate text-sm font-medium">
           {thread.subject}
         </h2>

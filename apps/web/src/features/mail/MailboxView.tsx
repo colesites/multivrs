@@ -115,6 +115,7 @@ export function MailboxView({
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden">
       <MailThreadList
+        className={selectedId ? "hidden md:flex" : "flex"}
         onEmptyTrash={
           view === "trash" && threads.length ? emptyTrash : undefined
         }
@@ -124,6 +125,12 @@ export function MailboxView({
         threads={threads}
       />
       <MailReader
+        className={
+          selectedId
+            ? "flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background dark:bg-[#07080a]"
+            : "hidden md:flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background dark:bg-[#07080a]"
+        }
+        onClose={() => setSelectedId(undefined)}
         messages={selected ? (data.messages[selected.id] ?? []) : []}
         onAction={action}
         onForward={onForward}
