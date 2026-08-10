@@ -149,7 +149,7 @@ export function SidebarMailNav({
                     )}
                     strokeWidth={1.75}
                   />
-                  <span className="truncate tracking-[-0.01em]">
+                  <span className="min-w-0 flex-1 truncate tracking-[-0.01em]">
                     {item.label}
                   </span>
                   {count ? (

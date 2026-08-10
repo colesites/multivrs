@@ -75,7 +75,7 @@ export function MailOverview({
               <span className="grid size-8 shrink-0 place-items-center rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[10px]">
                 {thread.correspondent.slice(0, 2).toUpperCase()}
               </span>
-              <span className="min-w-0">
+              <span className="min-w-0 flex-1">
                 <span className="block truncate text-xs text-black/80 dark:text-white/80">
                   {thread.subject}
                 </span>

@@ -56,12 +56,12 @@ export function DashboardTopbar({
             value={mailStore.query}
           />
           <Button
-            className="hidden sm:flex h-8 bg-foreground text-background hover:bg-foreground/90"
+            className="flex h-8 w-8 px-0 sm:w-auto sm:px-3 bg-foreground text-background hover:bg-foreground/90"
             onClick={mailStore.openCompose}
             size="sm"
           >
-            <MailPlus className="mr-2 size-3.5" />
-            Compose
+            <MailPlus className="size-4 sm:size-3.5" />
+            <span className="hidden sm:inline">Compose</span>
           </Button>
         </div>
       ) : null}
