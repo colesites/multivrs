@@ -75,7 +75,7 @@ export function HeroContent() {
       {/* 2. HEADLINE: Center on mobile (order-2) / Left on desktop (lg:order-1) */}
       <div
         ref={leftColRef}
-        className="order-2 my-auto flex w-full max-w-full flex-col items-center text-center px-2 sm:px-0 lg:order-1 lg:my-0 lg:items-start lg:text-left"
+        className="order-2 my-auto flex w-full max-w-full flex-col items-center text-center px-2 sm:px-0 lg:order-1 lg:my-0 lg:max-w-[360px] xl:max-w-[420px] lg:items-start lg:text-left"
       >
         <h1 className="mb-2 lg:mb-8 font-clash max-w-full">
           <FoldText
@@ -86,10 +86,10 @@ export function HeroContent() {
             duration={0.75}
             stagger={0.03}
             creaseShading={0.4}
-            fontSize="clamp(2.35rem, 8.2vw, 5.2rem)"
+            fontSize="clamp(2.1rem, 3.6vw, 3.8rem)"
             fontWeight={700}
             color="#ffffff"
-            className="font-clash leading-[1.02] lg:leading-[1.02] tracking-tight select-none max-w-full inline-block"
+            className="font-clash leading-[1.02] lg:leading-[1.04] tracking-tight select-none max-w-full inline-block"
           />
         </h1>
 
@@ -131,13 +131,23 @@ export function HeroContent() {
         </div>
       </div>
 
-      {/* 3. WORD FLIP: Directly under headline on Mobile (order-3) / Right column on Desktop (lg:order-3) */}
+      {/* 3. SUBTITLE / VALUE PROP: Word Flip on Mobile ONLY (order-3), Clean text lines on Desktop (lg:order-3) */}
       <div
         ref={rightColRef}
         className="order-3 mt-1 flex w-full flex-col items-center text-center lg:order-3 lg:mt-0 lg:items-start lg:text-left lg:pl-6 xl:pl-8"
       >
-        <div className="hero-feature-item font-mono text-xs sm:text-sm lg:font-sans lg:text-xl font-normal text-zinc-400 lg:text-white tracking-tight leading-normal select-none">
+        {/* Mobile-only WordFlip */}
+        <div className="block lg:hidden hero-feature-item font-mono text-xs sm:text-sm font-normal text-white select-none">
           <WordFlip words={HIGHLIGHTS} duration={2600} />
+        </div>
+
+        {/* Desktop clean text (no bullets) */}
+        <div className="hidden lg:flex lg:flex-col space-y-3 font-sans text-base xl:text-lg text-white font-normal select-none">
+          {HIGHLIGHTS.map((item) => (
+            <div key={item} className="text-white">
+              {item}
+            </div>
+          ))}
         </div>
       </div>
 

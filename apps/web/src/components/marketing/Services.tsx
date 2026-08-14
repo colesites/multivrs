@@ -443,8 +443,8 @@ export function Services() {
                   </Link>
                 </div>
 
-                {/* Visual / SVG Preview Graphic */}
-                <div className="w-full overflow-hidden rounded-xl border border-white/10 bg-zinc-950 p-2 sm:p-4 shadow-2xl">
+                {/* Full Complete Visual / SVG Preview Graphic with Top White Glow and Bottom Fade */}
+                <div className="relative w-full my-6">
                   {renderVisual(service.id)}
                 </div>
               </div>
@@ -455,10 +455,10 @@ export function Services() {
         {/* DESKTOP VIEW (lg+): 3-Column Layout: Sticky Left Nav + Naturally Scrolling Middle Content + Sticky Right Graphic */}
         <div className="hidden lg:grid grid-cols-12 gap-10 items-start relative">
           
-          {/* 1. LEFT COLUMN: Sticky Navigation & Interactive Dot Matrix */}
-          <div className="col-span-3 sticky top-28 flex flex-col justify-between h-[calc(100vh-9rem)]">
+          {/* 1. LEFT COLUMN: Sticky Navigation on top, Dot Matrix Canvas below */}
+          <div className="col-span-3 sticky top-28 flex flex-col justify-start h-[calc(100vh-9rem)]">
             <nav
-              className="flex flex-col space-y-7 shrink-0"
+              className="relative z-10 flex flex-col space-y-7 shrink-0 bg-black pb-8"
               aria-label="Services navigation"
             >
               {SERVICES.map((service, index) => {
@@ -493,8 +493,8 @@ export function Services() {
               })}
             </nav>
 
-            {/* Interactive pure-white particle dot matrix extending to bottom */}
-            <div className="mt-10 flex flex-1 w-full min-h-[220px] overflow-hidden">
+            {/* Interactive pure-white particle dot matrix positioned strictly below the navigation */}
+            <div className="flex-1 w-full min-h-[200px] overflow-hidden relative">
               <DotMatrixCanvas className="h-full w-full" />
             </div>
           </div>

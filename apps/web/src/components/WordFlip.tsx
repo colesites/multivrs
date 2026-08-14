@@ -38,7 +38,7 @@ export function WordFlip({
       style={{ perspective: "1000px" }}
     >
       <span
-        className={`inline-block transition-all duration-400 ease-out will-change-transform ${
+        className={`inline-block text-white transition-all duration-400 ease-out will-change-transform ${
           isFlipping
             ? "opacity-0 -translate-y-4 rotate-x-90 blur-[2px]"
             : "opacity-100 translate-y-0 rotate-x-0 blur-0"

@@ -32,12 +32,9 @@ export function MailboxVisual() {
   const sidebarNav = [
     { name: "Overview", icon: Activity, active: true },
     { name: "Inbox", icon: Inbox },
-    { name: "Starred", icon: Star },
     { name: "Sent", icon: Send },
     { name: "Drafts", icon: FileText },
-    { name: "Archive", icon: Archive },
-    { name: "Spam", icon: ShieldAlert },
-    { name: "Trash", icon: Trash2 },
+    { name: "Analytics", icon: Radio },
   ];
 
   const sendAndScale = [
@@ -190,144 +187,84 @@ export function MailboxVisual() {
 
           {/* Hero Banner with Communications Control Plane */}
           <div
-            className="relative overflow-hidden rounded-xl border border-white/10 bg-black p-4 mb-3"
+            className="relative overflow-hidden rounded-xl border border-white/10 bg-black p-3 mb-2.5"
             style={{
               backgroundImage:
                 "radial-gradient(circle at 10% 0%, rgba(168, 85, 247, 0.12), transparent 40%), linear-gradient(130deg, rgba(255,255,255,0.02), rgba(0,0,0,0.8))",
             }}
           >
-            <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#A855F7] mb-1">
+            <p className="font-mono text-[8px] uppercase tracking-[0.2em] text-[#A855F7] mb-0.5">
               Communications control plane
             </p>
-            <h4 className="text-base sm:text-lg font-medium tracking-tight text-white mb-1 leading-snug">
+            <h4 className="text-sm sm:text-base font-medium tracking-tight text-white mb-0.5 leading-snug">
               One mailbox for product mail, support conversations, and campaigns.
             </h4>
-            <p className="text-[11px] leading-relaxed text-zinc-400 font-sans line-clamp-2">
-              Incoming and outgoing mail share a real thread model. Delivery states come from provider events—not optimistic UI.
+            <p className="text-[10px] leading-tight text-zinc-400 font-sans line-clamp-1">
+              Incoming and outgoing mail share a real thread model with authenticated DKIM & SPF delivery.
             </p>
           </div>
 
-          {/* 4 Metric Stats Cards with Non-Zero Production Numbers */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 mb-3">
-            <div className="bg-black p-3">
-              <Send className="size-3 text-[#A855F7]" />
-              <p className="mt-2.5 font-sans text-lg font-medium tracking-tight text-white">142,850</p>
-              <p className="text-[9px] text-zinc-400 font-sans">Sent this month</p>
+          {/* 4 Metric Stats Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 mb-2.5">
+            <div className="bg-black p-2">
+              <Send className="size-2.5 text-[#A855F7]" />
+              <p className="mt-1 font-sans text-base font-medium tracking-tight text-white">142,850</p>
+              <p className="text-[8.5px] text-zinc-400 font-sans">Sent this month</p>
             </div>
 
-            <div className="bg-black p-3">
-              <Inbox className="size-3 text-[#A855F7]" />
-              <p className="mt-2.5 font-sans text-lg font-medium tracking-tight text-white">28,490</p>
-              <p className="text-[9px] text-zinc-400 font-sans">Received</p>
+            <div className="bg-black p-2">
+              <Inbox className="size-2.5 text-[#A855F7]" />
+              <p className="mt-1 font-sans text-base font-medium tracking-tight text-white">28,490</p>
+              <p className="text-[8.5px] text-zinc-400 font-sans">Received</p>
             </div>
 
-            <div className="bg-black p-3">
-              <Clock className="size-3 text-[#A855F7]" />
-              <p className="mt-2.5 font-sans text-lg font-medium tracking-tight text-white">99.98%</p>
-              <p className="text-[9px] text-zinc-400 font-sans">Delivery rate</p>
+            <div className="bg-black p-2">
+              <Clock className="size-2.5 text-[#A855F7]" />
+              <p className="mt-1 font-sans text-base font-medium tracking-tight text-white">99.98%</p>
+              <p className="text-[8.5px] text-zinc-400 font-sans">Delivery rate</p>
             </div>
 
-            <div className="bg-black p-3">
-              <MousePointerClick className="size-3 text-[#A855F7]" />
-              <p className="mt-2.5 font-sans text-lg font-medium tracking-tight text-white">64.2%</p>
-              <p className="text-[9px] text-zinc-400 font-sans">Open rate</p>
+            <div className="bg-black p-2">
+              <MousePointerClick className="size-2.5 text-[#A855F7]" />
+              <p className="mt-1 font-sans text-base font-medium tracking-tight text-white">64.2%</p>
+              <p className="text-[8.5px] text-zinc-400 font-sans">Open rate</p>
             </div>
           </div>
 
-          {/* Split Bottom Cards: Recent Conversations + Infrastructure */}
-          <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr] gap-3">
-            {/* Recent Conversations Card */}
-            <div className="rounded-xl border border-white/10 bg-black p-3.5">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
-                <div>
-                  <h5 className="text-xs font-medium text-white">Recent conversations</h5>
-                  <p className="text-[10px] text-zinc-400 font-sans">The latest activity across every mailbox.</p>
-                </div>
-                <span className="flex items-center gap-1 font-sans text-[10px] text-[#A855F7] hover:underline cursor-pointer">
-                  Open inbox <ArrowUpRight className="size-2.5" />
-                </span>
+          {/* Recent Conversations Card (2 compact rows) */}
+          <div className="rounded-xl border border-white/10 bg-black p-2.5">
+            <div className="flex items-center justify-between border-b border-white/10 pb-1.5 mb-1.5">
+              <div>
+                <h5 className="text-[11px] font-medium text-white">Recent conversations</h5>
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between rounded-lg p-1.5 hover:bg-white/[0.04] transition-colors cursor-pointer">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="grid size-6 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 font-mono text-[9px] font-bold text-white">
-                      LN
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono text-[11px] font-medium text-white truncate">Linear</span>
-                        <span className="font-mono text-[8px] text-purple-300 bg-purple-500/10 px-1 py-0.2 rounded border border-purple-500/20">
-                          Security
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-zinc-400 truncate font-sans">
-                        New personal API key generated for workspace
-                      </p>
-                    </div>
-                  </div>
-                  <span className="font-mono text-[9px] text-zinc-500 shrink-0 ml-2">2m ago</span>
-                </div>
-
-                <div className="flex items-center justify-between rounded-lg p-1.5 hover:bg-white/[0.04] transition-colors cursor-pointer">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="grid size-6 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 font-mono text-[9px] font-bold text-white">
-                      GH
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono text-[11px] font-medium text-white truncate">GitHub</span>
-                        <span className="font-mono text-[8px] text-purple-300 bg-purple-500/10 px-1 py-0.2 rounded border border-purple-500/20">
-                          Deploy
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-zinc-400 truncate font-sans">
-                        [multivrs/core] Release v2.4.0 deployed successfully
-                      </p>
-                    </div>
-                  </div>
-                  <span className="font-mono text-[9px] text-zinc-500 shrink-0 ml-2">14m ago</span>
-                </div>
-
-                <div className="flex items-center justify-between rounded-lg p-1.5 hover:bg-white/[0.04] transition-colors cursor-pointer">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="grid size-6 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 font-mono text-[9px] font-bold text-white">
-                      SB
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono text-[11px] font-medium text-white truncate">Stripe</span>
-                        <span className="font-mono text-[8px] text-emerald-300 bg-emerald-500/10 px-1 py-0.2 rounded border border-emerald-500/20">
-                          Paid
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-zinc-400 truncate font-sans">
-                        Receipt for Invoice #INV-2026-8849 ($420.00)
-                      </p>
-                    </div>
-                  </div>
-                  <span className="font-mono text-[9px] text-zinc-500 shrink-0 ml-2">1h ago</span>
-                </div>
-              </div>
+              <span className="flex items-center gap-1 font-sans text-[9px] text-[#A855F7] hover:underline cursor-pointer">
+                Open inbox <ArrowUpRight className="size-2.5" />
+              </span>
             </div>
-
-            {/* Infrastructure Card with Realistic Numbers */}
-            <div className="rounded-xl border border-white/10 bg-black p-3.5">
-              <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-zinc-400 mb-3">
-                Infrastructure
-              </p>
-              <div className="space-y-2.5 text-xs">
-                <div className="flex items-center justify-between border-b border-white/10 pb-2 text-[11px]">
-                  <span className="text-zinc-400">Active mailboxes</span>
-                  <span className="font-mono text-white">8</span>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between rounded-lg p-1 hover:bg-white/[0.04] transition-colors cursor-pointer">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="grid size-5 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 font-mono text-[8px] font-bold text-white">
+                    LN
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-sans text-[10px] font-medium text-white">Linear Security</p>
+                    <p className="truncate text-[8.5px] text-zinc-400">New personal API key generated</p>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between border-b border-white/10 pb-2 text-[11px]">
-                  <span className="text-zinc-400">Verified domains</span>
-                  <span className="font-mono text-white">3</span>
+                <span className="font-mono text-[8.5px] text-zinc-400">2m ago</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg p-1 hover:bg-white/[0.04] transition-colors cursor-pointer">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="grid size-5 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 font-mono text-[8px] font-bold text-white">
+                    GH
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-sans text-[10px] font-medium text-white">GitHub Deploy</p>
+                    <p className="truncate text-[8.5px] text-zinc-400">[multivrs/core] Release v2.4.0 success</p>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-zinc-400">Contacts</span>
-                  <span className="font-mono text-white">24,500</span>
-                </div>
+                <span className="font-mono text-[8.5px] text-zinc-400">14m ago</span>
               </div>
             </div>
           </div>
@@ -335,10 +272,10 @@ export function MailboxVisual() {
 
         {/* Bottom Black Gradient Fade Overlay */}
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-32 rounded-b-2xl"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-16 rounded-b-2xl"
           style={{
             background:
-              "linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.3) 30%, rgba(0, 0, 0, 0.75) 65%, #000000 100%)",
+              "linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.4) 40%, rgba(0, 0, 0, 0.85) 75%, #000000 100%)",
           }}
           aria-hidden="true"
         />
@@ -346,3 +283,4 @@ export function MailboxVisual() {
     </div>
   );
 }
+
