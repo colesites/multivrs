@@ -1,5 +1,11 @@
-const page = () => {
-  return <div>pages</div>;
+import type { Metadata } from "next";
+import { ComingSoonPage } from "@/components/marketing/ComingSoonPage";
+
+export const metadata: Metadata = {
+  title: "Observability · Multivrs",
+  description: "Multivrs Edge Observability & Telemetry.",
 };
 
-export default page;
+export default function ObservabilityPage() {
+  return <ComingSoonPage />;
+}

@@ -280,7 +280,7 @@ export function UsageView({ usage }: { usage: Promise<AccountUsage> }) {
     <div className="space-y-8">
       <header className="flex flex-col gap-5 border-b border-[var(--hairline)] pb-7 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.18em] text-blue-400">
+          <p className="font-geist-mono text-[10px] uppercase tracking-[0.18em] text-purple-400">
             Multivrs usage
           </p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
@@ -292,7 +292,7 @@ export function UsageView({ usage }: { usage: Promise<AccountUsage> }) {
           </p>
         </div>
         <div className="flex items-center gap-3 font-geist-mono text-[11px] text-muted-foreground">
-          <span className="size-1.5 rounded-full bg-blue-400 shadow-[0_0_12px_rgba(96,165,250,0.8)]" />
+          <span className="size-1.5 rounded-full bg-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
           {billingPeriodLabel()}
         </div>
       </header>
@@ -351,7 +351,7 @@ function UsageRow({ metric }: { metric: UsageMetric }) {
 
   return (
     <article className="group flex items-center gap-4 border-b border-[var(--hairline)] px-3 py-5 transition-colors last:border-b-0 hover:bg-white/[0.018] sm:px-4">
-      <span className="flex size-10 shrink-0 items-center justify-center border border-[var(--hairline)] text-blue-400 transition-colors group-hover:border-blue-400/25 group-hover:bg-blue-400/[0.04]">
+      <span className="flex size-10 shrink-0 items-center justify-center border border-[var(--hairline)] text-purple-400 transition-colors group-hover:border-purple-400/25 group-hover:bg-purple-400/[0.04]">
         <Icon className="size-[18px]" strokeWidth={1.7} />
       </span>
       <div className="min-w-0 flex-1">

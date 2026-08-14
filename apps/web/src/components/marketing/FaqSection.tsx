@@ -44,7 +44,7 @@ export function FaqSection({
 
   return (
     <section className="relative w-full border-t border-border bg-background py-24 text-foreground">
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="marketing-container">
         <div className="grid gap-12 lg:grid-cols-12">
           {/* Left Column: Heading & Dynamic Categories from Sanity */}
           <div className="lg:col-span-5">

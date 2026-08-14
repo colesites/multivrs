@@ -48,7 +48,7 @@ export default async function MailDomainDnsPage({
 
       <header className="flex flex-col gap-5 border-b border-white/[0.08] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
             Sending domain
           </p>
           <h1 className="mt-2 text-2xl font-semibold text-white">
@@ -84,7 +84,7 @@ export default async function MailDomainDnsPage({
         className={`rounded-2xl border px-5 py-5 ${
           automatic
             ? "border-emerald-400/15 bg-emerald-400/[0.045]"
-            : "border-blue-400/15 bg-blue-400/[0.045]"
+            : "border-purple-400/15 bg-purple-400/[0.045]"
         }`}
       >
         <div className="flex items-start gap-4">
@@ -92,7 +92,7 @@ export default async function MailDomainDnsPage({
             {automatic ? (
               <CloudCog className="size-5 text-emerald-300" />
             ) : (
-              <ExternalLink className="size-5 text-blue-300" />
+              <ExternalLink className="size-5 text-purple-300" />
             )}
           </span>
           <div>

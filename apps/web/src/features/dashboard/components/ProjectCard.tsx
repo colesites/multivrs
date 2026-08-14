@@ -31,7 +31,7 @@ const STATUS: Record<
   ready: {
     icon: CircleCheck,
     label: "Ready",
-    className: "text-blue-400",
+    className: "text-purple-400",
   },
   building: {
     icon: LoaderCircle,

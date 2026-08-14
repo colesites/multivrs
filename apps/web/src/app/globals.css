@@ -86,7 +86,7 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.92 0 0);
   --sidebar-ring: oklch(0.87 0 0);
-  --hero-glow: #2563eb;
+  --hero-glow: #A855F7;
   --ink: #ffffff;
   --ink-raised: #f8f9fa;
   --hairline: rgba(0, 0, 0, 0.07);
@@ -100,8 +100,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: #A855F7;
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -111,8 +111,8 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
+  --ring: #A855F7;
+  --chart-1: #A855F7;
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
@@ -120,13 +120,13 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #A855F7;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-  --hero-glow: #2563eb;
+  --sidebar-ring: #A855F7;
+  --hero-glow: #A855F7;
 
   /* Dashboard chrome tokens — defined globally (not just on .dashboard-surface)
      so portalled UI (dropdowns/menus rendered at <body>) resolves them too. */
@@ -175,10 +175,10 @@
   background: linear-gradient(
     135deg,
     #ffffff 0%,
-    #e0e7ff 25%,
-    #818cf8 50%,
-    #3b82f6 75%,
-    #1d4ed8 100%
+    #f3e8ff 25%,
+    #c084fc 50%,
+    #a855f7 75%,
+    #7e22ce 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -226,13 +226,13 @@
 }
 
 .dashboard-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #3b82f6, #818cf8, #a855f7, #ec4899);
+  background: linear-gradient(to bottom, #c084fc, #a855f7, #9333ea, #6b21a8);
   border-radius: 20px;
   border: 3px solid #030303;
 }
 
 .dashboard-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #2563eb, #6366f1, #9333ea, #db2777);
+  background: linear-gradient(to bottom, #d8b4fe, #c084fc, #a855f7, #7e22ce);
 }
 
 .hide-scrollbar::-webkit-scrollbar {
@@ -336,15 +336,15 @@
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
     inset 0 0 20px 0 rgba(255, 255, 255, 0.02),
-    0 0 40px -10px var(--glow-color, rgba(59, 130, 246, 0.15));
+    0 0 40px -10px var(--glow-color, rgba(168, 85, 247, 0.2));
 }
 
 /* ─── Dashboard chrome ─── */
 /* Premium authenticated surface. No gradients — flat ink, hairline borders,
-   one restrained blue (#2563eb) accent. Typeset in Hanken Grotesk. */
+   restrained primary (#A855F7) accent. Typeset in Hanken Grotesk. */
 .dashboard-surface {
   font-family: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-  --accent: #2563eb;
+  --accent: #A855F7;
 }
 
 /* Hairline that reads crisp on near-black without glowing. */
@@ -352,7 +352,7 @@
   border-color: var(--hairline);
 }
 
-/* Active-nav rail: a single 2px blue stem, no fill gradient. */
+/* Active-nav rail: a single 2px primary purple stem, no fill gradient. */
 .nav-rail-active::before {
   content: "";
   position: absolute;
@@ -364,3 +364,14 @@
   background: var(--accent);
   transform: translateY(-50%);
 }
+
+/* ─── Unified Marketing Container (Exact Vercel 1448px / 24px margin) ─── */
+.marketing-container {
+  width: 100%;
+  max-width: 1448px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+

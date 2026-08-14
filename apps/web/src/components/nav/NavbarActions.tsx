@@ -178,7 +178,7 @@ function MobileActionButton({
       <span className="relative">
         <Icon className="size-4" />
         {count ? (
-          <span className="absolute -top-2 -right-2 grid size-4 place-items-center rounded-full bg-blue-500 text-[9px] text-white">
+          <span className="absolute -top-2 -right-2 grid size-4 place-items-center rounded-full bg-[#A855F7] text-[9px] text-white">
             {count}
           </span>
         ) : null}

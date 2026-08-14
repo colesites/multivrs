@@ -44,7 +44,7 @@ export function AcceptInvitation() {
           invitation.
         </p>
         <Link
-          className="inline-flex h-11 items-center rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white"
+          className="inline-flex h-11 items-center rounded-lg bg-[#A855F7] px-5 text-sm font-semibold text-white"
           href={`/login?from=${encodeURIComponent(from)}`}
         >
           Sign in
@@ -61,7 +61,7 @@ export function AcceptInvitation() {
         <p className="text-sm text-white/50">
           The workspace is now available in your Multivrs account.
         </p>
-        <Link className="text-sm font-medium text-blue-400" href="/home">
+        <Link className="text-sm font-medium text-purple-400" href="/home">
           Continue to dashboard
         </Link>
       </div>
@@ -76,7 +76,7 @@ export function AcceptInvitation() {
         Accept this invitation as {session.user.email}.
       </p>
       <button
-        className="h-11 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white disabled:opacity-60"
+        className="h-11 rounded-lg bg-[#A855F7] px-5 text-sm font-semibold text-white disabled:opacity-60"
         disabled={!invitationId || loading}
         onClick={accept}
         type="button"

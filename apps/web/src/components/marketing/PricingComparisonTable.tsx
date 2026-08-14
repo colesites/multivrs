@@ -245,7 +245,7 @@ export function PricingComparisonTable({
       aria-labelledby="pricing-comparison-title"
       className="border-t border-border bg-background py-24 text-foreground lg:py-32"
     >
-      <div className="mx-auto max-w-7xl px-6 lg:px-10">
+      <div className="marketing-container">
         <div className="mb-14 max-w-3xl lg:mb-20">
           <div className="mb-5 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
             <Gauge aria-hidden="true" className="size-4" />

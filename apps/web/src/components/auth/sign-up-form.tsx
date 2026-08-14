@@ -14,17 +14,17 @@ import { type SignUpInput, signUpSchema } from "@/validators/auth.validators";
 const labelClass =
   "font-mono text-[11px] font-medium uppercase tracking-wider text-white/50";
 const inputClass =
-  "h-11 rounded-lg border-white/10 bg-white/[0.03] text-white placeholder:text-white/30 focus-visible:border-[#2563eb] focus-visible:ring-[#2563eb]/30";
+  "h-11 rounded-lg border-white/10 bg-white/[0.03] text-white placeholder:text-white/30 focus-visible:border-[#A855F7] focus-visible:ring-[#A855F7]/30";
 
 /**
  * Sign-up form: username, email, password, confirm password — plus
- * Google/GitHub OAuth. Mono + blue (#2563eb) styling, no gradients.
+ * Google/GitHub OAuth. Mono + purple (#A855F7) styling, no gradients.
  */
 export function SignUpForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState<SignUpInput>({
     username: "",
     email: "",
@@ -56,6 +56,7 @@ export function SignUpForm() {
       return;
     }
 
+    if (isLoading) return;
     setIsLoading(true);
     void authClient.signUp
       .email({
@@ -63,36 +64,36 @@ export function SignUpForm() {
         password: formData.password,
         name: formData.username,
         username: formData.username,
+        callbackURL: "/dashboard",
       })
       .then((result) => {
-        setIsLoading(false);
         if (result.error) {
-          toast.error(
-            result.error.message || "Sign-up failed. Please try again.",
-          );
+          toast.error(result.error.message || "Failed to create account.");
           return;
         }
-        toast.success("Account created. Check your email for a code.");
+        toast.success("Account created. Check your email to verify.");
         router.push(
           `/verify-email?email=${encodeURIComponent(formData.email)}`,
         );
       })
-      .catch(() => {
-        toast.error("An unexpected error occurred. Please try again.");
-        setIsLoading(false);
-      });
+      .catch(() =>
+        toast.error("An unexpected error occurred. Please try again."),
+      )
+      .finally(() => setIsLoading(false));
   };
 
   return (
     <div className="space-y-6">
       <div className="space-y-1.5">
         <h1 className="font-clash text-2xl font-semibold tracking-tight text-white">
-          Create account
+          Create an account
         </h1>
-        <p className="text-sm text-white/50">Start building on Multivrs.</p>
+        <p className="text-sm text-white/50">
+          Get started with Multivrs in seconds.
+        </p>
       </div>
 
-      <OAuthButtons />
+      <OAuthButtons callbackURL="/dashboard" />
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
@@ -113,8 +114,7 @@ export function SignUpForm() {
           <Input
             id="username"
             type="text"
-            autoComplete="username"
-            placeholder="ada_lovelace"
+            placeholder="johndoe"
             value={formData.username}
             onChange={handleChange("username")}
             disabled={isLoading}
@@ -133,7 +133,6 @@ export function SignUpForm() {
           <Input
             id="email"
             type="email"
-            autoComplete="email"
             placeholder="you@example.com"
             value={formData.email}
             onChange={handleChange("email")}
@@ -154,7 +153,6 @@ export function SignUpForm() {
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
               placeholder="••••••••"
               value={formData.password}
               onChange={handleChange("password")}
@@ -188,8 +186,7 @@ export function SignUpForm() {
           <div className="relative">
             <Input
               id="confirmPassword"
-              type={showConfirm ? "text" : "password"}
-              autoComplete="new-password"
+              type={showConfirmPassword ? "text" : "password"}
               placeholder="••••••••"
               value={formData.confirmPassword}
               onChange={handleChange("confirmPassword")}
@@ -199,12 +196,14 @@ export function SignUpForm() {
             />
             <button
               type="button"
-              onClick={() => setShowConfirm((v) => !v)}
+              onClick={() => setShowConfirmPassword((v) => !v)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 transition-colors hover:text-white/70"
               tabIndex={-1}
-              aria-label={showConfirm ? "Hide password" : "Show password"}
+              aria-label={
+                showConfirmPassword ? "Hide password" : "Show password"
+              }
             >
-              {showConfirm ? (
+              {showConfirmPassword ? (
                 <EyeOff className="size-4" />
               ) : (
                 <Eye className="size-4" />
@@ -219,7 +218,7 @@ export function SignUpForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="h-11 w-full rounded-lg bg-[#2563eb] text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-11 w-full rounded-lg bg-[#A855F7] text-sm font-semibold text-white transition-colors hover:bg-[#9333ea] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading ? "Creating account…" : "Create account"}
         </button>
@@ -229,7 +228,7 @@ export function SignUpForm() {
         Already have an account?{" "}
         <Link
           href="/login"
-          className="font-medium text-white transition-colors hover:text-[#2563eb]"
+          className="font-medium text-white transition-colors hover:text-[#A855F7]"
         >
           Sign in
         </Link>

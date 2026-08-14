@@ -19,7 +19,7 @@ export function AccountActivity({ events }: { events: DashboardAuditEvent[] }) {
       <div className="divide-y divide-(--hairline) px-5">
         {events.map((event) => (
           <div key={event.id} className="flex items-center gap-4 py-3 text-sm">
-            <span className="size-2 rounded-full bg-blue-400" />
+            <span className="size-2 rounded-full bg-purple-400" />
             <span className="min-w-0 flex-1">
               <span className="block font-medium">{title(event.action)}</span>
               <span className="text-xs text-muted-foreground">

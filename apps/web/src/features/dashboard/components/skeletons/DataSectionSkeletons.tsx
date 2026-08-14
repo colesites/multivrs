@@ -72,7 +72,7 @@ export function WorkflowsSectionSkeleton() {
   return (
     <main className="mx-auto w-full max-w-6xl space-y-8 px-5 py-8" aria-busy>
       <header>
-        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
           Durable execution
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">

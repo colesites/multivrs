@@ -45,7 +45,7 @@ export function AnalyticsMetrics({ data }: { data: PlatformAnalytics }) {
             <p className="text-sm font-medium text-muted-foreground">
               {metric.label}
             </p>
-            <metric.icon className="size-4 text-blue-400" />
+            <metric.icon className="size-4 text-purple-400" />
           </div>
           <p className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-foreground">
             {metric.value}

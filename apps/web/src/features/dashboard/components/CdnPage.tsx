@@ -49,7 +49,7 @@ export function CdnPage({
     <div className="mx-auto w-full max-w-5xl space-y-7 px-5 py-8">
       <header className="flex items-start justify-between gap-6">
         <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
             Global delivery
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">CDN</h1>
@@ -57,8 +57,8 @@ export function CdnPage({
             Cache policy and edge services for {projectName}.
           </p>
         </div>
-        <div className="flex size-10 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-400/[0.06]">
-          <Zap className="size-5 text-blue-300" />
+        <div className="flex size-10 items-center justify-center rounded-xl border border-purple-400/20 bg-purple-400/[0.06]">
+          <Zap className="size-5 text-purple-300" />
         </div>
       </header>
       <CacheSettingsCard settings={settings} onChange={setSettings} />

@@ -36,16 +36,16 @@ export function SpaceForeground() {
         position={[-5.0, -2.5, 3]}
         radius={1.75}
         speed={0.015}
-        baseColor="#1d4ed8" // Rich blue base
-        dustColor="#93c5fd" // Bright light-blue highlights
+        baseColor="#2e1065" // Deep cosmic violet base
+        dustColor="#A855F7" // Bright electric purple highlights
       />
 
       <Planet
         position={[5.5, -2.0, 2]}
         radius={2.0}
         speed={-0.02}
-        baseColor="#1d4ed8" // Exact same rich blue base
-        dustColor="#93c5fd" // Exact same bright highlights
+        baseColor="#2e1065" // Deep cosmic violet base
+        dustColor="#A855F7" // Bright electric purple highlights
       />
     </group>
   );

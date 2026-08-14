@@ -101,7 +101,7 @@ export function DomainMarketplace({
         <Beams
           beamNumber={14}
           beamWidth={1.8}
-          lightColor="#60a5fa"
+          lightColor="#A855F7"
           speed={0.7}
           noiseIntensity={1.2}
           rotation={18}

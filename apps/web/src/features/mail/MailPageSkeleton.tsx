@@ -8,7 +8,7 @@ export function MailPageSkeleton() {
       <section className="h-53 w-full rounded-2xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5" />
       <section className="grid gap-px overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-black/10 dark:bg-white/10 sm:grid-cols-2 xl:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-white dark:bg-[#090b0f] p-5">
+          <div key={i} className="bg-white dark:bg-black p-5">
             <div className="size-4 rounded bg-black/5 dark:bg-white/5" />
             <div className="mt-5 h-8 w-24 rounded bg-black/5 dark:bg-white/5" />
             <div className="mt-2 h-3 w-16 rounded bg-black/5 dark:bg-white/5" />
@@ -16,7 +16,7 @@ export function MailPageSkeleton() {
         ))}
       </section>
       <section className="grid gap-4 md:grid-cols-[1.35fr_.65fr]">
-        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#090a0d]">
+        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black">
           <div className="border-b border-black/10 dark:border-white/10 p-4">
             <div className="h-5 w-40 rounded bg-black/5 dark:bg-white/5" />
             <div className="mt-2 h-3 w-56 rounded bg-black/5 dark:bg-white/5" />
@@ -34,7 +34,7 @@ export function MailPageSkeleton() {
             </div>
           ))}
         </div>
-        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-[#090a0d] p-5">
+        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-5">
           <div className="h-3 w-24 rounded bg-black/5 dark:bg-white/5" />
           <div className="mt-6 space-y-5">
             {[1, 2, 3].map((i) => (

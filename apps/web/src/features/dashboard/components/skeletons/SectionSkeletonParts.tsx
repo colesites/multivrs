@@ -15,7 +15,7 @@ export function SectionLoadingHeader({
   return (
     <header className="flex items-start justify-between gap-6">
       <div>
-        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
           {eyebrow}
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
@@ -24,8 +24,8 @@ export function SectionLoadingHeader({
         <p className="mt-2 text-sm text-muted-foreground">{description}</p>
       </div>
       {Icon ? (
-        <div className="flex size-10 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-400/[0.06]">
-          <Icon className="size-5 text-blue-300" />
+        <div className="flex size-10 items-center justify-center rounded-xl border border-purple-400/20 bg-purple-400/[0.06]">
+          <Icon className="size-5 text-purple-300" />
         </div>
       ) : null}
     </header>
@@ -42,12 +42,12 @@ export function SectionSkeletonHeader({
   return (
     <header className="flex items-start justify-between gap-6">
       <div>
-        <div className="h-2.5 w-28 rounded-sm bg-blue-400/15" />
+        <div className="h-2.5 w-28 rounded-sm bg-purple-400/15" />
         <div className={`mt-3 h-7 rounded-sm bg-white/8 ${titleWidth}`} />
         <div className="mt-3 h-3 w-80 max-w-full rounded-sm bg-white/4" />
       </div>
       {action ? (
-        <div className="size-10 rounded-xl border border-blue-400/15 bg-blue-400/5" />
+        <div className="size-10 rounded-xl border border-purple-400/15 bg-purple-400/5" />
       ) : null}
     </header>
   );

@@ -47,8 +47,8 @@ export function TwoFactorForm() {
 
   return (
     <div className="space-y-6">
-      <div className="grid size-10 place-items-center rounded-xl border border-blue-500/25 bg-blue-500/10">
-        <KeyRound className="size-4 text-blue-400" />
+      <div className="grid size-10 place-items-center rounded-xl border border-[#A855F7]/25 bg-[#A855F7]/10">
+        <KeyRound className="size-4 text-[#A855F7]" />
       </div>
       <div>
         <h1 className="font-clash text-2xl font-semibold tracking-tight text-white">
@@ -80,7 +80,7 @@ export function TwoFactorForm() {
           />
         </div>
         <button
-          className="h-11 w-full rounded-lg bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="h-11 w-full rounded-lg bg-[#A855F7] text-sm font-semibold text-white hover:bg-[#9333ea] disabled:opacity-60"
           disabled={loading}
           type="submit"
         >

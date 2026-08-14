@@ -39,7 +39,7 @@ export function AnalyticsPage({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 pt-4">
         <div>
-          <p className="font-geist-mono text-[11px] uppercase tracking-[0.16em] text-blue-400">
+          <p className="font-geist-mono text-[11px] uppercase tracking-[0.16em] text-purple-400">
             Audience intelligence
           </p>
           <h2 className="mt-2 text-2xl font-semibold text-foreground tracking-tight">

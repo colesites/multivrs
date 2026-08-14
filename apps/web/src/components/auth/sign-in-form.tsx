@@ -14,11 +14,11 @@ import { type SignInInput, signInSchema } from "@/validators/auth.validators";
 const labelClass =
   "font-mono text-[11px] font-medium uppercase tracking-wider text-white/50";
 const inputClass =
-  "h-11 rounded-lg border-white/10 bg-white/[0.03] text-white placeholder:text-white/30 focus-visible:border-[#2563eb] focus-visible:ring-[#2563eb]/30";
+  "h-11 rounded-lg border-white/10 bg-white/[0.03] text-white placeholder:text-white/30 focus-visible:border-[#A855F7] focus-visible:ring-[#A855F7]/30";
 
 /**
  * Email + password sign-in form, with Google/GitHub OAuth.
- * Mono + blue (#2563eb) styling, no gradients.
+ * Mono + purple (#A855F7) styling, no gradients.
  */
 export function SignInForm({ returnTo }: { returnTo: string }) {
   const router = useRouter();
@@ -127,7 +127,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
             </Label>
             <Link
               href="/forgot-password"
-              className="font-mono text-[11px] text-white/40 transition-colors hover:text-[#2563eb]"
+              className="font-mono text-[11px] text-white/40 transition-colors hover:text-[#A855F7]"
             >
               Forgot?
             </Link>
@@ -165,7 +165,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
         <button
           type="submit"
           disabled={isLoading}
-          className="h-11 w-full rounded-lg bg-[#2563eb] text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-11 w-full rounded-lg bg-[#A855F7] text-sm font-semibold text-white transition-colors hover:bg-[#9333ea] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading ? "Signing in…" : "Sign in"}
         </button>
@@ -175,7 +175,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
         Don&apos;t have an account?{" "}
         <Link
           href="/signup"
-          className="font-medium text-white transition-colors hover:text-[#2563eb]"
+          className="font-medium text-white transition-colors hover:text-[#A855F7]"
         >
           Sign up
         </Link>

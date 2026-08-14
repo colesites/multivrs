@@ -44,7 +44,7 @@ export function CacheSettingsCard({
             key={mode}
             type="button"
             onClick={() => onChange({ ...settings, cacheMode: mode })}
-            className="rounded-xl border border-[var(--hairline)] p-4 text-left transition-colors hover:bg-white/[0.025] aria-pressed:border-blue-400/40 aria-pressed:bg-blue-400/[0.05]"
+            className="rounded-xl border border-[var(--hairline)] p-4 text-left transition-colors hover:bg-white/[0.025] aria-pressed:border-purple-400/40 aria-pressed:bg-purple-400/[0.05]"
             aria-pressed={settings.cacheMode === mode}
           >
             <span className="text-sm font-medium capitalize">{mode}</span>

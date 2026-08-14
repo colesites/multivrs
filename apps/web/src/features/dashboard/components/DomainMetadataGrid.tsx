@@ -49,7 +49,7 @@ export function DomainMetadataGrid({
               aria-label={`Turn auto renewal ${autoRenew ? "off" : "on"} for ${domain.hostname}`}
               disabled={!domain.managed || renewPending}
               onClick={onToggleRenew}
-              className={`relative h-5 w-9 rounded-full transition-colors ${autoRenew ? "bg-blue-600" : "bg-white/20"} disabled:opacity-40`}
+              className={`relative h-5 w-9 rounded-full transition-colors ${autoRenew ? "bg-purple-600" : "bg-white/20"} disabled:opacity-40`}
             >
               <span
                 className={`absolute top-0.5 size-4 rounded-full bg-white transition-[left] ${autoRenew ? "left-[18px]" : "left-0.5"}`}

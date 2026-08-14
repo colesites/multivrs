@@ -18,8 +18,8 @@ export function DeploymentRow({ deployment }: DeploymentRowProps) {
 
   const envColor =
     deployment.environment === "Production"
-      ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-      : "bg-purple-500/10 text-purple-400 border-purple-500/20";
+      ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+      : "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20";
 
   return (
     <div className="group relative flex items-center justify-between gap-4 border-b border-[var(--hairline)] px-4 py-3 text-[13px] transition-colors hover:bg-white/[0.02]">
@@ -77,7 +77,7 @@ export function DeploymentRow({ deployment }: DeploymentRowProps) {
 
         {/* Project / Repo */}
         <div className="flex items-center gap-1.5 w-32 truncate">
-          <PlayCircle className="h-3.5 w-3.5 text-blue-400/70 shrink-0" />
+          <PlayCircle className="h-3.5 w-3.5 text-purple-400/70 shrink-0" />
           <span className="truncate">{deployment.project}</span>
         </div>
 

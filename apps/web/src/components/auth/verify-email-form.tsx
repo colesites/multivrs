@@ -102,7 +102,7 @@ export function VerifyEmailForm() {
                 // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length OTP slots
                 key={i}
                 index={i}
-                className="size-12 rounded-lg border-white/10 bg-white/[0.03] text-lg text-white first:rounded-l-lg last:rounded-r-lg data-[active=true]:border-[#2563eb] data-[active=true]:ring-[#2563eb]/30"
+                className="size-12 rounded-lg border-white/10 bg-white/[0.03] text-lg text-white first:rounded-l-lg last:rounded-r-lg data-[active=true]:border-[#A855F7] data-[active=true]:ring-[#A855F7]/30"
               />
             ))}
           </InputOTPGroup>
@@ -120,7 +120,7 @@ export function VerifyEmailForm() {
           type="button"
           onClick={handleResend}
           disabled={isResending}
-          className="text-sm text-white/40 transition-colors hover:text-[#2563eb] disabled:opacity-50"
+          className="text-sm text-white/40 transition-colors hover:text-[#A855F7] disabled:opacity-50"
         >
           {isResending ? "Sending…" : "Didn't get it? Resend code"}
         </button>

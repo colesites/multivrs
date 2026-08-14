@@ -4,57 +4,54 @@ import dynamic from "next/dynamic";
 import { HeroContent } from "@/components/marketing/HeroContent";
 import { HeroOverlays } from "@/components/marketing/HeroOverlays";
 
-const HeroBackground = dynamic(
-  () =>
-    import("@/components/marketing/HeroBackgroundCanvas").then((mod) => ({
-      default: mod.HeroBackgroundCanvas,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        className="absolute inset-0 z-0 bg-linear-to-b from-[#0a0015] via-background to-background"
-        aria-hidden="true"
-      />
-    ),
-  },
-);
-
-const HeroForeground = dynamic(
-  () =>
-    import("@/components/marketing/HeroForegroundCanvas").then((mod) => ({
-      default: mod.HeroForegroundCanvas,
-    })),
-  { ssr: false },
-);
+const MoltenMetal = dynamic(() => import("@/components/MoltenMetal"), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="absolute inset-0 z-0 bg-black"
+      aria-hidden="true"
+    />
+  ),
+});
 
 /**
  * Main hero section wrapper.
- * Composes dual 3D canvas (background and foreground sandwiching) + overlays + text.
+ * Features React Bits Molten Metal WebGL dynamic background + Fold Text headline.
  */
 export function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative min-h-svh w-full overflow-hidden bg-background"
+      className="relative min-h-svh w-full overflow-hidden bg-black"
     >
-      {/* Z-0: 3D background (stars, asteroids, web) */}
-      <HeroBackground />
+      {/* Z-0: React Bits Molten Metal WebGL background */}
+      <div className="absolute inset-0 z-0 pointer-events-auto">
+        <MoltenMetal
+          color1="#3b0764"
+          color2="#A855F7"
+          color3="#ffffff"
+          speed={0.3}
+          scale={3.8}
+          detail={3}
+          glow={1.7}
+          coreSize={0.12}
+          swirl={1.1}
+          fold={-0.2}
+          blackPoint={0.06}
+          brightness={1.35}
+          grain={true}
+          grainIntensity={0.04}
+          mouseInteraction={true}
+          mouseStrength={0.3}
+          opacity={1.0}
+        />
+      </div>
 
-      {/* Z-10: Visual effects: noise, grid, glow, vignette */}
+      {/* Z-10: Visual effects: noise & ambient vignette */}
       <HeroOverlays />
 
-      {/* Z-20: Foreground text content */}
+      {/* Z-20: Foreground FoldText headline & hero content */}
       <HeroContent />
-
-      {/* Z-30: Foreground 3D (massive overlapping planets) */}
-      <HeroForeground />
-
-      {/* Z-40: Bottom gradient fade to next section */}
-      <div
-        className="pointer-events-none absolute right-0 bottom-0 left-0 z-40 h-32 bg-linear-to-t from-background to-transparent"
-        aria-hidden="true"
-      />
     </section>
   );
 }

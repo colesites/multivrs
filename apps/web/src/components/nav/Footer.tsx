@@ -3,6 +3,7 @@
 import { ArrowUpRight, ChevronDown, Copy } from "lucide-react";
 import Link from "next/link";
 import { MultivrsMark } from "@/components/brand/Logo";
+import { FooterParticleBrand } from "@/components/brand/FooterParticleBrand";
 import type { NavColumn } from "@/components/nav/navigation";
 import SpecularButton from "@/components/SpecularButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -21,7 +22,7 @@ import {
 export default function Footer() {
   return (
     <footer className="relative z-20 border-t border-border bg-background">
-      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-10 lg:py-20">
+      <div className="marketing-container py-16 lg:py-20">
         {/* Split CTA */}
         <div className="grid gap-12 border-b border-border pb-16 md:grid-cols-2">
           <div>
@@ -88,24 +89,35 @@ export default function Footer() {
           ))}
         </div>
 
+        {/* Interactive White Particle Logo & Brand Text */}
+        <div className="my-10 sm:my-16">
+          <FooterParticleBrand />
+        </div>
+
         {/* Bottom bar */}
-        <div className="mt-20 flex flex-col gap-8 border-t border-border pt-10">
-          <Link
-            href="/"
-            aria-label="Multivrs home"
-            className="w-fit text-foreground"
-          >
-            <MultivrsMark className="size-6" />
-          </Link>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <span className="inline-flex items-center gap-2 font-mono text-[0.7rem] tracking-wider text-[#2563eb] uppercase">
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-[#2563eb]/60" />
-                <span className="relative inline-flex size-2 rounded-full bg-[#2563eb]" />
+        <div className="flex flex-col gap-8 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 font-mono text-[0.7rem] text-muted-foreground">
+            <div className="flex items-center gap-6">
+              <Link
+                href="/"
+                aria-label="Multivrs home"
+                className="w-fit text-foreground transition-opacity hover:opacity-80"
+              >
+                <MultivrsMark className="size-5" />
+              </Link>
+              <span suppressHydrationWarning>© MULTIVRS 2026</span>
+            </div>
+
+            <div className="flex items-center gap-6">
+              <span className="inline-flex items-center gap-2 tracking-wider text-[#A855F7] uppercase">
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-[#A855F7]/60" />
+                  <span className="relative inline-flex size-2 rounded-full bg-[#A855F7]" />
+                </span>
+                All systems normal
               </span>
-              All systems normal.
-            </span>
-            <ThemeToggle />
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>

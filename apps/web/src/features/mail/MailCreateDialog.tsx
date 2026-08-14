@@ -90,7 +90,7 @@ export function MailCreateDialog({
       }}
       open={open}
     >
-      <DialogContent className="border border-black/10 dark:border-white/10 bg-white dark:bg-[#090a0d]">
+      <DialogContent className="border border-black/10 dark:border-white/10 bg-white dark:bg-black">
         <DialogHeader>
           <DialogTitle>
             {secret

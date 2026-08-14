@@ -30,7 +30,7 @@ export function SpeedInsightsPage({
   return (
     <div className="mx-auto w-full max-w-6xl space-y-8 px-5 py-8">
       <header>
-        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
           Real-user monitoring
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">
@@ -67,10 +67,9 @@ export function SpeedInsightsPage({
               className="border-b border-[var(--hairline)] p-5 md:border-r xl:border-b-0"
             >
               <div className="flex items-center justify-between">
-                <span className="font-geist-mono text-xs text-muted-foreground">
-                  {name}
-                </span>
-                <meta.icon className="size-4 text-blue-400" />
+                <div className="flex size-8 items-center justify-center rounded-lg border border-[var(--hairline)]">
+                  <meta.icon className="size-4 text-purple-400" />
+                </div>
               </div>
               <p className="mt-6 text-3xl font-semibold tracking-tight">
                 {metric ? `${formatValue(metric)}${meta.unit}` : "—"}

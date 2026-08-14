@@ -195,7 +195,7 @@ export function CapabilitiesSection() {
                   key={feature}
                   className="flex items-center gap-2 font-mono text-xs tracking-wider text-muted-foreground uppercase backdrop-blur-md bg-foreground/5 px-3 py-1.5 rounded-full border border-border"
                 >
-                  <span className="size-1.5 rounded-full bg-[#2563eb] shadow-[0_0_8px_#2563eb]" />
+                  <span className="size-1.5 rounded-full bg-[#A855F7] shadow-[0_0_8px_#A855F7]" />
                   {feature}
                 </li>
               ))}
@@ -237,7 +237,7 @@ export function CapabilitiesSection() {
                     key={feature}
                     className="flex items-center gap-3 font-mono text-sm tracking-widest text-muted-foreground uppercase backdrop-blur-md bg-foreground/5 px-4 py-2 rounded-full border border-border"
                   >
-                    <span className="size-1.5 rounded-full bg-[#2563eb] shadow-[0_0_10px_#2563eb]" />
+                    <span className="size-1.5 rounded-full bg-[#A855F7] shadow-[0_0_10px_#A855F7]" />
                     {feature}
                   </li>
                 ))}

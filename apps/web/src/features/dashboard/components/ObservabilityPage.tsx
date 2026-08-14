@@ -138,7 +138,7 @@ export function ObservabilityPage({
         </div>
         <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_8rem] items-center px-4 text-xs">
           <span className="flex min-w-0 items-center gap-2.5 text-muted-foreground">
-            <span className="size-2 shrink-0 rounded-full bg-blue-400" />
+            <span className="size-2 shrink-0 rounded-full bg-purple-400" />
             <span className="truncate">{projectName}</span>
           </span>
           <span className="flex items-center justify-between font-geist-mono text-muted-foreground">
@@ -158,7 +158,7 @@ export function ObservabilityPage({
               className="grid gap-2 border-b border-[var(--hairline)] px-4 py-3 text-xs last:border-b-0 md:grid-cols-[9rem_1fr_auto]"
               key={`${error.deploymentId}-${error.createdAt}`}
             >
-              <span className="truncate font-geist-mono text-blue-300">
+              <span className="truncate font-geist-mono text-purple-300">
                 {error.deploymentId.slice(0, 12)}
               </span>
               <span className="truncate text-muted-foreground">

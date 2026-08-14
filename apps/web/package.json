@@ -74,7 +74,7 @@
     "@types/ws": "^8.18.1",
     "babel-plugin-react-compiler": "1.0.0",
     "dotenv": "^17.4.2",
-    "gsap": "^3.15.0",
+    "gsap": "^3.13.0",
     "prisma": "latest",
     "tailwindcss": "^4",
     "typescript": "^5",

@@ -46,8 +46,8 @@ export function AnalyticsChart({ points }: { points: AnalyticsPoint[] }) {
             >
               <defs>
                 <linearGradient id="edgeTraffic" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.45} />
-                  <stop offset="95%" stopColor="#60a5fa" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#A855F7" stopOpacity={0.45} />
+                  <stop offset="95%" stopColor="#A855F7" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid
@@ -69,7 +69,7 @@ export function AnalyticsChart({ points }: { points: AnalyticsPoint[] }) {
               <Area
                 type="monotone"
                 dataKey="pageviews"
-                stroke="#60a5fa"
+                stroke="#A855F7"
                 strokeWidth={2}
                 fill="url(#edgeTraffic)"
               />

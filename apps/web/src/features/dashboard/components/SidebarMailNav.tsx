@@ -134,7 +134,7 @@ export function SidebarMailNav({
                     onLinkClick?.();
                   }}
                   className={cn(
-                    "nav-item group flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] transition-colors duration-150",
+                    "nav-item group relative flex h-9 items-center gap-3 rounded-lg px-3 text-[13px] transition-colors duration-150",
                     isActive
                       ? "nav-rail-active bg-white/8 font-medium text-foreground"
                       : "text-muted-foreground hover:bg-white/2.5 hover:text-foreground",

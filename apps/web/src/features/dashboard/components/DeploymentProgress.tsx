@@ -39,7 +39,7 @@ export function DeploymentProgress({
             aria-live="polite"
           >
             {status === "building" ? (
-              <Loader2 className="size-4 animate-spin text-blue-400" />
+              <Loader2 className="size-4 animate-spin text-purple-400" />
             ) : status === "ready" ? (
               <CircleCheck className="size-4 text-emerald-400" />
             ) : (

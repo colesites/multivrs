@@ -24,8 +24,8 @@ export function Planet({
   position,
   radius = 2.5,
   speed = 0.05,
-  baseColor = "#1d4ed8",
-  dustColor = "#93c5fd",
+  baseColor = "#2e1065",
+  dustColor = "#A855F7",
 }: PlanetProps) {
   const meshRef = useRef<Mesh>(null);
   const shaderMatRef = useRef<THREE.ShaderMaterial>(null);
@@ -156,7 +156,7 @@ export function Planet({
             }
 
             void main() {
-              // Intricate swirling FBM pattern blending the two beautiful blue colours
+              // Intricate swirling FBM pattern blending cosmic violet and electric purple
               vec3 p = normalize(vLocalPosition) * 4.0;
               p.z += uTime;
               float noiseVal = fbm(p);

@@ -58,7 +58,7 @@ export function FirewallRuleRows({
               Priority {rule.priority + 1}
             </p>
           </div>
-          <span className="w-fit rounded-md border border-[var(--hairline)] px-2 py-1 font-geist-mono text-[10px] uppercase text-blue-300">
+          <span className="w-fit rounded-md border border-[var(--hairline)] px-2 py-1 font-geist-mono text-[10px] uppercase text-purple-300">
             {rule.action.replace("_", " ")}
           </span>
           <p className="truncate font-geist-mono text-xs text-muted-foreground">

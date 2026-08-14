@@ -12,7 +12,7 @@ interface AuthLayoutProps {
 /**
  * Authentication shell — a single centered card floating over a full-bleed,
  * monochrome galaxy starfield. Follows the marketing design language:
- * #030303 base, restrained blue (#2563eb) accent, hairline borders, no
+ * #030303 base, restrained purple (#A855F7) accent, hairline borders, no
  * gradient fills. Deliberately "dev tool" plain rather than glossy.
  */
 export function AuthLayout({ children }: AuthLayoutProps) {
@@ -49,7 +49,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         href="/home"
         className="absolute left-6 top-6 z-20 flex items-center gap-2 text-white/80 transition-colors hover:text-white"
       >
-        <MultivrsMark className="size-6 text-[#2563eb]" />
+        <MultivrsMark className="size-6 text-[#A855F7]" />
         <span className="font-clash text-lg font-semibold tracking-tight">
           Multivrs
         </span>

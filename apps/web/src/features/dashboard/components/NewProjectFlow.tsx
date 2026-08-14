@@ -73,7 +73,7 @@ export function NewProjectFlow({ username }: { username?: string }) {
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 text-white">
       <header>
-        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
           New deployment
         </p>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">

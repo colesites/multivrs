@@ -21,7 +21,7 @@ export function ProjectResourceLists({
             <Link
               key={domain.hostname}
               href={`${base}/domains/${domain.hostname}`}
-              className="flex items-center justify-between py-3 text-sm hover:text-blue-300"
+              className="flex items-center justify-between py-3 text-sm hover:text-purple-300"
             >
               <span>{domain.hostname}</span>
               <span className="text-xs text-muted-foreground">
@@ -43,7 +43,7 @@ export function ProjectResourceLists({
             <Link
               key={item.id}
               href={`${base}/deployments/${item.id}`}
-              className="flex items-center gap-3 py-3 text-sm hover:text-blue-300"
+              className="flex items-center gap-3 py-3 text-sm hover:text-purple-300"
             >
               <span className="size-2 rounded-full bg-current opacity-70" />
               <span className="min-w-0 flex-1 truncate">

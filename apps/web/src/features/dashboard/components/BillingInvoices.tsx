@@ -33,7 +33,7 @@ export function BillingInvoices({
               </p>
               {invoice.hostedInvoiceUrl ? (
                 <a
-                  className="mt-1 text-xs text-blue-400 hover:underline"
+                  className="mt-1 text-xs text-purple-400 hover:underline"
                   href={invoice.hostedInvoiceUrl}
                   rel="noreferrer"
                   target="_blank"

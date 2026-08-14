@@ -89,7 +89,7 @@ export function EnvironmentDraftEditor({
                 ],
               })
             }
-            className="flex items-center gap-1.5 text-xs font-medium text-blue-400"
+            className="flex items-center gap-1.5 text-xs font-medium text-purple-400"
           >
             <Plus className="size-3.5" /> Add variable
           </button>

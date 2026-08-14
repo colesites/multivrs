@@ -21,7 +21,7 @@ export function MailThreadList({
   className?: string;
 }) {
   return (
-    <div className={cn("flex h-full min-h-0 w-full flex-col border-r border-black/10 dark:border-white/10 bg-background dark:bg-[#090a0d] md:w-85 md:shrink-0", className)}>
+    <div className={cn("flex h-full min-h-0 w-full flex-col border-r border-black/10 dark:border-white/10 bg-background dark:bg-black md:w-85 md:shrink-0", className)}>
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-black/10 dark:border-white/10 px-4">
         <p className="text-xs font-medium">Conversations</p>
         <div className="flex items-center gap-1">

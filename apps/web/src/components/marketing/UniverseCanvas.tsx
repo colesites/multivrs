@@ -26,8 +26,8 @@ function Wormhole() {
     const radius = 20;
     const length = 400;
 
-    const colorA = new THREE.Color("#2563eb"); // Brand blue
-    const colorB = new THREE.Color("#9333ea"); // Brand purple
+    const colorA = new THREE.Color("#A855F7"); // Electric purple
+    const colorB = new THREE.Color("#7e22ce"); // Deep purple
     const colorC = new THREE.Color("#ffffff"); // Bright white highlights
 
     for (let i = 0; i < numPoints; i++) {

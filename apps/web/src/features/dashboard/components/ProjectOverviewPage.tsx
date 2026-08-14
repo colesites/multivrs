@@ -23,7 +23,7 @@ export function ProjectOverviewPage({
     <div className="mx-auto max-w-6xl space-y-8 px-5 py-8">
       <header className="flex flex-col gap-5 border-b border-[var(--hairline)] pb-7 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
             {data.framework ?? "Auto detected"}
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">

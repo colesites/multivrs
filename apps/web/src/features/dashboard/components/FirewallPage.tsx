@@ -16,7 +16,7 @@ export function FirewallPage({
     <div className="mx-auto w-full max-w-6xl space-y-7 px-5 py-8">
       <header className="flex items-start justify-between gap-6">
         <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
             Edge security
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
@@ -26,8 +26,8 @@ export function FirewallPage({
             Ordered traffic rules for {projectName}. The first match wins.
           </p>
         </div>
-        <div className="flex size-10 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-400/[0.06]">
-          <ShieldCheck className="size-5 text-blue-300" />
+        <div className="flex size-10 items-center justify-center rounded-xl border border-purple-400/20 bg-purple-400/[0.06]">
+          <ShieldCheck className="size-5 text-purple-300" />
         </div>
       </header>
       <section className="overflow-hidden rounded-2xl border border-[var(--hairline)] bg-background/70 shadow-2xl shadow-black/10">

@@ -40,7 +40,7 @@ async function json<T>(
 }
 
 const inputClass =
-  "h-10 w-full border-0 border-b border-[var(--hairline)] bg-transparent px-0 text-sm outline-none transition-colors placeholder:text-muted-foreground/45 focus:border-blue-400";
+  "h-10 w-full border-0 border-b border-[var(--hairline)] bg-transparent px-0 text-sm outline-none transition-colors placeholder:text-muted-foreground/45 focus:border-purple-400";
 
 type RunAction = <T>(
   key: string,
@@ -101,7 +101,7 @@ export function ContentPlatformManager({
     <div className="space-y-10 border-t border-[var(--hairline)] pt-9">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.18em] text-blue-400">
+          <p className="font-geist-mono text-[10px] uppercase tracking-[0.18em] text-purple-400">
             Content platform
           </p>
           <h2 className="mt-2 text-xl font-semibold tracking-tight">
@@ -178,7 +178,7 @@ function Section({
   return (
     <section className="border-t border-[var(--hairline)] pt-6">
       <div className="mb-6 flex items-start gap-3">
-        <span className="mt-0.5 flex size-8 items-center justify-center border border-[var(--hairline)] text-blue-400">
+        <span className="mt-0.5 flex size-8 items-center justify-center border border-[var(--hairline)] text-purple-400">
           <Icon className="size-4" strokeWidth={1.7} />
         </span>
         <div>

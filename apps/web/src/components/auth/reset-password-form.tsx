@@ -16,7 +16,7 @@ import {
 const labelClass =
   "font-mono text-[11px] font-medium uppercase tracking-wider text-white/50";
 const inputClass =
-  "h-11 rounded-lg border-white/10 bg-white/[0.03] text-white placeholder:text-white/30 focus-visible:border-[#2563eb] focus-visible:ring-[#2563eb]/30";
+  "h-11 rounded-lg border-white/10 bg-white/[0.03] text-white placeholder:text-white/30 focus-visible:border-[#A855F7] focus-visible:ring-[#A855F7]/30";
 
 /**
  * Set a new password using the `token` from the reset email link. On success
@@ -106,7 +106,7 @@ export function ResetPasswordForm() {
         </div>
         <Link
           href="/forgot-password"
-          className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-[#2563eb] text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
+          className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-[#A855F7] text-sm font-semibold text-white transition-colors hover:bg-[#9333ea]"
         >
           Request new link
         </Link>
@@ -117,8 +117,8 @@ export function ResetPasswordForm() {
   if (done) {
     return (
       <div className="space-y-6 text-center">
-        <div className="mx-auto flex size-12 items-center justify-center rounded-full border border-[#2563eb]/30 bg-[#2563eb]/10">
-          <CheckCircle2 className="size-5 text-[#2563eb]" />
+        <div className="mx-auto flex size-12 items-center justify-center rounded-full border border-[#A855F7]/30 bg-[#A855F7]/10">
+          <CheckCircle2 className="size-5 text-[#A855F7]" />
         </div>
         <div className="space-y-1.5">
           <h1 className="font-clash text-2xl font-semibold tracking-tight text-white">
@@ -131,7 +131,7 @@ export function ResetPasswordForm() {
         <button
           type="button"
           onClick={() => router.push("/login")}
-          className="h-11 w-full rounded-lg bg-[#2563eb] text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
+          className="h-11 w-full rounded-lg bg-[#A855F7] text-sm font-semibold text-white transition-colors hover:bg-[#9333ea]"
         >
           Continue to sign in
         </button>
@@ -143,10 +143,10 @@ export function ResetPasswordForm() {
     <div className="space-y-6">
       <div className="space-y-1.5">
         <h1 className="font-clash text-2xl font-semibold tracking-tight text-white">
-          New password
+          Reset password
         </h1>
         <p className="text-sm text-white/50">
-          Choose a new password for your account.
+          Choose a strong password with at least 8 characters.
         </p>
       </div>
 
@@ -159,7 +159,6 @@ export function ResetPasswordForm() {
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
               placeholder="••••••••"
               value={formData.password}
               onChange={handleChange("password")}
@@ -188,13 +187,12 @@ export function ResetPasswordForm() {
 
         <div className="space-y-2">
           <Label htmlFor="confirmPassword" className={labelClass}>
-            Confirm password
+            Confirm new password
           </Label>
           <div className="relative">
             <Input
               id="confirmPassword"
               type={showConfirm ? "text" : "password"}
-              autoComplete="new-password"
               placeholder="••••••••"
               value={formData.confirmPassword}
               onChange={handleChange("confirmPassword")}
@@ -224,7 +222,7 @@ export function ResetPasswordForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="h-11 w-full rounded-lg bg-[#2563eb] text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-11 w-full rounded-lg bg-[#A855F7] text-sm font-semibold text-white transition-colors hover:bg-[#9333ea] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading ? "Updating…" : "Update password"}
         </button>

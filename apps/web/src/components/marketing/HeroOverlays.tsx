@@ -1,6 +1,6 @@
 /**
  * Visual overlay effects for the hero section.
- * Noise texture, radial glow, subtle grid — all via CSS pseudo-elements.
+ * Noise texture, subtle radial depth, and edge vignette.
  */
 export function HeroOverlays() {
   return (
@@ -11,23 +11,13 @@ export function HeroOverlays() {
         aria-hidden="true"
       />
 
-      {/* Primary radial glow — cosmic deep blue center */}
+      {/* Subtle purple ambient glow behind text */}
       <div
         className="pointer-events-none absolute inset-0 z-2"
         aria-hidden="true"
         style={{
           background:
-            "radial-gradient(ellipse 60% 50% at 50% 40%, rgba(30,58,138,0.18) 0%, transparent 70%)",
-        }}
-      />
-
-      {/* Secondary blue glow — bottom right accent */}
-      <div
-        className="pointer-events-none absolute inset-0 z-2"
-        aria-hidden="true"
-        style={{
-          background:
-            "radial-gradient(ellipse 40% 35% at 70% 75%, rgba(29,78,216,0.12) 0%, transparent 70%)",
+            "radial-gradient(ellipse 60% 50% at 50% 45%, rgba(168,85,247,0.1) 0%, transparent 70%)",
         }}
       />
 
@@ -37,7 +27,7 @@ export function HeroOverlays() {
         aria-hidden="true"
         style={{
           background:
-            "radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(3,3,3,0.6) 100%)",
+            "radial-gradient(ellipse 85% 85% at 50% 50%, transparent 45%, rgba(0,0,0,0.7) 100%)",
         }}
       />
     </>

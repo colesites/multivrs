@@ -32,7 +32,7 @@ export function SpaceBackground() {
       <fog attach="fog" args={["#030303", 10, 45]} />
 
       {/* Background ambient light */}
-      <ambientLight intensity={0.4} color="#e0e7ff" />
+      <ambientLight intensity={0.4} color="#f3e8ff" />
 
       {/* Harsh directional light for asteroids */}
       <directionalLight
@@ -43,7 +43,7 @@ export function SpaceBackground() {
       <directionalLight
         position={[-10, -10, -10]}
         intensity={1.0}
-        color="#1d4ed8"
+        color="#A855F7"
       />
 
       <Asteroids />

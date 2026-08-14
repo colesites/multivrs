@@ -1,5 +1,11 @@
-const page = () => {
-  return <div>page</div>;
+import type { Metadata } from "next";
+import { ComingSoonPage } from "@/components/marketing/ComingSoonPage";
+
+export const metadata: Metadata = {
+  title: "Plugins · Multivrs",
+  description: "Multivrs Plugins & Framework Extensions.",
 };
 
-export default page;
+export default function PluginPage() {
+  return <ComingSoonPage />;
+}

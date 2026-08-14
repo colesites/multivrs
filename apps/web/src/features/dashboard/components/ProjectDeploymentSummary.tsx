@@ -70,7 +70,7 @@ export function ProjectDeploymentSummary({
         </dl>
         <Link
           href={`${base}/analytics`}
-          className="mt-6 inline-flex text-xs text-blue-400 hover:underline"
+          className="mt-6 inline-flex text-xs text-purple-400 hover:underline"
         >
           Open analytics
         </Link>

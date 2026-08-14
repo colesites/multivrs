@@ -1,14 +1,11 @@
-const EmailsPage = () => {
-  return (
-    <div className="container mx-auto py-24 text-center">
-      <h1 className="text-4xl font-bold font-clash text-white">
-        Multivrs Emails
-      </h1>
-      <p className="mt-4 text-white/60">
-        Email infrastructure for modern software teams.
-      </p>
-    </div>
-  );
+import type { Metadata } from "next";
+import { ComingSoonPage } from "@/components/marketing/ComingSoonPage";
+
+export const metadata: Metadata = {
+  title: "Emails · Multivrs",
+  description: "Multivrs Transactional Mailbox & Control Plane.",
 };
 
-export default EmailsPage;
+export default function EmailsPage() {
+  return <ComingSoonPage />;
+}

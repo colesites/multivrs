@@ -37,7 +37,7 @@ export function EnvironmentVariableRows({
           key={variable.id}
           className="grid items-center gap-4 px-5 py-4 md:grid-cols-[1fr_1fr_1fr_auto]"
         >
-          <code className="text-xs font-medium text-blue-200">
+          <code className="text-xs font-medium text-purple-200">
             {variable.key}
           </code>
           <code className="text-xs text-muted-foreground">

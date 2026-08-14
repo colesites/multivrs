@@ -20,7 +20,7 @@ function NotificationContent({ item }: { item: DashboardNotification }) {
       ? "border-red-500/30 text-red-400"
       : item.type === "warning"
         ? "border-amber-500/30 text-amber-400"
-        : "border-blue-500/30 text-blue-400";
+        : "border-purple-500/30 text-purple-400";
   return (
     <>
       <span
@@ -58,7 +58,7 @@ export function NotificationItem({
     <div
       className={cn(
         "group flex gap-3 border-b border-[var(--hairline)] p-3",
-        !item.read && "bg-blue-500/[0.035]",
+        !item.read && "bg-purple-500/[0.035]",
       )}
     >
       {item.href ? (

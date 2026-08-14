@@ -40,7 +40,7 @@ export function RotatingDomainWord() {
   );
 
   return (
-    <span className="relative block h-[1.08em] overflow-hidden text-blue-400">
+    <span className="relative block h-[1.08em] overflow-hidden text-purple-400">
       <span ref={word} className="absolute inset-0 block">
         {FIRST_WORD}
       </span>

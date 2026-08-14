@@ -93,7 +93,7 @@ export function ProjectSettingsPage({
     <div className="mx-auto w-full max-w-4xl space-y-7 px-5 py-8">
       <header className="flex items-start justify-between gap-6">
         <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
             Project configuration
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">Settings</h1>
@@ -101,8 +101,8 @@ export function ProjectSettingsPage({
             Configure how {project.name} is identified and built.
           </p>
         </div>
-        <div className="flex size-10 items-center justify-center rounded-xl border border-blue-400/20 bg-blue-400/6">
-          <Settings className="size-5 text-blue-300" />
+        <div className="flex size-10 items-center justify-center rounded-xl border border-purple-400/20 bg-purple-400/6">
+          <Settings className="size-5 text-purple-300" />
         </div>
       </header>
 

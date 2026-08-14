@@ -49,7 +49,7 @@ export function PricingSection({
       <div className="pointer-events-none absolute inset-0 z-0 opacity-40">
         <CursorGrid
           cellSize={65}
-          color="#2563eb"
+          color="#A855F7"
           radius={160}
           falloff="smooth"
           holdTime={400}
@@ -60,7 +60,7 @@ export function PricingSection({
           className="pointer-events-auto"
         />
       </div>
-      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-10">
+      <div className="marketing-container relative z-10">
         <div className="mb-12 max-w-3xl lg:mb-16">
           <h1 className="text-4xl font-medium leading-[1.12] tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem]">
             Start simply.

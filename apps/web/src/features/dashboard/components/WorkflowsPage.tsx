@@ -114,7 +114,7 @@ export function WorkflowsPage({
   return (
     <div className="mx-auto w-full max-w-6xl space-y-8 px-5 py-8">
       <header>
-        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-blue-400">
+        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
           Durable execution
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">
@@ -258,7 +258,7 @@ export function WorkflowsPage({
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <GitBranch className="size-4 text-blue-400" />
+                  <GitBranch className="size-4 text-purple-400" />
                   <h3 className="font-medium">{workflow.name}</h3>
                 </div>
                 <p className="mt-2 font-geist-mono text-[10px] text-muted-foreground">

@@ -12,7 +12,7 @@ import { emailSchema } from "@/validators/auth.validators";
 const labelClass =
   "font-mono text-[11px] font-medium uppercase tracking-wider text-white/50";
 const inputClass =
-  "h-11 rounded-lg border-white/10 bg-white/[0.03] text-white placeholder:text-white/30 focus-visible:border-[#2563eb] focus-visible:ring-[#2563eb]/30";
+  "h-11 rounded-lg border-white/10 bg-white/[0.03] text-white placeholder:text-white/30 focus-visible:border-[#A855F7] focus-visible:ring-[#A855F7]/30";
 
 /**
  * Request a password-reset link. On success we always show the same
@@ -53,8 +53,8 @@ export function ForgotPasswordForm() {
   if (sent) {
     return (
       <div className="space-y-6 text-center">
-        <div className="mx-auto flex size-12 items-center justify-center rounded-full border border-[#2563eb]/30 bg-[#2563eb]/10">
-          <MailCheck className="size-5 text-[#2563eb]" />
+        <div className="mx-auto flex size-12 items-center justify-center rounded-full border border-[#A855F7]/30 bg-[#A855F7]/10">
+          <MailCheck className="size-5 text-[#A855F7]" />
         </div>
         <div className="space-y-1.5">
           <h1 className="font-clash text-2xl font-semibold tracking-tight text-white">
@@ -68,7 +68,7 @@ export function ForgotPasswordForm() {
         </div>
         <Link
           href="/login"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-white transition-colors hover:text-[#2563eb]"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-white transition-colors hover:text-[#A855F7]"
         >
           <ArrowLeft className="size-4" />
           Back to sign in
@@ -113,7 +113,7 @@ export function ForgotPasswordForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="h-11 w-full rounded-lg bg-[#2563eb] text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-11 w-full rounded-lg bg-[#A855F7] text-sm font-semibold text-white transition-colors hover:bg-[#9333ea] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading ? "Sending link…" : "Send reset link"}
         </button>

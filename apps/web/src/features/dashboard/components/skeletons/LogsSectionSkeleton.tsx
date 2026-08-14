@@ -6,7 +6,7 @@ export function LogsSectionSkeleton() {
     <main className="space-y-6 px-5 py-6" aria-busy>
       <header className="flex items-end justify-between gap-4">
         <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.15em] text-blue-400">
+          <p className="font-geist-mono text-[10px] uppercase tracking-[0.15em] text-purple-400">
             Live control plane
           </p>
           <h1 className="mt-2 text-xl font-semibold tracking-tight text-foreground">

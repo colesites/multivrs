@@ -110,7 +110,7 @@ export function DomainActions({
             disabled={renewPending}
             onClick={toggleAutoRenew}
             className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-              autoRenew ? "bg-blue-600" : "bg-white/20"
+              autoRenew ? "bg-[#A855F7]" : "bg-white/20"
             }`}
           >
             <span
