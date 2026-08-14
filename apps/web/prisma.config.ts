@@ -10,9 +10,8 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    // Neon supports Prisma migrations through its pooled endpoint. Keeping the
-    // CLI on DATABASE_URL also prevents a stale DIRECT_URL from silently
-    // targeting a deleted or unreachable compute endpoint.
-    url: env("DATABASE_URL"),
+    // Prefer DIRECT_URL (unpooled direct connection) for migrations to avoid
+    // advisory lock timeouts on Neon transaction poolers.
+    url: env("DIRECT_URL") || env("DATABASE_URL"),
   },
 });
