@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { DeployVisual } from "@/components/marketing/services/DeployVisual";
@@ -92,7 +93,7 @@ const SERVICES: ServiceItem[] = [
   },
 ];
 
-function DotMatrixCanvas({ className = "" }: { className?: string }) {
+function DotMatrixCanvas({ isLight = false, className = "" }: { isLight?: boolean; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -176,7 +177,7 @@ function DotMatrixCanvas({ className = "" }: { className?: string }) {
       const spring = 0.08;
       const friction = 0.84;
 
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = isLight ? "rgba(0, 0, 0, 0.45)" : "rgba(255, 255, 255, 0.65)";
 
       for (let i = 0; i < dots.length; i++) {
         const dot = dots[i]!;
@@ -218,83 +219,75 @@ function DotMatrixCanvas({ className = "" }: { className?: string }) {
       parent.removeEventListener("mouseleave", handleMouseLeave as EventListener);
       window.removeEventListener("resize", buildGrid);
     };
-  }, []);
+  }, [isLight]);
 
   return (
     <canvas
       ref={canvasRef}
-      className={`pointer-events-none absolute inset-0 block size-full ${className}`}
+      className={`block h-full w-full pointer-events-none select-none ${className}`}
       aria-hidden="true"
     />
   );
 }
 
-function renderVisual(serviceId: string) {
-  switch (serviceId) {
-    case "deploy-apps":
-      return <DeployVisual />;
-    case "custom-domains":
-      return <DomainVisual />;
-    case "transactional-mailbox":
-      return <MailboxVisual />;
-    case "serverless-infra":
-      return <ServerlessVisual />;
-    case "global-edge-network":
-    case "edge-network-security":
-      return <SecurityVisual />;
-    default:
-      return null;
+function getServiceHref(serviceId: string, user: unknown): string {
+  if (serviceId === "deploy-apps") {
+    return user ? "/deploy" : "/signup";
   }
-}
-
-/**
- * Resolves the destination URL for a service CTA button:
- * - `custom-domains`: Always direct to `/domains`
- * - `deploy-apps` / `serverless-infra`: `/new` if signed in, otherwise `/login?from=%2Fnew`
- * - `transactional-mailbox`: `/${username}/~/emails?view=overview` if signed in, otherwise `/login?from=...`
- * - `global-edge-network`: `/${username}/~/firewall` if signed in, otherwise `/login?from=...`
- */
-function getServiceHref(
-  serviceId: string,
-  user?: { username?: string | null; name?: string | null; id?: string | null } | null
-): string {
   if (serviceId === "custom-domains") {
-    return "/domains";
+    return user ? "/domains" : "/domains/search";
   }
-
-  const username = user?.username || user?.name || user?.id;
-
-  if (serviceId === "deploy-apps" || serviceId === "serverless-infra") {
-    if (username) return "/new";
-    return `/login?from=${encodeURIComponent("/new")}`;
-  }
-
   if (serviceId === "transactional-mailbox") {
-    if (username) return `/${username}/~/emails?view=overview`;
-    return `/login?from=${encodeURIComponent("/~/emails?view=overview")}`;
+    return user ? "/mail" : "/emails";
   }
-
-  if (serviceId === "global-edge-network" || serviceId === "edge-network-security") {
-    if (username) return `/${username}/~/firewall`;
-    return `/login?from=${encodeURIComponent("/~/firewall")}`;
+  if (serviceId === "serverless-infra") {
+    return "/compute";
   }
-
-  return "/dashboard";
+  if (serviceId === "global-edge-network") {
+    return "/security";
+  }
+  return user ? "/dashboard" : "/signup";
 }
 
 export function Services() {
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
   const [activeIndex, setActiveIndex] = useState(0);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const mobileItemRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
 
-  // IntersectionObserver to detect which item is currently in view
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isLight = mounted && resolvedTheme === "light";
+
+  const renderVisual = (id: string) => {
+    switch (id) {
+      case "deploy-apps":
+        return <DeployVisual />;
+      case "custom-domains":
+        return <DomainVisual />;
+      case "transactional-mailbox":
+        return <MailboxVisual />;
+      case "serverless-infra":
+        return <ServerlessVisual />;
+      case "global-edge-network":
+        return <SecurityVisual />;
+      default:
+        return <DeployVisual />;
+    }
+  };
+
   useEffect(() => {
     const handleScroll = () => {
-      const isMobile = window.innerWidth < 1024;
-      const refs = isMobile ? mobileItemRefs.current : itemRefs.current;
-      const windowCenter = window.innerHeight * (isMobile ? 0.35 : 0.45);
+      const isDesktop = window.innerWidth >= 1024;
+      const refs = isDesktop ? itemRefs.current : mobileItemRefs.current;
+      const windowCenter = window.innerHeight / 2;
+
       let closestIndex = 0;
       let minDistance = Infinity;
 
@@ -341,24 +334,21 @@ export function Services() {
   const activeService = SERVICES[activeIndex] ?? SERVICES[0]!;
 
   return (
-    <section id="services" className="relative w-full bg-black text-white py-20 lg:py-32 overflow-x-clip">
+    <section id="services" className="relative w-full bg-background text-foreground py-20 lg:py-32 overflow-x-clip transition-colors duration-500">
       <div className="w-full max-w-[1920px] mx-auto px-6 sm:px-12 lg:px-20 xl:px-28">
-        {/* Main Section Header */}
         <div className="mb-14 lg:mb-28">
-          <h2 className="font-sans text-4xl sm:text-6xl lg:text-7xl xl:text-[5.5rem] font-medium tracking-tight text-white leading-[1.04] text-left">
+          <h2 className="font-sans text-4xl sm:text-6xl lg:text-7xl xl:text-[5.5rem] font-medium tracking-tight text-foreground leading-[1.04] text-left">
             One platform for
             <br />
             every layer of the stack.
           </h2>
         </div>
 
-        {/* MOBILE VIEW (< lg): Sticky Horizontal Number Bar (No Scrollbar) + Stacked Cards with Inline SVG/Visual */}
         <div className="block lg:hidden">
-          {/* Mobile Full-Width Horizontal Number Bar with generous height and Lenis isolation */}
           <div
             data-lenis-prevent="true"
             data-lenis-prevent-touch="true"
-            className="sticky top-16 z-30 -mx-6 px-6 sm:-mx-12 sm:px-12 w-[calc(100%+3rem)] sm:w-[calc(100%+6rem)] bg-black/95 backdrop-blur-md py-4 sm:py-5 mb-14 border-b border-white/15 select-none"
+            className="sticky top-16 z-30 -mx-6 px-6 sm:-mx-12 sm:px-12 w-[calc(100%+3rem)] sm:w-[calc(100%+6rem)] bg-background/95 backdrop-blur-md py-4 sm:py-5 mb-14 border-b border-border select-none transition-colors"
           >
             <div
               data-lenis-prevent="true"
@@ -380,19 +370,19 @@ export function Services() {
                     className="flex items-center gap-3 shrink-0 py-1.5 transition-colors cursor-pointer"
                   >
                     <span
-                      className={`flex h-7 w-8 sm:h-8 sm:w-9 items-center justify-center font-mono text-xs select-none ${
+                      className={`flex h-7 w-8 sm:h-8 sm:w-9 items-center justify-center font-mono text-xs select-none transition-colors ${
                         isActive
-                          ? "bg-white font-bold text-black shadow-sm"
-                          : "text-zinc-500"
+                          ? "bg-foreground font-bold text-background shadow-sm"
+                          : "text-muted-foreground"
                       }`}
                     >
                       {service.index}
                     </span>
                     <span
-                      className={`font-mono text-xs tracking-wider uppercase whitespace-nowrap ${
+                      className={`font-mono text-xs tracking-wider uppercase whitespace-nowrap transition-colors ${
                         isActive
-                          ? "text-white font-bold"
-                          : "text-zinc-400"
+                          ? "text-foreground font-bold"
+                          : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       {service.tabLabel}
@@ -403,7 +393,6 @@ export function Services() {
             </div>
           </div>
 
-          {/* Stacked Service Items */}
           <div className="space-y-28">
             {SERVICES.map((service, index) => (
               <div
@@ -413,37 +402,32 @@ export function Services() {
                 }}
                 className="flex flex-col scroll-mt-32"
               >
-                {/* Title */}
-                <h3 className="text-2xl sm:text-3xl font-medium tracking-tight text-white leading-snug mb-3">
+                <h3 className="text-2xl sm:text-3xl font-medium tracking-tight text-foreground leading-snug mb-3">
                   {service.title}
                 </h3>
 
-                {/* Description */}
-                <p className="font-sans text-sm sm:text-base leading-relaxed text-zinc-300 mb-5">
+                <p className="font-sans text-sm sm:text-base leading-relaxed text-muted-foreground mb-5">
                   {service.desc}
                 </p>
 
-                {/* Bullets */}
-                <ul className="space-y-2 mb-6 text-xs sm:text-sm text-zinc-200 font-normal">
+                <ul className="space-y-2 mb-6 text-xs sm:text-sm text-foreground/90 font-normal">
                   {service.bullets.map((bullet) => (
                     <li key={bullet} className="flex items-center gap-2.5">
-                      <span className="text-white">•</span>
+                      <span className="text-foreground">•</span>
                       <span>{bullet}</span>
                     </li>
                   ))}
                 </ul>
 
-                {/* Clean Bordered Pill Button */}
                 <div className="mb-6">
                   <Link
                     href={getServiceHref(service.id, user)}
-                    className="inline-flex w-fit items-center rounded-full border border-white px-4 py-1.5 font-mono text-xs tracking-widest text-white uppercase hover:bg-white hover:text-black transition-colors"
+                    className="inline-flex w-fit items-center rounded-full border border-foreground px-4 py-1.5 font-mono text-xs tracking-widest text-foreground uppercase hover:bg-foreground hover:text-background transition-colors"
                   >
                     {service.buttonText}
                   </Link>
                 </div>
 
-                {/* Full Complete Visual / SVG Preview Graphic with Top White Glow and Bottom Fade */}
                 <div className="relative w-full my-6">
                   {renderVisual(service.id)}
                 </div>
@@ -452,13 +436,11 @@ export function Services() {
           </div>
         </div>
 
-        {/* DESKTOP VIEW (lg+): 3-Column Layout: Sticky Left Nav + Naturally Scrolling Middle Content + Sticky Right Graphic */}
         <div className="hidden lg:grid grid-cols-12 gap-10 items-start relative">
           
-          {/* 1. LEFT COLUMN: Sticky Navigation on top, Dot Matrix Canvas below */}
           <div className="col-span-3 sticky top-28 flex flex-col justify-start h-[calc(100vh-9rem)]">
             <nav
-              className="relative z-10 flex flex-col space-y-7 shrink-0 bg-black pb-8"
+              className="relative z-10 flex flex-col space-y-7 shrink-0 bg-background pb-8 transition-colors"
               aria-label="Services navigation"
             >
               {SERVICES.map((service, index) => {
@@ -471,19 +453,19 @@ export function Services() {
                     className="group flex items-center gap-4 text-left transition-colors cursor-pointer"
                   >
                     {isActive ? (
-                      <span className="flex h-8 w-9 items-center justify-center bg-white font-mono text-sm font-bold text-black select-none">
+                      <span className="flex h-8 w-9 items-center justify-center bg-foreground font-mono text-sm font-bold text-background select-none transition-colors">
                         {service.index}
                       </span>
                     ) : (
-                      <span className="flex h-8 w-9 items-center justify-center font-mono text-sm text-zinc-500 group-hover:text-zinc-300 select-none">
+                      <span className="flex h-8 w-9 items-center justify-center font-mono text-sm text-muted-foreground group-hover:text-foreground select-none transition-colors">
                         {service.index}
                       </span>
                     )}
                     <span
-                      className={`font-mono text-sm tracking-wider uppercase ${
+                      className={`font-mono text-sm tracking-wider uppercase transition-colors ${
                         isActive
-                          ? "text-white font-semibold"
-                          : "text-zinc-400 group-hover:text-zinc-200"
+                          ? "text-foreground font-semibold"
+                          : "text-muted-foreground group-hover:text-foreground"
                       }`}
                     >
                       {service.tabLabel}
@@ -493,13 +475,11 @@ export function Services() {
               })}
             </nav>
 
-            {/* Interactive pure-white particle dot matrix positioned strictly below the navigation */}
             <div className="flex-1 w-full min-h-[200px] overflow-hidden relative">
-              <DotMatrixCanvas className="h-full w-full" />
+              <DotMatrixCanvas isLight={isLight} className="h-full w-full" />
             </div>
           </div>
 
-          {/* 2. MIDDLE COLUMN: Naturally Scrolling Stack of All 5 Service Items (Compact Content) */}
           <div className="col-span-4 flex flex-col">
             {SERVICES.map((service, index) => (
               <div
@@ -509,28 +489,26 @@ export function Services() {
                 }}
                 className="min-h-screen flex flex-col justify-start pt-2 pb-32 scroll-mt-28 max-w-md"
               >
-                <h3 className="text-2xl sm:text-3xl font-medium tracking-tight text-white leading-snug mb-4">
+                <h3 className="text-2xl sm:text-3xl font-medium tracking-tight text-foreground leading-snug mb-4">
                   {service.title}
                 </h3>
 
-                <p className="font-sans text-sm sm:text-base leading-relaxed text-white mb-6">
+                <p className="font-sans text-sm sm:text-base leading-relaxed text-muted-foreground mb-6">
                   {service.desc}
                 </p>
 
-                {/* Pure White Bullets */}
-                <ul className="space-y-2.5 mb-8 text-xs sm:text-sm text-white font-normal">
+                <ul className="space-y-2.5 mb-8 text-xs sm:text-sm text-foreground/90 font-normal">
                   {service.bullets.map((bullet) => (
-                    <li key={bullet} className="flex items-center gap-2.5 text-white">
-                      <span className="text-white">•</span>
-                      <span className="text-white">{bullet}</span>
+                    <li key={bullet} className="flex items-center gap-2.5 text-foreground">
+                      <span className="text-foreground">•</span>
+                      <span>{bullet}</span>
                     </li>
                   ))}
                 </ul>
 
-                {/* Clean Bordered Pill Button */}
                 <Link
                   href={getServiceHref(service.id, user)}
-                  className="inline-flex w-fit items-center rounded-full border border-white px-4 py-1 font-mono text-[11px] tracking-widest text-white uppercase hover:bg-white hover:text-black transition-colors"
+                  className="inline-flex w-fit items-center rounded-full border border-foreground px-4 py-1 font-mono text-[11px] tracking-widest text-foreground uppercase hover:bg-foreground hover:text-background transition-colors"
                 >
                   {service.buttonText}
                 </Link>
@@ -538,7 +516,6 @@ export function Services() {
             ))}
           </div>
 
-          {/* 3. RIGHT COLUMN: Floating, Unconstrained Background Graphic */}
           <div className="col-span-5 sticky top-28 pointer-events-auto">
             <div className="relative flex h-[calc(100vh-9rem)] w-full items-start justify-start">
               <div className="w-full transition-all duration-300">

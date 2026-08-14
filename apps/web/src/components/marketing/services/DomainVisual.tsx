@@ -42,7 +42,7 @@ export function DomainVisual() {
         className="pointer-events-none absolute -top-8 inset-x-0 h-44 w-full"
         style={{
           background:
-            "radial-gradient(ellipse 90% 75% at 50% 25%, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 50%, transparent 80%)",
+            "radial-gradient(ellipse 90% 75% at 50% 25%, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.02) 50%, transparent 80%)",
           filter: "blur(28px)",
         }}
         aria-hidden="true"
@@ -50,7 +50,7 @@ export function DomainVisual() {
 
       {/* Main card replicating the Domain detail dashboard */}
       <div
-        className="relative rounded-2xl border border-white/10 bg-[#000000] p-3 sm:p-4 shadow-2xl backdrop-blur-xl overflow-hidden flex gap-3 text-white"
+        className="relative rounded-2xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#000000] p-3 sm:p-4 shadow-xl dark:shadow-2xl backdrop-blur-xl overflow-hidden flex gap-3 text-zinc-900 dark:text-white transition-colors"
         style={{
           WebkitMaskImage:
             "linear-gradient(to bottom, #000000 0%, #000000 68%, rgba(0,0,0,0.65) 84%, rgba(0,0,0,0.1) 96%, transparent 100%)",
@@ -59,28 +59,28 @@ export function DomainVisual() {
         }}
       >
         {/* Left Sidebar */}
-        <div className="hidden sm:flex flex-col w-32 shrink-0 border-r border-white/10 pr-2">
+        <div className="hidden sm:flex flex-col w-32 shrink-0 border-r border-zinc-200 dark:border-white/10 pr-2">
           {/* User info */}
-          <div className="flex items-center gap-1.5 px-1 pb-2 mb-1.5 border-b border-white/10">
-            <div className="grid size-4.5 place-items-center rounded bg-zinc-800 font-mono text-[8px] font-bold text-white">
+          <div className="flex items-center gap-1.5 px-1 pb-2 mb-1.5 border-b border-zinc-200 dark:border-white/10">
+            <div className="grid size-4.5 place-items-center rounded bg-zinc-200 dark:bg-zinc-800 font-mono text-[8px] font-bold text-zinc-900 dark:text-white">
               C
             </div>
-            <span className="font-mono text-[9.5px] text-zinc-300">ctech</span>
+            <span className="font-mono text-[9.5px] text-zinc-700 dark:text-zinc-300">ctech</span>
           </div>
 
           {/* Search bar */}
-          <div className="flex items-center justify-between gap-1 rounded-md border border-white/10 bg-zinc-950 px-1.5 py-0.5 mb-1.5 text-[9px] text-zinc-400 focus-within:border-white/30 transition-colors">
+          <div className="flex items-center justify-between gap-1 rounded-md border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950 px-1.5 py-0.5 mb-1.5 text-[9px] text-zinc-500 dark:text-zinc-400 focus-within:border-zinc-400 dark:focus-within:border-white/30 transition-colors">
             <div className="flex items-center gap-1 min-w-0 flex-1">
-              <Search className="size-2.5 text-zinc-500 shrink-0" />
+              <Search className="size-2.5 text-zinc-400 dark:text-zinc-500 shrink-0" />
               <input
                 type="text"
                 value={sidebarSearch}
                 onChange={(e) => setSidebarSearch(e.target.value)}
                 placeholder="Search..."
-                className="w-full bg-transparent text-[9px] text-white placeholder:text-zinc-500 outline-none"
+                className="w-full bg-transparent text-[9px] text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 outline-none"
               />
             </div>
-            <span className="font-mono text-[7px] text-zinc-500 bg-white/5 px-1 py-0.2 rounded border border-white/5 shrink-0">
+            <span className="font-mono text-[7px] text-zinc-500 bg-zinc-200/60 dark:bg-white/5 px-1 py-0.2 rounded border border-zinc-200 dark:border-white/5 shrink-0">
               ⌘K
             </span>
           </div>
@@ -94,19 +94,16 @@ export function DomainVisual() {
                   key={item.name}
                   className={`relative flex items-center justify-between px-1.5 py-0.5 rounded-md text-left transition-colors cursor-pointer ${
                     isActive
-                      ? "bg-white/[0.08] text-white font-medium shadow-sm"
-                      : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]"
+                      ? "bg-zinc-100 dark:bg-white/[0.08] text-zinc-950 dark:text-white font-medium shadow-sm"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-200 hover:bg-zinc-100/60 dark:hover:bg-white/[0.03]"
                   }`}
                 >
-                  {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-3 w-0.5 rounded-r bg-[#A855F7] shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-                  )}
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <item.icon className={`size-3 shrink-0 ${isActive ? "text-white" : "text-zinc-500"}`} />
-                    <span className="text-[10px] truncate">{item.name}</span>
+                    <item.icon className="size-3 text-zinc-500 dark:text-zinc-400" />
+                    <span className="truncate text-[10px] font-sans">{item.name}</span>
                   </div>
                   {item.badge && (
-                    <span className="font-mono text-[7px] text-purple-400/80 bg-purple-500/10 px-1 rounded">
+                    <span className="rounded bg-zinc-200/70 dark:bg-white/10 px-1 py-0.2 font-mono text-[7px] text-zinc-700 dark:text-zinc-300">
                       {item.badge}
                     </span>
                   )}
@@ -116,122 +113,123 @@ export function DomainVisual() {
           </div>
         </div>
 
-        {/* Right Main Content Area */}
-        <div className="flex-1 min-w-0">
-          {/* Top Breadcrumb Header */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
-            <div className="flex items-center gap-1.5 text-[10.5px] text-zinc-400 font-sans">
-              <span className="text-zinc-300">All Projects</span>
-              <span className="text-zinc-600">›</span>
-              <span className="text-white font-medium">Domains</span>
-            </div>
-            <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono">
-              <span>Domains</span>
-              <span>/</span>
-              <span className="text-zinc-300">test.com</span>
-              <Copy className="size-2.5 ml-1 text-zinc-500 hover:text-white cursor-pointer" />
-            </div>
-          </div>
-
-          {/* Domain Title Header */}
-          <div className="mb-3">
-            <h4 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-0.5">
-              test.com
-            </h4>
-            <p className="text-[11px] text-zinc-400 font-sans">
-              Registered and managed by Multivrs
-            </p>
-          </div>
-
-          {/* Metadata Row Panel (4 Columns) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-xl border border-white/10 bg-zinc-950/80 p-2.5 mb-2.5 text-[10px]">
-            <div>
-              <span className="text-zinc-500 block mb-0.5">Expiration</span>
-              <span className="text-white font-mono flex items-center gap-1">
-                <RefreshCw className="size-2.5 text-zinc-400" />
-                Jul 24, 2027
-              </span>
-            </div>
-            <div>
-              <span className="text-zinc-500 block mb-0.5">Auto renewal</span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-white font-medium">{autoRenew ? "On" : "Off"}</span>
-                <button
-                  type="button"
-                  onClick={() => setAutoRenew(!autoRenew)}
-                  className={`relative inline-flex h-3 w-5 items-center rounded-full transition-colors ${
-                    autoRenew ? "bg-[#A855F7]" : "bg-zinc-700"
-                  }`}
-                >
-                  <span
-                    className={`inline-block size-2 transform rounded-full bg-white transition-transform ${
-                      autoRenew ? "translate-x-2.5" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
+        {/* Right Detail Content */}
+        <div className="flex-1 min-w-0 space-y-2.5">
+          {/* Top Domain Header Banner */}
+          <div className="flex items-center justify-between border-b border-zinc-200 dark:border-white/10 pb-2">
+            <div className="flex items-center gap-2">
+              <div className="flex size-6 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <Globe className="size-3.5" />
               </div>
-            </div>
-            <div>
-              <span className="text-zinc-500 block mb-0.5">Registrar</span>
-              <span className="text-white font-medium">Multivrs</span>
-            </div>
-            <div>
-              <span className="text-zinc-500 block mb-0.5">Nameservers</span>
-              <span className="text-white font-medium">Anycast Edge</span>
-            </div>
-          </div>
-
-          {/* Connected Project Section */}
-          <div className="mb-2.5">
-            <div className="flex items-center justify-between rounded-lg border border-white/10 bg-zinc-950/60 px-3 py-1.5">
-              <div className="flex items-center gap-2">
-                <Globe className="size-3.5 text-zinc-400" />
-                <div>
-                  <span className="font-mono text-xs font-semibold text-white">test.com</span>
-                  <span className="text-[9.5px] text-zinc-500 ml-2">Routes to hull-superstore</span>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h5 className="font-mono text-xs font-bold text-zinc-950 dark:text-white">
+                    multivrs.dev
+                  </h5>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 text-[8px] font-mono text-emerald-600 dark:text-emerald-400">
+                    <span className="size-1 rounded-full bg-emerald-500 animate-pulse" />
+                    Active
+                  </span>
                 </div>
+                <p className="text-[8.5px] text-zinc-500 dark:text-zinc-400 font-sans">
+                  Auto-renews on Jan 14, 2027 · Anycast Edge DNS
+                </p>
               </div>
-              <span className="font-mono text-[10px] text-zinc-400 bg-white/5 px-2 py-0.5 rounded border border-white/5">
-                hull-superstore
-              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                className="flex items-center gap-1 rounded-md border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-900 px-2 py-0.5 text-[9px] font-mono text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-white/20 transition-colors"
+              >
+                <RefreshCw className="size-2.5 text-zinc-400 dark:text-zinc-500" />
+                <span>Sync</span>
+              </button>
             </div>
           </div>
 
-          {/* Bottom Split Cards: Nameservers + TLS Certificate */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {/* Nameservers Card */}
-            <div className="rounded-xl border border-white/10 bg-zinc-950/60 p-2.5">
-              <div className="flex items-center gap-1.5 mb-1.5 font-mono text-[10px] text-zinc-400 font-semibold">
-                <Server className="size-3 text-zinc-400" />
-                <span>Nameservers</span>
+          {/* 4 Metadata Cards Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <div className="rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950/60 p-2">
+              <p className="font-mono text-[8px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-0.5">
+                DNSSEC Status
+              </p>
+              <div className="flex items-center gap-1">
+                <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400" />
+                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">Enabled</span>
               </div>
-              <div className="space-y-0.5 font-mono text-[9px] text-zinc-300">
-                <div>ns1.multivrs.com · ns2.multivrs.com</div>
-              </div>
-              <p className="text-[8px] text-emerald-400/90 mt-1 font-sans">Delegation active & healthy.</p>
             </div>
 
-            {/* TLS Certificate Card */}
-            <div className="rounded-xl border border-white/10 bg-zinc-950/60 p-2.5">
-              <div className="flex items-center gap-1.5 mb-1.5 font-mono text-[10px] text-zinc-400 font-semibold">
-                <Lock className="size-3 text-zinc-400" />
-                <span>TLS Certificate</span>
+            <div className="rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950/60 p-2">
+              <p className="font-mono text-[8px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-0.5">
+                SSL Certificate
+              </p>
+              <div className="flex items-center gap-1">
+                <Lock className="size-3 text-cyan-600 dark:text-cyan-400" />
+                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">Auto-TLS 1.3</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="size-3 text-emerald-400 shrink-0" />
-                <p className="text-[9.5px] font-medium text-white">Active & Auto-Renewed</p>
+            </div>
+
+            <div className="rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950/60 p-2">
+              <p className="font-mono text-[8px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-0.5">
+                Propagation
+              </p>
+              <div className="flex items-center gap-1">
+                <Zap className="size-3 text-amber-600 dark:text-amber-400" />
+                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">0.2ms Edge</span>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950/60 p-2">
+              <p className="font-mono text-[8px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-0.5">
+                Nameservers
+              </p>
+              <div className="flex items-center gap-1">
+                <Wifi className="size-3 text-purple-600 dark:text-purple-400" />
+                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">Multivrs Edge</span>
+              </div>
+            </div>
+          </div>
+
+          {/* DNS Records Table */}
+          <div className="rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950/60 p-2">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="font-mono text-[9px] font-semibold text-zinc-950 dark:text-white uppercase tracking-wider">
+                DNS Routing Records
+              </span>
+              <span className="font-mono text-[8px] text-zinc-500 dark:text-zinc-400">4 Active</span>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between rounded bg-zinc-100 dark:bg-white/[0.04] px-2 py-1 text-[9px] font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 px-1 font-bold">A</span>
+                  <span className="text-zinc-950 dark:text-white">@</span>
+                </div>
+                <span className="text-zinc-600 dark:text-zinc-400">76.76.21.21</span>
+                <span className="text-emerald-600 dark:text-emerald-400">Proxied</span>
+              </div>
+              <div className="flex items-center justify-between rounded bg-zinc-100 dark:bg-white/[0.04] px-2 py-1 text-[9px] font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="rounded bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 px-1 font-bold">CNAME</span>
+                  <span className="text-zinc-950 dark:text-white">www</span>
+                </div>
+                <span className="text-zinc-600 dark:text-zinc-400">cname.multivrs.dev</span>
+                <span className="text-emerald-600 dark:text-emerald-400">Proxied</span>
+              </div>
+              <div className="flex items-center justify-between rounded bg-zinc-100 dark:bg-white/[0.04] px-2 py-1 text-[9px] font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1 font-bold">MX</span>
+                  <span className="text-zinc-950 dark:text-white">mail</span>
+                </div>
+                <span className="text-zinc-600 dark:text-zinc-400">mx.multivrs.net</span>
+                <span className="text-zinc-500 dark:text-zinc-400">Priority 10</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom Black Gradient Fade Overlay */}
+        {/* Bottom Gradient Fade Overlay */}
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-16 rounded-b-2xl"
-          style={{
-            background:
-              "linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.4) 40%, rgba(0, 0, 0, 0.85) 75%, #000000 100%)",
-          }}
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-2xl bg-gradient-to-b from-transparent via-white/40 to-white dark:via-black/85 dark:to-black"
           aria-hidden="true"
         />
       </div>

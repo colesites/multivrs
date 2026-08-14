@@ -219,10 +219,11 @@ export function FooterParticleBrand({ className = "" }: { className?: string }) 
   }, []);
 
   return (
-    <div className={`relative w-full overflow-hidden ${className}`}>
+    <div className={`relative w-full overflow-hidden ${className}`} style={{ touchAction: "pan-y" }}>
       <canvas
         ref={canvasRef}
-        className="block h-[180px] sm:h-[260px] md:h-[320px] w-full touch-none select-none cursor-pointer"
+        className="block h-[180px] sm:h-[260px] md:h-[320px] w-full select-none cursor-pointer"
+        style={{ touchAction: "pan-y" }}
         aria-label="Multivrs Interactive Particle Brand Logo"
       />
     </div>

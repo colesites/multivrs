@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Services } from "@/components/marketing/Services";
-import { DeferredUniverseCanvas } from "@/components/marketing/DeferredUniverseCanvas";
 import { FaqStream } from "@/components/marketing/FaqStream";
 import { HeroSection } from "@/components/marketing/HeroSection";
 
@@ -15,19 +14,23 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
-      <DeferredUniverseCanvas />
-
-      {/* The DOM overlays */}
+      {/* Hero section: Permanently in Dark Mode with cosmic MoltenMetal shader */}
       <div
         id="dark-marketing-header"
-        className="relative z-10 dark text-foreground bg-background"
+        className="relative z-10 dark text-foreground bg-black"
       >
         {/* Overscroll buffer for mobile rubber-banding at the top */}
-        <div className="absolute inset-x-0 bottom-full h-[50vh] bg-[#0a0015]" />
+        <div className="absolute inset-x-0 bottom-full h-[50vh] bg-black" />
         <HeroSection />
+      </div>
+
+      {/* Services section: Adapts to system / user Light and Dark theme */}
+      <div className="relative z-10 text-foreground bg-background">
         <Services />
       </div>
-      <div className="relative z-10 text-foreground">
+
+      {/* FAQ stream */}
+      <div className="relative z-10 text-foreground bg-background">
         <Suspense fallback={null}>
           <FaqStream page="home" />
         </Suspense>

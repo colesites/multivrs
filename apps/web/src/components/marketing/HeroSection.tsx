@@ -16,7 +16,7 @@ const MoltenMetal = dynamic(() => import("@/components/MoltenMetal"), {
 
 /**
  * Main hero section wrapper.
- * Features React Bits Molten Metal WebGL dynamic background + Fold Text headline.
+ * Permanently in Dark Mode for maximum cosmic immersion.
  */
 export function HeroSection() {
   return (

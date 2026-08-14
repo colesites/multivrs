@@ -448,11 +448,11 @@ const ParticleText = ({
   return (
     <div
       ref={containerRef}
-      className={`relative block h-full min-h-[240px] w-full overflow-hidden touch-none ${className}`}
-      style={style}
+      className={`relative block h-full min-h-[240px] w-full overflow-hidden ${className}`}
+      style={{ touchAction: 'pan-y', ...style }}
       aria-label={text}
     >
-      <canvas ref={canvasRef} className="absolute inset-0 block h-full w-full" aria-hidden="true" />
+      <canvas ref={canvasRef} className="absolute inset-0 block h-full w-full" style={{ touchAction: 'pan-y' }} aria-hidden="true" />
       <span className="sr-only">{text}</span>
     </div>
   );
