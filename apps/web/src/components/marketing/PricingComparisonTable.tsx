@@ -3,6 +3,7 @@
 import {
   Boxes,
   Check,
+  ChevronDown,
   CircleHelp,
   CloudCog,
   CodeXml,
@@ -231,6 +232,7 @@ export function PricingComparisonTable({
   comparison: PricingComparison;
 }) {
   const [search, setSearch] = useState("");
+  const [selectedMobilePlan, setSelectedMobilePlan] = useState<PricingPlanKey>("hobby");
   const query = normalized(search);
   const filteredSections = query
     ? comparison.sections.flatMap((section) => {
@@ -243,11 +245,11 @@ export function PricingComparisonTable({
   return (
     <section
       aria-labelledby="pricing-comparison-title"
-      className="border-t border-border bg-background py-24 text-foreground lg:py-32"
+      className="border-t border-border bg-background py-16 sm:py-24 text-foreground lg:py-32"
     >
       <div className="marketing-container">
-        <div className="mb-14 max-w-3xl lg:mb-20">
-          <div className="mb-5 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        <div className="mb-10 max-w-3xl sm:mb-14 lg:mb-20">
+          <div className="mb-4 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
             <Gauge aria-hidden="true" className="size-4" />
             Platform comparison
           </div>
@@ -257,12 +259,164 @@ export function PricingComparisonTable({
           >
             {comparison.title}
           </h2>
-          <p className="mt-5 max-w-2xl text-pretty text-base leading-7 text-muted-foreground">
+          <p className="mt-4 max-w-2xl text-pretty text-sm sm:text-base leading-relaxed sm:leading-7 text-muted-foreground">
             {comparison.description}
           </p>
         </div>
 
-        <div className="overflow-x-auto overscroll-x-contain border-y border-border">
+        {/* MOBILE VIEW (lg:hidden): Single Plan View with Dropdown Selector matching Vercel */}
+        <div className="block lg:hidden">
+          {/* Search & Plan Dropdown Filter Controls */}
+          <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-xl py-3 space-y-2.5 border-b border-border">
+            {/* Search Input */}
+            <div className="relative">
+              <span className="sr-only">Search pricing features</span>
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+              <input
+                className="h-10 w-full rounded-full border border-border bg-background pl-10 pr-10 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
+                id="mobile-feature-search"
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={comparison.searchPlaceholder}
+                type="search"
+                value={search}
+              />
+              {search ? (
+                <button
+                  aria-label="Clear feature search"
+                  className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                  onClick={() => setSearch("")}
+                  type="button"
+                >
+                  <X aria-hidden="true" className="size-4" />
+                </button>
+              ) : null}
+            </div>
+
+            {/* Plan Dropdown Selector */}
+            <div className="relative">
+              <select
+                value={selectedMobilePlan}
+                onChange={(e) => setSelectedMobilePlan(e.target.value as PricingPlanKey)}
+                aria-label="Select pricing plan to view"
+                className="h-10 w-full appearance-none rounded-full border border-border bg-background px-4 pr-10 text-sm font-medium text-foreground outline-none transition-colors focus:border-foreground/40 cursor-pointer"
+              >
+                {comparison.plans.map((plan) => (
+                  <option key={plan.key} value={plan.key} className="bg-background text-foreground py-1">
+                    {plan.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                aria-hidden="true"
+                className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+            </div>
+          </div>
+
+          {/* Sections List for Selected Mobile Plan */}
+          <div className="divide-y divide-border">
+            {filteredSections.map((section) => {
+              const Icon =
+                SECTION_ICONS[
+                  section.slug.current as keyof typeof SECTION_ICONS
+                ] ?? Boxes;
+              return (
+                <div key={section._key} className="py-6 sm:py-8">
+                  {/* Section Title */}
+                  <div className="flex items-start gap-2.5 mb-5">
+                    <Icon
+                      aria-hidden="true"
+                      className="mt-0.5 size-5 text-foreground/80 shrink-0"
+                      strokeWidth={1.6}
+                    />
+                    <div>
+                      <h3 className="text-base sm:text-lg font-medium tracking-tight text-foreground">
+                        {section.title}
+                      </h3>
+                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                        {section.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Section Items */}
+                  <div className="space-y-4">
+                    {section.items.map((item) =>
+                      item._type === "pricingFeatureGroup" ? (
+                        <div key={item._key} className="space-y-1">
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-foreground/70 pt-2 pb-1 border-b border-border/40">
+                            {item.title}
+                            {item.description ? (
+                              <span className="ml-2 text-[11px] normal-case tracking-normal text-muted-foreground font-normal">
+                                {item.description}
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className="divide-y divide-border/20">
+                            {item.features.map((feature) => (
+                              <div
+                                key={feature._key}
+                                className="flex items-center justify-between py-3 gap-4"
+                              >
+                                <FeatureName feature={feature} />
+                                <div className="shrink-0 text-right">
+                                  <PricingValue
+                                    value={feature.values.find(
+                                      (v) => v.planKey === selectedMobilePlan,
+                                    )}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          key={item._key}
+                          className="flex items-center justify-between py-3 border-b border-border/20 gap-4"
+                        >
+                          <FeatureName feature={item} />
+                          <div className="shrink-0 text-right">
+                            <PricingValue
+                              value={item.values.find(
+                                (v) => v.planKey === selectedMobilePlan,
+                              )}
+                            />
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {!filteredSections.length ? (
+            <div className="flex min-h-60 flex-col items-center justify-center border-t border-border px-4 text-center">
+              <Search
+                aria-hidden="true"
+                className="size-5 text-muted-foreground"
+              />
+              <p className="mt-4 text-sm text-foreground/80">
+                No pricing features match “{search}”.
+              </p>
+              <button
+                className="mt-3 text-sm text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-foreground"
+                onClick={() => setSearch("")}
+                type="button"
+              >
+                Clear search
+              </button>
+            </div>
+          ) : null}
+        </div>
+
+        {/* DESKTOP VIEW (hidden on mobile, block on lg): Full 4-Column Table */}
+        <div className="hidden lg:block overflow-x-auto overscroll-x-contain border-y border-border">
           <table className="w-full min-w-245 table-fixed border-collapse">
             <caption className="sr-only">
               Multivrs plan features and monthly usage allowances
