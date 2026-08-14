@@ -371,6 +371,7 @@ export default function ParticleLogo({
     };
 
     const handlePointerMove = (event: PointerEvent): void => {
+      if (event.pointerType === "touch") return; // Allow natural vertical page scroll on mobile
       const rect = canvas.getBoundingClientRect();
       pointer.x = event.clientX - rect.left;
       pointer.y = event.clientY - rect.top;
@@ -382,11 +383,12 @@ export default function ParticleLogo({
     };
 
     const handlePointerEnter = (event: PointerEvent): void => {
+      if (event.pointerType === "touch") return;
       handlePointerMove(event);
       if (trigger === "hover") startGather(true);
     };
 
-    const handleClick = (): void => {
+    const handleClick = (event: MouseEvent): void => {
       if (trigger === "click") startGather(true);
     };
 
@@ -398,9 +400,9 @@ export default function ParticleLogo({
     };
 
     reduceMotionQuery?.addEventListener("change", handleReduceMotionChange);
-    canvas.addEventListener("pointerenter", handlePointerEnter);
-    canvas.addEventListener("pointermove", handlePointerMove);
-    canvas.addEventListener("pointerleave", handlePointerLeave);
+    canvas.addEventListener("pointerenter", handlePointerEnter, { passive: true });
+    canvas.addEventListener("pointermove", handlePointerMove, { passive: true });
+    canvas.addEventListener("pointerleave", handlePointerLeave, { passive: true });
     canvas.addEventListener("click", handleClick);
 
     const resizeObserver = new ResizeObserver(queueSample);
@@ -408,6 +410,8 @@ export default function ParticleLogo({
     sampleLogo();
 
     return () => {
+      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
+      if (resizeFrame !== null) window.cancelAnimationFrame(resizeFrame);
       resizeObserver.disconnect();
       reduceMotionQuery?.removeEventListener(
         "change",
@@ -417,9 +421,6 @@ export default function ParticleLogo({
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerleave", handlePointerLeave);
       canvas.removeEventListener("click", handleClick);
-
-      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
-      if (resizeFrame !== null) window.cancelAnimationFrame(resizeFrame);
     };
   }, [
     particleSize,
@@ -434,18 +435,20 @@ export default function ParticleLogo({
     idleDrift,
     trigger,
     glow,
+    scaleRatio,
   ]);
 
   return (
     <div
       ref={containerRef}
-      className={`relative block h-full min-h-[260px] w-full overflow-hidden touch-none ${className}`}
-      style={style}
+      className={`relative block h-full min-h-[260px] w-full overflow-hidden touch-pan-y ${className}`}
+      style={{ touchAction: "pan-y", ...style }}
       aria-label="Multivrs Logo"
     >
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 block h-full w-full"
+        className="absolute inset-0 block h-full w-full touch-pan-y"
+        style={{ touchAction: "pan-y" }}
         aria-hidden="true"
       />
       <span className="sr-only">Multivrs Logo</span>

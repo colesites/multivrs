@@ -94,10 +94,14 @@ void main() {
     p *= warp;
     float t = r - time / (n + 3.0);
     i -= p + vec2(cos(t - i.x - r) + sin(t + i.y), sin(t - i.y) + cos(t + i.x) + r);
-    c += glowCore / length(vec2(sin(i.x + t), cos(i.y + t)));
+    float denom = max(length(vec2(sin(i.x + t), cos(i.y + t))), 0.01);
+    c += glowCore / denom;
   }
 
-  c /= 6.0;
+  c = clamp(c / 6.0, 0.0, 5.0);
+  if (isnan(c) || isinf(c)) {
+    c = 0.0;
+  }
 
   float intensity = max(c - uBlackPoint, 0.0) * uBrightness;
 
@@ -119,7 +123,7 @@ void main() {
     a += (gr - 0.5) * uGrainIntensity;
   }
   a = clamp(a, 0.0, 1.0) * uOpacity;
-  fragColor = vec4(col * a, a);
+  fragColor = vec4(clamp(col * a, 0.0, 1.0), clamp(a, 0.0, 1.0));
 }
 `;
 
@@ -280,6 +284,16 @@ const MoltenMetal: React.FC<MoltenMetalProps> = ({
 
     tryStart();
 
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+      tryStop();
+    };
+    const handleContextRestored = () => {
+      tryStart();
+    };
+    canvas.addEventListener('webglcontextlost', handleContextLost);
+    canvas.addEventListener('webglcontextrestored', handleContextRestored);
+
     return () => {
       tryStop();
       ro.disconnect();
@@ -287,6 +301,8 @@ const MoltenMetal: React.FC<MoltenMetalProps> = ({
       document.removeEventListener('visibilitychange', onVisibility);
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseleave', handleMouseLeave);
+      canvas.removeEventListener('webglcontextlost', handleContextLost);
+      canvas.removeEventListener('webglcontextrestored', handleContextRestored);
       ctxMap.delete(container);
       try {
         container.removeChild(canvas);

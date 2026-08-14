@@ -226,16 +226,22 @@ const SpecularButton = ({
     const fx = fxRef.current;
     if (!btn || !fx) return;
 
+    // On mobile devices or touch screens, avoid creating dozens of WebGL contexts
+    const isTouchOrMobile =
+      window.innerWidth < 768 ||
+      window.matchMedia("(pointer: coarse)").matches;
+    if (isTouchOrMobile) return;
+
     let raf = 0;
     let ro: ResizeObserver | null = null;
     let cleanGl: WebGLRenderingContext | WebGL2RenderingContext | null = null;
 
     try {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const renderer = new Renderer({
         alpha: true,
         premultipliedAlpha: true,
-        antialias: true,
+        antialias: false,
         dpr,
       });
       const gl = renderer.gl;
