@@ -101,10 +101,10 @@ export default function ParticleLogo({
 
     const pointer = {
       active: false,
-      x: 0,
-      y: 0,
-      smoothX: 0,
-      smoothY: 0,
+      x: -1000,
+      y: -1000,
+      smoothX: -1000,
+      smoothY: -1000,
     };
 
     const startGather = (fromScatter = true): void => {
@@ -160,8 +160,13 @@ export default function ParticleLogo({
         ctx.shadowBlur = 0;
       }
 
-      pointer.smoothX += (pointer.x - pointer.smoothX) * 0.18;
-      pointer.smoothY += (pointer.y - pointer.smoothY) * 0.18;
+      if (pointer.active) {
+        pointer.smoothX += (pointer.x - pointer.smoothX) * 0.18;
+        pointer.smoothY += (pointer.y - pointer.smoothY) * 0.18;
+      } else {
+        pointer.smoothX = -1000;
+        pointer.smoothY = -1000;
+      }
 
       let complete = true;
 
@@ -236,10 +241,13 @@ export default function ParticleLogo({
 
     const sampleLogo = (): void => {
       const rect = container.getBoundingClientRect();
-      width = Math.floor(rect.width);
-      height = Math.floor(rect.height);
+      const newWidth = Math.floor(rect.width);
+      const newHeight = Math.floor(rect.height);
 
-      if (width <= 0 || height <= 0) return;
+      if (newWidth <= 0 || newHeight <= 0) return;
+
+      width = newWidth;
+      height = newHeight;
 
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.max(1, Math.floor(width * dpr));
@@ -267,7 +275,7 @@ export default function ParticleLogo({
       offCtx.lineCap = "round";
       offCtx.lineJoin = "round";
 
-      // Multivrs Vector Path
+      // Multivrs Vector Path: Centered horizontally and vertically
       const path = new Path2D("M14 78 L38 26 L50 52 L62 26 L86 78");
       offCtx.stroke(path);
       offCtx.restore();
@@ -281,13 +289,16 @@ export default function ParticleLogo({
       const targets: Target[] = [];
       const step = Math.max(2, Math.floor(density));
 
+      const offsetX = Math.floor((width - offscreen.width) / 2);
+      const offsetY = Math.floor((height - offscreen.height) / 2);
+
       for (let y = 0; y < offscreen.height; y += step) {
         for (let x = 0; x < offscreen.width; x += step) {
           const alpha = imageData.data[(y * offscreen.width + x) * 4 + 3] ?? 0;
           if (alpha > 40) {
             targets.push({
-              x: width / 2 - offscreen.width / 2 + x,
-              y: height / 2 - offscreen.height / 2 + y,
+              x: offsetX + x,
+              y: offsetY + y,
               alpha: alpha / 255,
             });
           }
@@ -344,10 +355,11 @@ export default function ParticleLogo({
         };
       });
 
-      pointer.x = width / 2;
-      pointer.y = height / 2;
-      pointer.smoothX = pointer.x;
-      pointer.smoothY = pointer.y;
+      pointer.active = false;
+      pointer.x = -1000;
+      pointer.y = -1000;
+      pointer.smoothX = -1000;
+      pointer.smoothY = -1000;
 
       if (reducedMotion) {
         particles.forEach((particle) => {
@@ -365,13 +377,32 @@ export default function ParticleLogo({
       ensureRenderLoop();
     };
 
+    let prevWidth = 0;
+    let prevHeight = 0;
+
     const queueSample = (): void => {
+      const rect = container.getBoundingClientRect();
+      const curW = Math.floor(rect.width);
+      const curH = Math.floor(rect.height);
+
+      // Ignore trivial height-only changes on mobile caused by address bar collapse/expand
+      if (prevWidth === curW && Math.abs(prevHeight - curH) < 90) {
+        return;
+      }
+
+      prevWidth = curW;
+      prevHeight = curH;
+
       if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
       resizeFrame = window.requestAnimationFrame(sampleLogo);
     };
 
     const handlePointerMove = (event: PointerEvent): void => {
-      if (event.pointerType === "touch") return; // Allow natural vertical page scroll on mobile
+      // Only track mouse hover - ignore touch so mobile scrolling is never hijacked or displaced
+      if (event.pointerType && event.pointerType !== "mouse") {
+        pointer.active = false;
+        return;
+      }
       const rect = canvas.getBoundingClientRect();
       pointer.x = event.clientX - rect.left;
       pointer.y = event.clientY - rect.top;
@@ -380,22 +411,30 @@ export default function ParticleLogo({
 
     const handlePointerLeave = (): void => {
       pointer.active = false;
+      pointer.x = -1000;
+      pointer.y = -1000;
     };
 
     const handlePointerEnter = (event: PointerEvent): void => {
-      if (event.pointerType === "touch") return;
+      if (event.pointerType && event.pointerType !== "mouse") return;
       handlePointerMove(event);
       if (trigger === "hover") startGather(true);
     };
 
-    const handleClick = (event: MouseEvent): void => {
+    const handleResetPointer = (): void => {
+      pointer.active = false;
+      pointer.x = -1000;
+      pointer.y = -1000;
+    };
+
+    const handleClick = (): void => {
       if (trigger === "click") startGather(true);
     };
 
     const reduceMotionQuery = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)",
     );
-    const handleReduceMotionChange = (event: MediaQueryListEvent): void => {
+    const handleReduceMotionChange = (): void => {
       void sampleLogo();
     };
 
@@ -403,7 +442,13 @@ export default function ParticleLogo({
     canvas.addEventListener("pointerenter", handlePointerEnter, { passive: true });
     canvas.addEventListener("pointermove", handlePointerMove, { passive: true });
     canvas.addEventListener("pointerleave", handlePointerLeave, { passive: true });
+    canvas.addEventListener("pointerup", handleResetPointer, { passive: true });
+    canvas.addEventListener("pointercancel", handleResetPointer, { passive: true });
     canvas.addEventListener("click", handleClick);
+
+    window.addEventListener("scroll", handleResetPointer, { passive: true });
+    window.addEventListener("touchend", handleResetPointer, { passive: true });
+    window.addEventListener("touchcancel", handleResetPointer, { passive: true });
 
     const resizeObserver = new ResizeObserver(queueSample);
     resizeObserver.observe(container);
@@ -420,7 +465,12 @@ export default function ParticleLogo({
       canvas.removeEventListener("pointerenter", handlePointerEnter);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerleave", handlePointerLeave);
+      canvas.removeEventListener("pointerup", handleResetPointer);
+      canvas.removeEventListener("pointercancel", handleResetPointer);
       canvas.removeEventListener("click", handleClick);
+      window.removeEventListener("scroll", handleResetPointer);
+      window.removeEventListener("touchend", handleResetPointer);
+      window.removeEventListener("touchcancel", handleResetPointer);
     };
   }, [
     particleSize,

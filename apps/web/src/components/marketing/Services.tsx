@@ -258,12 +258,28 @@ export function Services() {
   const [activeIndex, setActiveIndex] = useState(0);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const mobileItemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const mobileTabsContainerRef = useRef<HTMLDivElement | null>(null);
+  const mobileTabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const isLight = mounted && resolvedTheme === "light";
+
+  // Automatically center the active tab in the mobile horizontal number bar
+  useEffect(() => {
+    const tabEl = mobileTabRefs.current[activeIndex];
+    const container = mobileTabsContainerRef.current;
+    if (tabEl && container) {
+      const scrollOffset =
+        tabEl.offsetLeft - container.offsetWidth / 2 + tabEl.offsetWidth / 2;
+      container.scrollTo({
+        left: Math.max(0, scrollOffset),
+        behavior: "smooth",
+      });
+    }
+  }, [activeIndex]);
 
   const renderVisual = (id: string) => {
     switch (id) {
@@ -286,7 +302,7 @@ export function Services() {
     const handleScroll = () => {
       const isDesktop = window.innerWidth >= 1024;
       const refs = isDesktop ? itemRefs.current : mobileItemRefs.current;
-      const windowCenter = window.innerHeight / 2;
+      const windowCenter = window.innerHeight * (isDesktop ? 0.5 : 0.38);
 
       let closestIndex = 0;
       let minDistance = Infinity;
@@ -344,16 +360,19 @@ export function Services() {
           </h2>
         </div>
 
+        {/* MOBILE VIEW (< lg): Sticky Horizontal Number Bar + Stacked Cards with Inline SVG/Visual */}
         <div className="block lg:hidden">
+          {/* Mobile Full-Width Horizontal Number Bar */}
           <div
             data-lenis-prevent="true"
             data-lenis-prevent-touch="true"
             className="sticky top-16 z-30 -mx-6 px-6 sm:-mx-12 sm:px-12 w-[calc(100%+3rem)] sm:w-[calc(100%+6rem)] bg-background/95 backdrop-blur-md py-4 sm:py-5 mb-14 border-b border-border select-none transition-colors"
           >
             <div
+              ref={mobileTabsContainerRef}
               data-lenis-prevent="true"
               data-lenis-prevent-touch="true"
-              className="flex items-center gap-8 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden touch-pan-x"
+              className="flex items-center gap-8 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden touch-pan-x scroll-smooth"
               style={{
                 touchAction: "pan-x",
                 overscrollBehavior: "contain",
@@ -365,6 +384,9 @@ export function Services() {
                 return (
                   <button
                     key={service.id}
+                    ref={(el) => {
+                      mobileTabRefs.current[index] = el;
+                    }}
                     type="button"
                     onClick={() => handleMobileTabClick(index)}
                     className="flex items-center gap-3 shrink-0 py-1.5 transition-colors cursor-pointer"

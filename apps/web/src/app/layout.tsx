@@ -103,7 +103,7 @@ export default function RootLayout({
           {JSON.stringify(websiteJsonLd)}
         </script>
       </head>
-      <body className="min-h-full flex flex-col font-inter bg-background text-foreground selection:bg-white/10 selection:text-white">
+      <body className="min-h-full flex flex-col font-inter bg-background text-foreground selection:bg-purple-500/20 selection:text-foreground dark:selection:bg-purple-500/30 dark:selection:text-white">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

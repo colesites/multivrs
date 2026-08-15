@@ -163,14 +163,13 @@ const MoltenMetal: React.FC<MoltenMetalProps> = ({
 
     const renderer = new Renderer({
       webgl: 2,
-      alpha: true,
-      premultipliedAlpha: true,
+      alpha: false,
       antialias: false,
       dpr: Math.min(window.devicePixelRatio || 1, 2)
     });
 
     const gl = renderer.gl;
-    gl.clearColor(0, 0, 0, 0);
+    gl.clearColor(0, 0, 0, 1);
     const canvas = gl.canvas;
     canvas.style.width = '100%';
     canvas.style.height = '100%';
@@ -369,7 +368,7 @@ const MoltenMetal: React.FC<MoltenMetalProps> = ({
     opacity
   ]);
 
-  return <div ref={containerRef} className={`relative h-full w-full overflow-hidden ${className}`.trim()} />;
+  return <div ref={containerRef} className={`relative h-full w-full overflow-hidden bg-black ${className}`.trim()} />;
 };
 
 export default MoltenMetal;

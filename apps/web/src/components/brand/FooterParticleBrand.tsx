@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 
 interface Particle {
   x: number;
@@ -10,12 +11,19 @@ interface Particle {
   vx: number;
   vy: number;
   size: number;
-  color: string;
   baseAlpha: number;
 }
 
 export function FooterParticleBrand({ className = "" }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isLight = mounted && resolvedTheme === "light";
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -37,6 +45,8 @@ export function FooterParticleBrand({ className = "" }: { className?: string }) 
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const width = rect.width;
       const height = rect.height;
+
+      if (width <= 0 || height <= 0) return;
 
       canvas.width = width * dpr;
       canvas.height = height * dpr;
@@ -109,7 +119,6 @@ export function FooterParticleBrand({ className = "" }: { className?: string }) 
               vx: 0,
               vy: 0,
               size: isMobile ? 1.2 : 1.6,
-              color: "#ffffff",
               baseAlpha: (alpha / 255) * 0.95,
             });
           }
@@ -197,7 +206,9 @@ export function FooterParticleBrand({ className = "" }: { className?: string }) 
         // Subtle organic breathing drift
         const wave = Math.sin(time + p.originX * 0.05 + p.originY * 0.05) * 0.4;
 
-        ctx.fillStyle = `rgba(255, 255, 255, ${p.baseAlpha})`;
+        ctx.fillStyle = isLight
+          ? `rgba(0, 0, 0, ${p.baseAlpha})`
+          : `rgba(255, 255, 255, ${p.baseAlpha})`;
         ctx.beginPath();
         ctx.arc(p.x, p.y + wave, p.size, 0, Math.PI * 2);
         ctx.fill();
@@ -216,7 +227,7 @@ export function FooterParticleBrand({ className = "" }: { className?: string }) 
       canvas.removeEventListener("touchmove", handleTouchMove);
       canvas.removeEventListener("touchend", handleTouchEnd);
     };
-  }, []);
+  }, [isLight]);
 
   return (
     <div className={`relative w-full overflow-hidden ${className}`} style={{ touchAction: "pan-y" }}>
