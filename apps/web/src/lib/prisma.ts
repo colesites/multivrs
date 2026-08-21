@@ -34,11 +34,18 @@ function getDatabaseUrl(): string {
   return url.toString();
 }
 
-const pool = new Pool({
-  connectionString: getDatabaseUrl(),
-});
+function createPrismaClient(): PrismaClient {
+  const pool = new Pool({
+    connectionString: getDatabaseUrl(),
+  });
 
-const adapter = new PrismaPg(pool);
+  const adapter = new PrismaPg(pool);
+
+  return new PrismaClient({
+    adapter,
+    log: ["error"],
+  });
+}
 
 /**
  * Prisma Client instance with strict type safety
@@ -47,12 +54,7 @@ const adapter = new PrismaPg(pool);
  * - Production: Creates new instance once
  * - Development: Reuses instance from globalThis to prevent hot-reload issues
  */
-export const prisma =
-  globalThis.multivrsPrisma ??
-  new PrismaClient({
-    adapter,
-    log: ["error"],
-  });
+export const prisma = globalThis.multivrsPrisma ?? createPrismaClient();
 
 /**
  * Store instance on globalThis in development to persist across hot-reloads
