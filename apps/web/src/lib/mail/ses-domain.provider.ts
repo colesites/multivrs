@@ -8,6 +8,7 @@ import {
   DeleteEmailIdentityCommand,
   GetEmailIdentityCommand,
   type GetEmailIdentityCommandOutput,
+  PutEmailIdentityMailFromAttributesCommand,
 } from "@aws-sdk/client-sesv2";
 import { sesClient } from "@/lib/email/client";
 import {
@@ -35,6 +36,12 @@ export interface ProviderDomainSnapshot {
   region: string;
   status: DomainVerificationStatus;
 }
+
+/**
+ * Subdomain prefix for Custom MAIL FROM in AWS SES.
+ * Must match the MAIL FROM domain configured in the SES Console.
+ */
+const MAIL_FROM_SUBDOMAIN = "bounces";
 
 function sesRegion(): string {
   return process.env.AWS_REGION || "us-east-1";
@@ -74,15 +81,17 @@ export async function addCustomDomain(
     ) {
       // Identity already exists in SES; retrieve current snapshot
       const existing = await getSesDomain(domainName);
-      // Ensure tenant resource association
+      // Ensure tenant resource association and MAIL FROM
       await associateDomainToTenant(domainName, tenantName);
+      await configureMailFrom(domainName);
       return existing;
     }
     throw error;
   }
 
-  // Associate identity with tenant
+  // Associate identity with tenant and configure Custom MAIL FROM
   await associateDomainToTenant(domainName, tenantName);
+  await configureMailFrom(domainName);
 
   return snapshotFromCreate(domainName, response);
 }
@@ -110,6 +119,23 @@ async function associateDomainToTenant(
       return;
     }
     // Log and continue if tenant association warning occurs
+  }
+}
+
+/**
+ * Configures the Custom MAIL FROM domain in SES to use bounces.<domain>
+ * so that bounce return-path headers show your domain instead of amazonses.com.
+ */
+async function configureMailFrom(domainName: string): Promise<void> {
+  try {
+    const command = new PutEmailIdentityMailFromAttributesCommand({
+      EmailIdentity: domainName,
+      MailFromDomain: `${MAIL_FROM_SUBDOMAIN}.${domainName}`,
+      BehaviorOnMxFailure: "USE_DEFAULT_VALUE",
+    });
+    await sesClient.send(command);
+  } catch {
+    // Non-fatal: SES will fall back to default amazonses.com MAIL FROM
   }
 }
 
@@ -223,7 +249,7 @@ function formatFullDomainSnapshot(
   const records: ProviderDomainRecord[] = [
     ...dkimRecords,
     {
-      name: absoluteMailDnsName(domain, "multivrs"),
+      name: absoluteMailDnsName(domain, MAIL_FROM_SUBDOMAIN),
       priority: 10,
       purpose: "mx",
       status: overallStatus,
@@ -232,7 +258,7 @@ function formatFullDomainSnapshot(
       value: normalizeMailDnsValue(`feedback-smtp.${region}.amazonses.com`),
     },
     {
-      name: absoluteMailDnsName(domain, "multivrs"),
+      name: absoluteMailDnsName(domain, MAIL_FROM_SUBDOMAIN),
       priority: null,
       purpose: "spf",
       status: overallStatus,
