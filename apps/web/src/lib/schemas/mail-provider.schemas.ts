@@ -47,7 +47,9 @@ export const sesEventPayloadSchema = z.object({
     "Rendering Failure",
     "DeliveryDelay",
     "Subscription",
+    "Received",
   ]),
+
   mail: z.object({
     timestamp: z.string().optional(),
     messageId: z.string(),

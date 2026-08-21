@@ -5,6 +5,7 @@ import {
   snsMessageSchema,
 } from "@/lib/schemas/mail-provider.schemas";
 import { logError, logInfo } from "@/lib/services/logger.service";
+import { receiveMail } from "@/lib/services/mail-message.service";
 import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.service";
 
 export async function POST(request: Request) {
@@ -73,7 +74,51 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
   const sesEvent: SesEventPayload = parsed.data;
   const messageId = sesEvent.mail.messageId;
 
-  // Find the message in our database
+  // Handle Inbound Received emails
+  if (sesEvent.eventType === "Received") {
+    const recipient =
+      sesEvent.mail.destination?.[0] ||
+      sesEvent.mail.commonHeaders?.to?.[0];
+    const from =
+      sesEvent.mail.source ||
+      sesEvent.mail.commonHeaders?.from?.[0];
+
+    if (!recipient || !from) {
+      return Response.json(
+        { error: "Missing recipient or sender in received email" },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const result = await receiveMail({
+        providerEventId: snsMessageId || messageId,
+        mailbox: recipient,
+        messageId,
+        from,
+        to: sesEvent.mail.destination || [recipient],
+        cc: [],
+        references: [],
+        headers: {},
+        subject: sesEvent.mail.commonHeaders?.subject || "(no subject)",
+        text: (rawEvent as Record<string, unknown>).content as string | undefined,
+      });
+
+      return Response.json({ received: true, ...result }, { status: 200 });
+    } catch (error) {
+      logError("ses.webhook.receive_mail_failed", error, {
+        messageId,
+        recipient,
+        from,
+      });
+      return Response.json(
+        { error: error instanceof Error ? error.message : "Failed to store received mail" },
+        { status: 500 },
+      );
+    }
+  }
+
+  // Find the message in our database for Outbound events (Delivery, Bounce, Complaint, Open, Click)
   const message = await prisma.mailMessage.findFirst({
     where: { providerMessageId: messageId },
     select: { id: true, userId: true },
@@ -86,6 +131,7 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
     });
     return Response.json({ accepted: true, matched: false }, { status: 200 });
   }
+
 
   const occurredAt = sesEvent.mail.timestamp
     ? new Date(sesEvent.mail.timestamp)
