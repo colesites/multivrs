@@ -17,13 +17,13 @@ import {
   relativeMailDnsName,
 } from "@/lib/mail/mail-domain-dns";
 import {
-  createResendDomain,
-  deleteResendDomain,
-  getResendDomain,
+  addCustomDomain,
+  deleteCustomDomain,
+  getSesDomain,
   type ProviderDomainRecord,
   type ProviderDomainSnapshot,
-  verifyResendDomain,
-} from "@/lib/mail/resend-domain.provider";
+  verifyCustomDomain,
+} from "@/lib/mail/ses-domain.provider";
 import { prisma } from "@/lib/prisma";
 import type { createMailDomainSchema } from "@/lib/schemas/mail-resource.schemas";
 import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
@@ -49,14 +49,14 @@ export async function createMailDomain(userId: string, input: DomainInput) {
   });
 
   const [snapshot, managedZone] = await Promise.all([
-    createResendDomain(input.domain),
+    addCustomDomain(input.domain, userId),
     findManagedZone(userId, input.domain),
   ]);
   const created = await prisma.mailDomain.create({
     data: {
       ...input,
       userId,
-      provider: "resend",
+      provider: "ses",
       providerDomainId: snapshot.id,
       region: snapshot.region,
       status: mailDomainStatus(snapshot.status),
@@ -75,8 +75,8 @@ export async function createMailDomain(userId: string, input: DomainInput) {
         snapshot.records,
       );
       automaticDnsConfigured = true;
-      await verifyResendDomain(snapshot.id);
-      await persistSnapshot(created.id, await getResendDomain(snapshot.id));
+      const verifiedSnapshot = await verifyCustomDomain(snapshot.id);
+      await persistSnapshot(created.id, verifiedSnapshot);
     } catch (error) {
       setupError =
         error instanceof Error ? error.message : "Automatic DNS setup failed";
@@ -98,8 +98,8 @@ export async function createMailDomain(userId: string, input: DomainInput) {
 export async function verifyMailDomain(userId: string, domainId: string) {
   let domain = await ownedMailDomain(userId, domainId);
   let snapshot = domain.providerDomainId
-    ? await getResendDomain(domain.providerDomainId)
-    : await createResendDomain(domain.domain);
+    ? await getSesDomain(domain.providerDomainId)
+    : await addCustomDomain(domain.domain, userId);
 
   await persistSnapshot(domain.id, snapshot);
   domain = await ownedMailDomain(userId, domainId);
@@ -111,8 +111,7 @@ export async function verifyMailDomain(userId: string, domainId: string) {
   }
 
   if (snapshot.status !== "verified") {
-    await verifyResendDomain(snapshot.id);
-    snapshot = await getResendDomain(snapshot.id);
+    snapshot = await verifyCustomDomain(snapshot.id);
     await persistSnapshot(domain.id, snapshot);
   }
 
@@ -139,7 +138,7 @@ export async function reconcilePendingMailDomains() {
       AND: [
         {
           OR: [
-            { provider: { not: "resend" } },
+            { provider: { not: "ses" } },
             { providerDomainId: null },
             { status: { not: "verified" } },
           ],
@@ -156,8 +155,7 @@ export async function reconcilePendingMailDomains() {
     select: { id: true, userId: true },
     take: 5,
   });
-  // Provider calls stay sequential so a legacy-domain backfill cannot burst
-  // Resend's account-level API rate limit.
+  // Provider calls stay sequential so a legacy-domain backfill cannot burst API limits.
   const settled = await reconcileSequentially(domains, cutoff);
   return {
     checked: settled.length,
@@ -205,14 +203,17 @@ export async function refreshMailDomainFromProvider(providerDomainId: string) {
     select: { id: true },
   });
   if (!domain) return { matched: false };
-  await persistSnapshot(domain.id, await getResendDomain(providerDomainId));
+  await persistSnapshot(domain.id, await getSesDomain(providerDomainId));
   return { matched: true };
 }
 
 export async function deleteMailDomain(userId: string, domainId: string) {
   const domain = await ownedMailDomain(userId, domainId);
-  if (domain.providerDomainId)
-    await deleteResendDomain(domain.providerDomainId);
+  if (domain.providerDomainId) {
+    await deleteCustomDomain(domain.providerDomainId);
+  } else if (domain.domain) {
+    await deleteCustomDomain(domain.domain);
+  }
 
   const managedZone = await findManagedZone(userId, domain.domain);
   const managedRecords = domain.dnsRecords.filter(
@@ -222,8 +223,7 @@ export async function deleteMailDomain(userId: string, domainId: string) {
     try {
       await removeManagedDns(managedZone.hostname, managedRecords);
     } catch {
-      // The provider authorization has already been revoked. Stale DNS records
-      // are harmless and can be removed later from the domain DNS dashboard.
+      // The provider authorization has already been revoked.
     }
   }
   return prisma.mailDomain.delete({ where: { id: domain.id } });
@@ -251,7 +251,7 @@ async function persistSnapshot(
   await prisma.mailDomain.update({
     where: { id: domainId },
     data: {
-      provider: "resend",
+      provider: "ses",
       providerDomainId: snapshot.id,
       region: snapshot.region,
       status: mailDomainStatus(snapshot.status),
@@ -260,6 +260,7 @@ async function persistSnapshot(
     },
   });
 }
+
 
 async function storedRecords(
   records: ProviderDomainRecord[],
@@ -470,7 +471,8 @@ function providerRecordStatus(status: string) {
 function mailDomainStatus(status: ProviderDomainSnapshot["status"]) {
   return status === "verified"
     ? "verified"
-    : status === "failed" || status === "partially_failed"
+    : status === "failed"
       ? "failed"
       : "pending";
 }
+

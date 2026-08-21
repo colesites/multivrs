@@ -1,13 +1,12 @@
 /**
- * Transactional auth emails sent via Resend.
+ * Transactional auth emails sent via AWS SES v2.
  *
  * These are invoked from Better Auth's `emailOTP` plugin handler
- * (`src/lib/auth/config.ts`). The SDK returns `{ data, error }` — we surface
- * errors so Better Auth can react, rather than swallowing them.
+ * (`src/lib/auth/config.ts`).
  */
 
 import { logError } from "@/lib/services/logger.service";
-import { EMAIL_FROM, resend } from "./client";
+import { EMAIL_FROM, sendEmail } from "./client";
 
 type OtpType =
   | "email-verification"
@@ -55,7 +54,7 @@ function otpEmailHtml(heading: string, line: string, otp: string): string {
 
 /**
  * Send a one-time passcode for the given auth flow.
- * Throws on Resend error so the caller (Better Auth) can fail the request.
+ * Throws on SES error so the caller (Better Auth) can fail the request.
  */
 export async function sendOtpEmail({
   email,
@@ -68,20 +67,20 @@ export async function sendOtpEmail({
 }): Promise<void> {
   const copy = COPY[type];
 
-  const { error } = await resend.emails.send(
-    {
+  try {
+    await sendEmail({
       from: EMAIL_FROM,
       to: [email],
       subject: copy.subject,
       html: otpEmailHtml(copy.heading, copy.line, otp),
       text: `${copy.line}\n\nYour code: ${otp}\n\nThis code expires in 5 minutes.`,
-    },
-    // Idempotency: one send per email+type+code within the dedup window.
-    { idempotencyKey: `${type}/${email}/${otp}` },
-  );
-
-  if (error) {
+      headers: {
+        "X-Multivrs-Auth-Type": type,
+      },
+    });
+  } catch (error) {
     logError("email.otp.send_failed", error, { type });
-    throw new Error(error.message);
+    throw error instanceof Error ? error : new Error(String(error));
   }
 }
+

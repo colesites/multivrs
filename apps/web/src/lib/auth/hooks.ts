@@ -11,15 +11,19 @@
 import type { BetterAuthOptions } from "better-auth";
 import { deleteUserFromConvex, syncUserToConvex } from "@/lib/convex-sync";
 import { logError } from "@/lib/services/logger.service";
+import {
+  deleteSesTenant,
+  ensureSesTenant,
+} from "@/lib/services/ses-tenant.service";
 
 /**
  * Database hooks configuration
- * Triggers Convex synchronization on user lifecycle events
+ * Triggers Convex synchronization and SES tenant creation on user lifecycle events
  */
 export const databaseHooks: BetterAuthOptions["databaseHooks"] = {
   user: {
     /**
-     * After user creation - sync to Convex
+     * After user creation - sync to Convex & provision isolated SES Tenant
      * Requirements: 9.1, 9.4, 9.5
      */
     create: {
@@ -35,8 +39,14 @@ export const databaseHooks: BetterAuthOptions["databaseHooks"] = {
           logError("auth.user.created_convex_sync_failed", error, {
             userId: user.id,
           });
-          // Don't throw - allow user creation to succeed even if Convex sync fails
-          // The retry logic in convex-sync.ts will handle retries
+        }
+
+        try {
+          await ensureSesTenant(user.id);
+        } catch (error) {
+          logError("auth.user.created_ses_tenant_failed", error, {
+            userId: user.id,
+          });
         }
       },
     },
@@ -64,7 +74,7 @@ export const databaseHooks: BetterAuthOptions["databaseHooks"] = {
     },
 
     /**
-     * After user deletion - remove from Convex
+     * After user deletion - remove from Convex & delete SES tenant
      * Requirements: 9.3, 9.4, 9.5
      */
     delete: {
@@ -75,9 +85,17 @@ export const databaseHooks: BetterAuthOptions["databaseHooks"] = {
           logError("auth.user.deleted_convex_sync_failed", error, {
             userId: user.id,
           });
-          // Don't throw - allow deletion to succeed even if Convex sync fails
+        }
+
+        try {
+          await deleteSesTenant(user.id);
+        } catch (error) {
+          logError("auth.user.deleted_ses_tenant_failed", error, {
+            userId: user.id,
+          });
         }
       },
     },
   },
 };
+

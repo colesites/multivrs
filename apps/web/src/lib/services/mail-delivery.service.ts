@@ -1,6 +1,6 @@
 import "server-only";
 import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
-import { configuredMailProvider } from "@/lib/mail/resend-mail.provider";
+import { configuredMailProvider } from "@/lib/mail/ses-mail.provider";
 import { prisma } from "@/lib/prisma";
 import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.service";
 import { publishBillingMeterEvents } from "@/lib/services/stripe-meter.service";
@@ -55,7 +55,8 @@ export async function deliverMailMessage(userId: string, messageId: string) {
         idempotencyKey: `mail:outbound:${message.id}`,
       },
     );
-    const result = await configuredMailProvider().send({
+    const result = await configuredMailProvider(userId).send({
+
       from: message.fromName
         ? `${message.fromName} <${message.fromAddress}>`
         : message.fromAddress,

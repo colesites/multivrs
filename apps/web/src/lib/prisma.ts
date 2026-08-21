@@ -1,17 +1,14 @@
 /**
  * Prisma Client Singleton
  *
- * Requirements: 11.2, 18.8
- *
- * Prevents multiple Prisma Client instances in development due to Next.js hot-reload.
- * In production, creates a single instance. In development, stores the instance on
- * globalThis to persist across hot-reloads.
- *
- * Uses Prisma 7.x with Neon's serverless driver adapter.
+ * Configured with @prisma/adapter-pg (pg Pool) for universal PostgreSQL support
+ * (Supabase, Neon, AWS RDS, local PostgreSQL).
  */
 
-import { PrismaNeon } from "@prisma/adapter-neon";
+import "server-only";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
+import { Pool } from "pg";
 
 /**
  * Global type augmentation for development singleton storage
@@ -37,16 +34,11 @@ function getDatabaseUrl(): string {
   return url.toString();
 }
 
-/**
- * Create Prisma adapter for Neon.
- *
- * Neon recommends `@prisma/adapter-neon` for Prisma applications. It uses
- * Neon's serverless driver instead of a long-lived TCP `pg.Pool`, which avoids
- * stale local dev sockets and handles serverless-style connection churn better.
- */
-const adapter = new PrismaNeon({
+const pool = new Pool({
   connectionString: getDatabaseUrl(),
 });
+
+const adapter = new PrismaPg(pool);
 
 /**
  * Prisma Client instance with strict type safety

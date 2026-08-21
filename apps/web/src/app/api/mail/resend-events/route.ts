@@ -1,20 +1,19 @@
-import { verifyResendWebhook } from "@/lib/mail/resend-domain.provider";
-import { resendDomainEventSchema } from "@/lib/schemas/mail-provider.schemas";
 import { refreshMailDomainFromProvider } from "@/lib/services/mail-domain.service";
 
+/**
+ * Legacy webhook route for domain updates (kept for backward compatibility).
+ */
 export async function POST(request: Request) {
-  let event: ReturnType<typeof resendDomainEventSchema.parse>;
   try {
-    event = resendDomainEventSchema.parse(
-      verifyResendWebhook(await request.text(), request.headers),
-    );
+    const body = (await request.json()) as { data?: { id?: string } };
+    if (body?.data?.id) {
+      return Response.json(
+        await refreshMailDomainFromProvider(body.data.id),
+        { status: 200 },
+      );
+    }
+    return Response.json({ matched: false }, { status: 200 });
   } catch {
-    return Response.json({ error: "Invalid Resend webhook" }, { status: 400 });
+    return Response.json({ error: "Invalid webhook payload" }, { status: 400 });
   }
-  if (event.type === "domain.updated") {
-    return Response.json(await refreshMailDomainFromProvider(event.data.id), {
-      status: 202,
-    });
-  }
-  return Response.json({ matched: false }, { status: 202 });
 }

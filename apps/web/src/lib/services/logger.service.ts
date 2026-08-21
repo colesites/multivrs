@@ -30,3 +30,14 @@ export function logWarning(event: string, error: unknown): void {
     message: error instanceof Error ? error.message : "Unknown error",
   });
 }
+
+export function logInfo(
+  event: string,
+  metadata?: LogContext["metadata"],
+): void {
+  write("info", {
+    event,
+    metadata,
+  });
+}
+

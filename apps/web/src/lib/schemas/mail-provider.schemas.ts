@@ -21,6 +21,117 @@ export const mailProviderEventSchema = z.object({
 
 export type MailProviderEventInput = z.infer<typeof mailProviderEventSchema>;
 
+export const snsMessageSchema = z.object({
+  Type: z.enum(["Notification", "SubscriptionConfirmation", "UnsubscribeConfirmation"]),
+  MessageId: z.string().optional(),
+  TopicArn: z.string().optional(),
+  Subject: z.string().optional(),
+  Message: z.string().optional(),
+  Timestamp: z.string().optional(),
+  SignatureVersion: z.string().optional(),
+  Signature: z.string().optional(),
+  SigningCertURL: z.string().optional(),
+  SubscribeURL: z.string().optional(),
+  Token: z.string().optional(),
+});
+
+export const sesEventPayloadSchema = z.object({
+  eventType: z.enum([
+    "Send",
+    "Delivery",
+    "Bounce",
+    "Complaint",
+    "Open",
+    "Click",
+    "Reject",
+    "Rendering Failure",
+    "DeliveryDelay",
+    "Subscription",
+  ]),
+  mail: z.object({
+    timestamp: z.string().optional(),
+    messageId: z.string(),
+    source: z.string().optional(),
+    sourceArn: z.string().optional(),
+    sendingAccountId: z.string().optional(),
+    destination: z.array(z.string()).optional(),
+    headersTruncated: z.boolean().optional(),
+    headers: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
+    commonHeaders: z
+      .object({
+        from: z.array(z.string()).optional(),
+        to: z.array(z.string()).optional(),
+        subject: z.string().optional(),
+        messageId: z.string().optional(),
+      })
+      .optional(),
+    tags: z.record(z.string(), z.array(z.string())).optional(),
+  }),
+  delivery: z
+    .object({
+      timestamp: z.string().optional(),
+      processingTimeMillis: z.number().optional(),
+      recipients: z.array(z.string()).optional(),
+      smtpResponse: z.string().optional(),
+      reportingMTA: z.string().optional(),
+    })
+    .optional(),
+  bounce: z
+    .object({
+      bounceType: z.string().optional(),
+      bounceSubType: z.string().optional(),
+      bouncedRecipients: z
+        .array(
+          z.object({
+            emailAddress: z.string(),
+            action: z.string().optional(),
+            status: z.string().optional(),
+            diagnosticCode: z.string().optional(),
+          }),
+        )
+        .optional(),
+      timestamp: z.string().optional(),
+      feedbackId: z.string().optional(),
+      remoteMtaIp: z.string().optional(),
+      reportingMTA: z.string().optional(),
+    })
+    .optional(),
+  complaint: z
+    .object({
+      complainedRecipients: z
+        .array(
+          z.object({
+            emailAddress: z.string(),
+          }),
+        )
+        .optional(),
+      timestamp: z.string().optional(),
+      feedbackId: z.string().optional(),
+      userAgent: z.string().optional(),
+      complaintFeedbackType: z.string().optional(),
+      arrivalDate: z.string().optional(),
+    })
+    .optional(),
+  open: z
+    .object({
+      timestamp: z.string().optional(),
+      userAgent: z.string().optional(),
+      ipAddress: z.string().optional(),
+    })
+    .optional(),
+  click: z
+    .object({
+      timestamp: z.string().optional(),
+      ipAddress: z.string().optional(),
+      userAgent: z.string().optional(),
+      link: z.string().optional(),
+      linkTags: z.record(z.string(), z.array(z.string())).optional(),
+    })
+    .optional(),
+});
+
+export type SesEventPayload = z.infer<typeof sesEventPayloadSchema>;
+
 export const resendDomainEventSchema = z.object({
   type: z.enum(["domain.created", "domain.updated", "domain.deleted"]),
   data: z.object({

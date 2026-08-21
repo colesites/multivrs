@@ -154,6 +154,13 @@ describe("Multivrs Mail boundaries", () => {
     );
     expect(
       isAuthenticatedSendingDomain({
+        provider: "ses",
+        providerDomainId: "domain_123",
+        status: "verified",
+      }),
+    ).toBe(true);
+    expect(
+      isAuthenticatedSendingDomain({
         provider: "resend",
         providerDomainId: "domain_123",
         status: "verified",
@@ -168,3 +175,4 @@ describe("Multivrs Mail boundaries", () => {
     ).toBe(false);
   });
 });
+
