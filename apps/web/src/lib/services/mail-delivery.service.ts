@@ -68,7 +68,6 @@ export async function deliverMailMessage(userId: string, messageId: string) {
       subject: message.subject,
       text: message.textBody ?? undefined,
       html: message.htmlBody ?? undefined,
-      headers: { "Message-ID": message.messageId },
       attachments: message.attachments.flatMap((attachment) =>
         attachment.contentBase64
           ? [

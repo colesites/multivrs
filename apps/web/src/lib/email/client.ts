@@ -105,9 +105,24 @@ export async function sendEmail(
       : [options.replyTo]
     : undefined;
 
+  const FORBIDDEN_SES_HEADERS = new Set([
+    "message-id",
+    "from",
+    "to",
+    "cc",
+    "bcc",
+    "subject",
+    "content-type",
+    "content-transfer-encoding",
+    "mime-version",
+  ]);
+
   const headerList: MessageHeader[] | undefined = options.headers
-    ? Object.entries(options.headers).map(([Name, Value]) => ({ Name, Value }))
+    ? Object.entries(options.headers)
+        .filter(([name]) => !FORBIDDEN_SES_HEADERS.has(name.toLowerCase()))
+        .map(([Name, Value]) => ({ Name, Value }))
     : undefined;
+
 
   const input: SendEmailCommandInput = {
     FromEmailAddress: from,
