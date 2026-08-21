@@ -2,6 +2,7 @@ import "server-only";
 import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
 import { configuredMailProvider } from "@/lib/mail/ses-mail.provider";
 import { prisma } from "@/lib/prisma";
+import { logError } from "@/lib/services/logger.service";
 import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.service";
 import { publishBillingMeterEvents } from "@/lib/services/stripe-meter.service";
 import {
@@ -106,6 +107,7 @@ export async function deliverMailMessage(userId: string, messageId: string) {
     if (usageReservation && !providerAccepted) {
       await releaseUsageReservation(usageReservation);
     }
+    logError("mail.delivery.failed", error, { messageId: message.id, userId });
     await markFailed(
       message.id,
       userId,
@@ -113,6 +115,7 @@ export async function deliverMailMessage(userId: string, messageId: string) {
     );
   }
 }
+
 
 async function markFailed(messageId: string, userId: string, reason: string) {
   const event = await prisma.$transaction(async (tx) => {

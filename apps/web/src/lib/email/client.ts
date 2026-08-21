@@ -151,12 +151,39 @@ export async function sendEmail(
     },
   };
 
-  const command = new SendEmailCommand(input);
-  const response = await sesClient.send(command);
+  try {
+    const command = new SendEmailCommand(input);
+    const response = await sesClient.send(command);
 
-  if (!response.MessageId) {
-    throw new Error("AWS SES v2 did not return a message ID");
+    if (!response.MessageId) {
+      throw new Error("AWS SES v2 did not return a message ID");
+    }
+
+    return { messageId: response.MessageId };
+  } catch (error) {
+    // If the send failed because the SES Tenant container is not provisioned or associated in SES,
+    // gracefully retry without TenantName so the email dispatches successfully through the verified domain.
+    if (
+      input.TenantName &&
+      error instanceof Error &&
+      (error.name === "NotFoundException" ||
+        error.name === "BadRequestException" ||
+        /tenant|not found|does not exist/i.test(error.message))
+    ) {
+      const fallbackInput: SendEmailCommandInput = {
+        ...input,
+        TenantName: undefined,
+      };
+      const fallbackCommand = new SendEmailCommand(fallbackInput);
+      const fallbackResponse = await sesClient.send(fallbackCommand);
+
+      if (!fallbackResponse.MessageId) {
+        throw new Error("AWS SES v2 did not return a message ID");
+      }
+
+      return { messageId: fallbackResponse.MessageId };
+    }
+
+    throw error;
   }
-
-  return { messageId: response.MessageId };
 }
