@@ -130,13 +130,28 @@ export async function receiveMail(input: InboundMailInput) {
           sanitizedHtml: sanitizeMailHtml(input.html),
           headers: input.headers,
           rawMimeKey: input.rawMimeKey,
+          hasAttachments: Boolean(input.attachments?.length),
           receivedAt: new Date(),
+          attachments: input.attachments?.length
+            ? {
+                create: input.attachments.map((att, idx) => ({
+                  filename: att.filename,
+                  contentType: att.contentType,
+                  size: att.size,
+                  storageKey: `inbound:${input.messageId}:${idx}`,
+                  contentBase64: att.contentBase64,
+                  inline: att.inline,
+                  contentId: att.contentId,
+                })),
+              }
+            : undefined,
         },
       });
       await tx.mailThread.update({
         where: { id: thread.id },
         data: { lastMessageAt: new Date(), status: "open" },
       });
+
       const event = await tx.mailEvent.create({
         data: {
           userId: mailbox.userId,

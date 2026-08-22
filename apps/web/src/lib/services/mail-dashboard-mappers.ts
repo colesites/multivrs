@@ -51,6 +51,13 @@ export function mapMessage(row: {
   sentAt: Date | null;
   receivedAt: Date | null;
   createdAt: Date;
+  attachments?: Array<{
+    id: string;
+    filename: string;
+    contentType: string;
+    size: number;
+    contentBase64: string | null;
+  }>;
 }): [string, MailMessageDetail] {
   return [
     row.threadId,
@@ -66,6 +73,13 @@ export function mapMessage(row: {
       subject: row.subject,
       text: row.textBody ?? undefined,
       html: row.sanitizedHtml ?? undefined,
+      attachments: row.attachments?.map((att) => ({
+        id: att.id,
+        filename: att.filename,
+        contentType: att.contentType,
+        size: att.size,
+        contentBase64: att.contentBase64 ?? undefined,
+      })),
       sentAt: row.sentAt?.toISOString(),
       receivedAt: row.receivedAt?.toISOString(),
       createdAt: row.createdAt.toISOString(),

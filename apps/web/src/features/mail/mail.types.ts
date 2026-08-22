@@ -19,6 +19,14 @@ export interface MailThreadSummary {
   correspondent: string;
 }
 
+export interface MailAttachmentItem {
+  id: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  contentBase64?: string;
+}
+
 export interface MailMessageDetail {
   id: string;
   direction: string;
@@ -31,6 +39,7 @@ export interface MailMessageDetail {
   subject: string;
   text?: string;
   html?: string;
+  attachments?: MailAttachmentItem[];
   sentAt?: string;
   receivedAt?: string;
   createdAt: string;

@@ -1,4 +1,5 @@
 import "server-only";
+
 import type { MailMessageDetail } from "@/features/mail/mail.types";
 import { prisma } from "@/lib/prisma";
 import { mapMessage, mapThread } from "@/lib/services/mail-dashboard-mappers";
@@ -21,6 +22,7 @@ export async function mailDashboardPrimary(userId: string, projectId?: string) {
     }),
     prisma.mailMessage.findMany({
       where: { userId, mailbox: scope },
+      include: { attachments: true },
       orderBy: { createdAt: "asc" },
       take: 500,
     }),

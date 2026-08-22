@@ -67,6 +67,15 @@ export const mailMessageActionSchema = z.object({
   ]),
 });
 
+export const inboundAttachmentSchema = z.object({
+  filename: z.string().max(500),
+  contentType: z.string().max(200),
+  size: z.number().int().nonnegative(),
+  contentBase64: z.string().optional(),
+  inline: z.boolean().default(false),
+  contentId: z.string().optional(),
+});
+
 export const inboundMailSchema = z.object({
   providerEventId: z.string().min(1).max(500),
   mailbox: mailAddressSchema,
@@ -82,7 +91,9 @@ export const inboundMailSchema = z.object({
   html: z.string().max(5_000_000).optional(),
   headers: z.record(z.string(), z.string()).default({}),
   rawMimeKey: z.string().max(1_000).optional(),
+  attachments: z.array(inboundAttachmentSchema).default([]),
 });
+
 
 export type ComposeMailInput = z.infer<typeof composeMailSchema>;
 export type InboundMailInput = z.infer<typeof inboundMailSchema>;

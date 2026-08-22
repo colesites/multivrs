@@ -99,6 +99,14 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
     let htmlBody: string | undefined;
     let inReplyTo: string | undefined;
     let referencesList: string[] = [];
+    let attachmentsList: Array<{
+      filename: string;
+      contentType: string;
+      size: number;
+      contentBase64?: string;
+      inline: boolean;
+      contentId?: string;
+    }> = [];
 
     // If SES saved the raw email into S3, read and parse the complete message from S3
     const bucketName = sesEvent.receipt?.action?.bucketName;
@@ -118,6 +126,16 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
         if (s3Email.html) htmlBody = s3Email.html;
         if (s3Email.inReplyTo) inReplyTo = s3Email.inReplyTo;
         if (s3Email.references.length) referencesList = s3Email.references;
+        if (s3Email.attachments.length) {
+          attachmentsList = s3Email.attachments.map((att) => ({
+            filename: att.filename,
+            contentType: att.contentType,
+            size: att.size,
+            contentBase64: att.contentBase64,
+            inline: Boolean(att.inline),
+            contentId: att.contentId,
+          }));
+        }
       }
     }
 
@@ -143,7 +161,10 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
         subject,
         text: textBody,
         html: htmlBody,
+        attachments: attachmentsList,
       });
+
+
 
       return Response.json({ received: true, ...result }, { status: 200 });
     } catch (error) {

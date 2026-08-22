@@ -15,6 +15,15 @@ const s3Client = new S3Client({
       : undefined,
 });
 
+export interface InboundAttachmentData {
+  filename: string;
+  contentType: string;
+  size: number;
+  contentBase64?: string;
+  inline?: boolean;
+  contentId?: string;
+}
+
 export interface ParsedInboundEmail {
   from: string;
   fromName?: string;
@@ -26,6 +35,7 @@ export interface ParsedInboundEmail {
   messageId: string;
   inReplyTo?: string;
   references: string[];
+  attachments: InboundAttachmentData[];
 }
 
 /**
@@ -87,17 +97,58 @@ export async function readInboundEmailFromS3(
         ? [parsed.references]
         : [];
 
+    // Parse all attachments and embedded images
+    const attachments: InboundAttachmentData[] = (parsed.attachments || []).map(
+      (att, idx) => {
+        const base64 = att.content ? att.content.toString("base64") : undefined;
+        return {
+          filename: att.filename || `attachment-${idx + 1}`,
+          contentType: att.contentType || "application/octet-stream",
+          size: att.size || att.content?.length || 0,
+          contentBase64: base64,
+          inline: Boolean(att.related || att.cid),
+          contentId: att.cid || undefined,
+        };
+      },
+    );
+
+    let htmlContent: string | undefined =
+      typeof parsed.html === "string" && parsed.html.trim().length > 0
+        ? parsed.html
+        : typeof parsed.textAsHtml === "string" && parsed.textAsHtml.trim().length > 0
+          ? parsed.textAsHtml
+          : undefined;
+
+    // Inline embedded CID images into the HTML template with base64 data URLs
+    if (htmlContent && attachments.length > 0) {
+      for (const att of attachments) {
+        if (att.contentId && att.contentBase64) {
+          const cidRegex = new RegExp(`cid:${att.contentId.replace(/[<>]/g, "")}`, "gi");
+          htmlContent = htmlContent.replace(
+            cidRegex,
+            `data:${att.contentType};base64,${att.contentBase64}`,
+          );
+        }
+      }
+    }
+
+    const textContent: string | undefined =
+      typeof parsed.text === "string" && parsed.text.trim().length > 0
+        ? parsed.text
+        : undefined;
+
     return {
       from: fromAddress,
       fromName: fromName || undefined,
       to: toAddresses.length ? toAddresses : [""],
       cc: ccAddresses,
       subject: parsed.subject || "(no subject)",
-      text: parsed.text || undefined,
-      html: typeof parsed.html === "string" ? parsed.html : undefined,
+      text: textContent,
+      html: htmlContent,
       messageId: parsed.messageId || objectKey,
       inReplyTo: parsed.inReplyTo || undefined,
       references: referencesList,
+      attachments,
     };
   } catch (error) {
     logError("ses.inbound.s3_read_failed", error, { bucketName, objectKey });
