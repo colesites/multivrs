@@ -8,6 +8,7 @@ import {
   MousePointerClick,
   Send,
 } from "lucide-react";
+import { SenderAvatar } from "@/features/mail/SenderAvatar";
 import type { MailDashboardData } from "@/features/mail/mail.types";
 import type { MailView } from "@/features/mail/mail-navigation";
 
@@ -73,9 +74,11 @@ export function MailOverview({
               type="button"
             >
               <div className="flex w-full flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                <span className="hidden sm:grid size-8 shrink-0 place-items-center rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[10px]">
-                  {thread.correspondent.slice(0, 2).toUpperCase()}
-                </span>
+                <SenderAvatar
+                  address={thread.correspondent}
+                  size="md"
+                  className="hidden sm:grid"
+                />
                 <span className="min-w-0 flex-1">
                   <div className="flex w-full items-center justify-between gap-2">
                     <span className="block truncate text-sm sm:text-xs font-medium sm:font-normal text-black/80 dark:text-white/80">

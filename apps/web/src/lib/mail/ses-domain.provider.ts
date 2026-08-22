@@ -275,6 +275,15 @@ function formatFullDomainSnapshot(
       type: "TXT",
       value: "v=DMARC1; p=none;",
     },
+    {
+      name: `default._bimi.${domain}`,
+      priority: null,
+      purpose: "bimi",
+      status: "pending",
+      ttl: "Auto",
+      type: "TXT",
+      value: `v=BIMI1; l=https://${domain}/logo.svg;`,
+    },
   ];
 
   return {

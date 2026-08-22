@@ -2,6 +2,7 @@
 
 import { RefreshCw, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SenderAvatar } from "@/features/mail/SenderAvatar";
 import type { MailThreadSummary } from "@/features/mail/mail.types";
 import { cn } from "@/lib/utils";
 
@@ -59,11 +60,17 @@ export function MailThreadList({
             onClick={() => onSelect(thread.id)}
             type="button"
           >
-            {thread.unread ? (
-              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
-            ) : (
-              <span className="w-1.5" />
-            )}
+            <div className="flex shrink-0 items-center gap-2">
+              {thread.unread ? (
+                <span className="size-1.5 shrink-0 rounded-full bg-accent" />
+              ) : (
+                <span className="w-1.5" />
+              )}
+              <SenderAvatar
+                address={thread.correspondent}
+                size="sm"
+              />
+            </div>
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-2">
                 <span

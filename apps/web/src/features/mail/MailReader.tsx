@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MailMessageBody } from "@/features/mail/MailMessageBody";
+import { SenderAvatar } from "@/features/mail/SenderAvatar";
 import type {
   MailMessageDetail,
   MailThreadSummary,
@@ -121,9 +122,11 @@ export function MailReader({
               key={message.id}
             >
               <header className="flex gap-3 border-b border-black/10 dark:border-white/10 p-4">
-                <span className="grid size-8 place-items-center rounded-full bg-black/5 dark:bg-white/5 text-[10px]">
-                  {message.fromAddress.slice(0, 2).toUpperCase()}
-                </span>
+                <SenderAvatar
+                  address={message.fromAddress}
+                  name={message.fromName}
+                  size="md"
+                />
                 <div className="min-w-0">
                   <p className="truncate text-xs font-medium">
                     {message.fromName || message.fromAddress}

@@ -271,7 +271,7 @@ async function storedRecords(
       ...record,
       managedByMultivrs: managed.has(recordIdentity(record)),
       status:
-        record.purpose === "dmarc"
+        record.purpose === "dmarc" || record.purpose === "bimi"
           ? (await recordMatches(record))
             ? "verified"
             : "pending"
@@ -416,13 +416,16 @@ async function recordMatches(record: ProviderDomainRecord) {
       const values = (await resolveTxt(record.name)).map((parts) =>
         parts.join(""),
       );
-      return record.purpose === "dmarc"
-        ? values.some((value) => /^v=DMARC1\s*;/i.test(value))
-        : values.some(
-            (value) =>
-              normalizeMailDnsValue(value) ===
-              normalizeMailDnsValue(record.value),
-          );
+      if (record.purpose === "dmarc") {
+        return values.some((value) => /^v=DMARC1\s*;/i.test(value));
+      }
+      if (record.purpose === "bimi") {
+        return values.some((value) => /^v=BIMI1\s*;/i.test(value));
+      }
+      return values.some(
+        (value) =>
+          normalizeMailDnsValue(value) === normalizeMailDnsValue(record.value),
+      );
     }
     if (record.type === "CNAME") {
       const values = await resolveCname(record.name);
