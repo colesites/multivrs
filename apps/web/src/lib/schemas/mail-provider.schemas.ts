@@ -36,21 +36,46 @@ export const snsMessageSchema = z.object({
 });
 
 export const sesEventPayloadSchema = z.object({
-  eventType: z.enum([
-    "Send",
-    "Delivery",
-    "Bounce",
-    "Complaint",
-    "Open",
-    "Click",
-    "Reject",
-    "Rendering Failure",
-    "DeliveryDelay",
-    "Subscription",
-    "Received",
-  ]),
-
+  eventType: z
+    .enum([
+      "Send",
+      "Delivery",
+      "Bounce",
+      "Complaint",
+      "Open",
+      "Click",
+      "Reject",
+      "Rendering Failure",
+      "DeliveryDelay",
+      "Subscription",
+      "Received",
+    ])
+    .optional(),
+  notificationType: z.string().optional(),
+  receipt: z
+    .object({
+      timestamp: z.string().optional(),
+      processingTimeMillis: z.number().optional(),
+      recipients: z.array(z.string()).optional(),
+      spamVerdict: z.object({ status: z.string().optional() }).optional(),
+      virusVerdict: z.object({ status: z.string().optional() }).optional(),
+      spfVerdict: z.object({ status: z.string().optional() }).optional(),
+      dkimVerdict: z.object({ status: z.string().optional() }).optional(),
+      dmarcVerdict: z.object({ status: z.string().optional() }).optional(),
+      action: z
+        .object({
+          type: z.string().optional(),
+          topicArn: z.string().optional(),
+          bucketName: z.string().optional(),
+          objectKey: z.string().optional(),
+          objectKeyPrefix: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+  content: z.string().optional(),
   mail: z.object({
+
     timestamp: z.string().optional(),
     messageId: z.string(),
     source: z.string().optional(),

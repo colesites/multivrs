@@ -6,6 +6,7 @@ import {
 } from "@/lib/schemas/mail-provider.schemas";
 import { logError, logInfo } from "@/lib/services/logger.service";
 import { receiveMail } from "@/lib/services/mail-message.service";
+import { readInboundEmailFromS3 } from "@/lib/services/ses-inbound-reader.service";
 import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.service";
 
 export async function POST(request: Request) {
@@ -74,14 +75,51 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
   const sesEvent: SesEventPayload = parsed.data;
   const messageId = sesEvent.mail.messageId;
 
+  const isInbound =
+    sesEvent.eventType === "Received" ||
+    sesEvent.notificationType === "Received" ||
+    Boolean(sesEvent.receipt);
+
   // Handle Inbound Received emails
-  if (sesEvent.eventType === "Received") {
-    const recipient =
-      sesEvent.mail.destination?.[0] ||
-      sesEvent.mail.commonHeaders?.to?.[0];
-    const from =
+  if (isInbound) {
+    let from =
       sesEvent.mail.source ||
-      sesEvent.mail.commonHeaders?.from?.[0];
+      sesEvent.mail.commonHeaders?.from?.[0] ||
+      "";
+    let fromName: string | undefined;
+    let recipient =
+      sesEvent.mail.destination?.[0] ||
+      sesEvent.mail.commonHeaders?.to?.[0] ||
+      "";
+    let toAddresses = sesEvent.mail.destination || [recipient];
+    let ccAddresses: string[] = [];
+    let subject = sesEvent.mail.commonHeaders?.subject || "(no subject)";
+    let textBody: string | undefined = (rawEvent as Record<string, unknown>)
+      .content as string | undefined;
+    let htmlBody: string | undefined;
+    let inReplyTo: string | undefined;
+    let referencesList: string[] = [];
+
+    // If SES saved the raw email into S3, read and parse the complete message from S3
+    const bucketName = sesEvent.receipt?.action?.bucketName;
+    const objectKey = sesEvent.receipt?.action?.objectKey;
+    if (bucketName && objectKey) {
+      const s3Email = await readInboundEmailFromS3(bucketName, objectKey);
+      if (s3Email) {
+        if (s3Email.from) from = s3Email.from;
+        if (s3Email.fromName) fromName = s3Email.fromName;
+        if (s3Email.to.length && s3Email.to[0]) {
+          toAddresses = s3Email.to;
+          recipient = s3Email.to[0];
+        }
+        if (s3Email.cc.length) ccAddresses = s3Email.cc;
+        if (s3Email.subject) subject = s3Email.subject;
+        if (s3Email.text) textBody = s3Email.text;
+        if (s3Email.html) htmlBody = s3Email.html;
+        if (s3Email.inReplyTo) inReplyTo = s3Email.inReplyTo;
+        if (s3Email.references.length) referencesList = s3Email.references;
+      }
+    }
 
     if (!recipient || !from) {
       return Response.json(
@@ -96,12 +134,15 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
         mailbox: recipient,
         messageId,
         from,
-        to: sesEvent.mail.destination || [recipient],
-        cc: [],
-        references: [],
+        fromName,
+        to: toAddresses,
+        cc: ccAddresses,
+        references: referencesList,
+        inReplyTo,
         headers: {},
-        subject: sesEvent.mail.commonHeaders?.subject || "(no subject)",
-        text: (rawEvent as Record<string, unknown>).content as string | undefined,
+        subject,
+        text: textBody,
+        html: htmlBody,
       });
 
       return Response.json({ received: true, ...result }, { status: 200 });
@@ -124,27 +165,27 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
     select: { id: true, userId: true },
   });
 
+
   if (!message) {
     logInfo("ses.webhook.message_not_found", {
       providerMessageId: messageId,
-      eventType: sesEvent.eventType,
+      eventType: sesEvent.eventType ?? "Unknown",
     });
     return Response.json({ accepted: true, matched: false }, { status: 200 });
   }
 
-
   const occurredAt = sesEvent.mail.timestamp
     ? new Date(sesEvent.mail.timestamp)
     : new Date();
+  const eventType = sesEvent.eventType || "Delivery";
   const providerEventId =
     snsMessageId ||
-    `${messageId}:${sesEvent.eventType}:${occurredAt.getTime()}`;
-
-  const eventType = sesEvent.eventType;
+    `${messageId}:${eventType}:${occurredAt.getTime()}`;
 
   // Map to internal event type and message status
   let internalEventType = `email.${eventType.toLowerCase()}`;
   let messageStatus: string | undefined;
+
 
   if (eventType === "Delivery") {
     internalEventType = "email.delivered";
