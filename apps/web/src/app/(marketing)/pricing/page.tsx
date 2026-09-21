@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { FaqStream } from "@/components/marketing/FaqStream";
 import { PricingComparisonTable } from "@/components/marketing/PricingComparisonTable";
+import { PricingPlansSkeleton } from "@/components/marketing/PricingPlansSkeleton";
 import { PricingSection } from "@/components/marketing/PricingSection";
 import { getPricingPlans } from "@/lib/payments/pricing";
-import { getPricingComparison } from "@/sanity/lib/pricing-comparison.service";
+import { getCachedPricingComparison } from "@/sanity/lib/pricing-comparison.service";
 
 export const metadata: Metadata = {
   title: "Pricing | Multivrs",
@@ -13,19 +14,33 @@ export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
 };
 
-export default async function PricingPage() {
-  const [plans, comparison] = await Promise.all([
-    getPricingPlans(),
-    getPricingComparison(),
-  ]);
-
+/**
+ * Each section loads its own data behind a Suspense boundary. Cache Components
+ * requires that: awaiting the data in the page body would block the whole
+ * route from prerendering.
+ */
+export default function PricingPage() {
   return (
     <>
-      <PricingSection {...plans} />
-      <PricingComparisonTable comparison={comparison} />
+      <Suspense fallback={<PricingPlansSkeleton />}>
+        <PricingPlans />
+      </Suspense>
+      <Suspense fallback={null}>
+        <PricingComparison />
+      </Suspense>
       <Suspense fallback={null}>
         <FaqStream page="pricing" />
       </Suspense>
     </>
   );
+}
+
+async function PricingPlans() {
+  const plans = await getPricingPlans();
+  return <PricingSection {...plans} />;
+}
+
+async function PricingComparison() {
+  const comparison = await getCachedPricingComparison();
+  return <PricingComparisonTable comparison={comparison} />;
 }
