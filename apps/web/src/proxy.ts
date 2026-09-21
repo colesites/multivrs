@@ -37,6 +37,7 @@ const publicPrefixes = [
   "/ci-cd",
   "/changelog",
   "/customers",
+  "/templates",
   "/build",
 ];
 

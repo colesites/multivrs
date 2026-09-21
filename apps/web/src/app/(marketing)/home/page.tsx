@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Services } from "@/components/marketing/Services";
 import { FaqStream } from "@/components/marketing/FaqStream";
 import { HeroSection } from "@/components/marketing/HeroSection";
+import { Services } from "@/components/marketing/Services";
 
 export const metadata: Metadata = {
   title: "Multivrs | Software Ecosystem for Modern Teams",

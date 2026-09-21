@@ -8,9 +8,9 @@ import {
   MousePointerClick,
   Send,
 } from "lucide-react";
-import { SenderAvatar } from "@/features/mail/SenderAvatar";
 import type { MailDashboardData } from "@/features/mail/mail.types";
 import type { MailView } from "@/features/mail/mail-navigation";
+import { SenderAvatar } from "@/features/mail/SenderAvatar";
 
 export function MailOverview({
   data,
@@ -45,7 +45,9 @@ export function MailOverview({
           <div className="bg-white dark:bg-black p-5" key={label}>
             <Icon className="size-4 text-accent/70" />
             <p className="mt-5 text-2xl font-medium tracking-tight">{value}</p>
-            <p className="mt-1 text-xs text-black/40 dark:text-white/40">{label}</p>
+            <p className="mt-1 text-xs text-black/40 dark:text-white/40">
+              {label}
+            </p>
           </div>
         ))}
       </section>
@@ -85,9 +87,12 @@ export function MailOverview({
                       {thread.subject}
                     </span>
                     <span className="shrink-0 sm:hidden text-xs sm:text-[10px] text-black/40 sm:text-black/25 dark:text-white/40 sm:dark:text-white/25">
-                      {new Date(thread.lastMessageAt).toLocaleDateString("en-US", {
-                        timeZone: "UTC",
-                      })}
+                      {new Date(thread.lastMessageAt).toLocaleDateString(
+                        "en-US",
+                        {
+                          timeZone: "UTC",
+                        },
+                      )}
                     </span>
                   </div>
                   <span className="line-clamp-2 sm:line-clamp-none sm:block sm:truncate text-xs sm:text-[11px] leading-snug sm:leading-normal text-black/45 sm:text-black/35 dark:text-white/45 sm:dark:text-white/35 mt-0.5 sm:mt-0">
@@ -129,7 +134,9 @@ function Status({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-3 text-xs">
       <span className="text-black/45 dark:text-white/45">{label}</span>
-      <span className="font-mono text-black/80 dark:text-white/80">{value}</span>
+      <span className="font-mono text-black/80 dark:text-white/80">
+        {value}
+      </span>
     </div>
   );
 }
@@ -138,7 +145,9 @@ function EmptyMail() {
     <div className="grid min-h-48 place-items-center text-center">
       <div>
         <Mail className="mx-auto size-6 text-black/20 dark:text-white/20" />
-        <p className="mt-3 text-xs text-black/35 dark:text-white/35">No conversations yet</p>
+        <p className="mt-3 text-xs text-black/35 dark:text-white/35">
+          No conversations yet
+        </p>
       </div>
     </div>
   );

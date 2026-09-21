@@ -57,7 +57,6 @@ export async function deliverMailMessage(userId: string, messageId: string) {
       },
     );
     const result = await configuredMailProvider(userId).send({
-
       from: message.fromName
         ? `${message.fromName} <${message.fromAddress}>`
         : message.fromAddress,
@@ -114,7 +113,6 @@ export async function deliverMailMessage(userId: string, messageId: string) {
     );
   }
 }
-
 
 async function markFailed(messageId: string, userId: string, reason: string) {
   const event = await prisma.$transaction(async (tx) => {

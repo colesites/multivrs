@@ -228,8 +228,7 @@ const SpecularButton = ({
 
     // On mobile devices or touch screens, avoid creating dozens of WebGL contexts
     const isTouchOrMobile =
-      window.innerWidth < 768 ||
-      window.matchMedia("(pointer: coarse)").matches;
+      window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
     if (isTouchOrMobile) return;
 
     let raf = 0;

@@ -1,21 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import {
-  Shield,
-  ShieldCheck,
-  ShieldAlert,
-  Clock,
-  ChevronDown,
   Activity,
-  Globe,
   Ban,
   CheckCircle2,
-  AlertTriangle,
+  ChevronDown,
+  Clock,
   Code,
-  MoreHorizontal,
-  Lock,
+  Globe,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
 } from "lucide-react";
+import { useState } from "react";
 
 export function SecurityVisual() {
   const [activeMetric, setActiveMetric] = useState("all");
@@ -29,19 +26,31 @@ export function SecurityVisual() {
     { id: "ratelimit", label: "Rate limited", val: "—", icon: Activity },
   ];
 
-  const alerts = [
-    { id: "1", type: "DDoS Attack", time: "3h ago", status: "Resolved", count: "950.8k", active: false },
-    { id: "2", type: "DDoS Attack", time: "5h ago", status: "Active", count: "3.0k", active: true },
-    { id: "3", type: "DDoS Attack", time: "12h ago", status: "Resolved", count: "2.0k", active: false },
-    { id: "4", type: "DDoS Attack", time: "3d ago", status: "Resolved", count: "1.7k", active: false },
-  ];
-
-  const rules = [
-    { name: "Log Next.js prefetch infinite loop", count: "2.5M" },
-    { name: "Bot Protection", count: "1.2M" },
-    { name: "Log-only /api", count: "473.0k" },
-    { name: "DDoS Mitigation", count: "288.7k" },
-    { name: "Log-only /", count: "112.0k" },
+  const sparklineBars = [
+    { id: "sb-1", h: 30 },
+    { id: "sb-2", h: 45 },
+    { id: "sb-3", h: 25 },
+    { id: "sb-4", h: 60 },
+    { id: "sb-5", h: 40 },
+    { id: "sb-6", h: 75 },
+    { id: "sb-7", h: 50 },
+    { id: "sb-8", h: 85 },
+    { id: "sb-9", h: 35 },
+    { id: "sb-10", h: 90 },
+    { id: "sb-11", h: 65 },
+    { id: "sb-12", h: 40 },
+    { id: "sb-13", h: 55 },
+    { id: "sb-14", h: 70 },
+    { id: "sb-15", h: 80 },
+    { id: "sb-16", h: 45 },
+    { id: "sb-17", h: 60 },
+    { id: "sb-18", h: 30 },
+    { id: "sb-19", h: 50 },
+    { id: "sb-20", h: 70 },
+    { id: "sb-21", h: 40 },
+    { id: "sb-22", h: 60 },
+    { id: "sb-23", h: 80 },
+    { id: "sb-24", h: 50 },
   ];
 
   return (
@@ -89,7 +98,7 @@ export function SecurityVisual() {
         {/* Top Grid: Firewall Status Card + Traffic Metrics/Chart Card */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-2 mb-2.5">
           {/* Left Firewall Active Card with Purple Shield */}
-          <div className="md:col-span-4 rounded-xl border border-purple-500/20 bg-gradient-to-b from-purple-500/10 via-zinc-50 dark:via-zinc-950 to-transparent p-3 flex flex-col justify-between relative overflow-hidden">
+          <div className="md:col-span-4 rounded-xl border border-purple-500/20 bg-li-to-b from-purple-500/10 via-zinc-50 dark:via-zinc-950 to-transparent p-3 flex flex-col justify-between relative overflow-hidden">
             <div className="text-center py-1.5 relative z-10">
               <div className="mx-auto flex size-9 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/30 text-[#A855F7] mb-1.5 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                 <Shield className="size-4.5" />
@@ -101,11 +110,15 @@ export function SecurityVisual() {
             <div className="space-y-1 border-t border-zinc-200 dark:border-white/10 pt-2 text-[9px] relative z-10 font-sans">
               <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
                 <span>Managed rules</span>
-                <span className="font-semibold text-zinc-950 dark:text-white">Enabled</span>
+                <span className="font-semibold text-zinc-950 dark:text-white">
+                  Enabled
+                </span>
               </div>
               <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
                 <span>OWASP Top 10</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">Protected</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                  Protected
+                </span>
               </div>
             </div>
           </div>
@@ -114,7 +127,8 @@ export function SecurityVisual() {
           <div className="md:col-span-8 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950/60 p-2.5 flex flex-col justify-between">
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 mb-2">
               {metrics.map((m) => (
-                <div
+                <button
+                  type="button"
                   key={m.id}
                   onClick={() => setActiveMetric(m.id)}
                   className={`rounded-lg p-1 text-center transition-all cursor-pointer ${
@@ -123,19 +137,23 @@ export function SecurityVisual() {
                       : "hover:bg-zinc-200/40 dark:hover:bg-white/5"
                   }`}
                 >
-                  <p className="font-sans text-[8px] text-zinc-500 dark:text-zinc-400 truncate">{m.label}</p>
-                  <p className="font-mono text-[10px] font-bold text-zinc-950 dark:text-white">{m.val}</p>
-                </div>
+                  <p className="font-sans text-[8px] text-zinc-500 dark:text-zinc-400 truncate">
+                    {m.label}
+                  </p>
+                  <p className="font-mono text-[10px] font-bold text-zinc-950 dark:text-white">
+                    {m.val}
+                  </p>
+                </button>
               ))}
             </div>
 
             {/* Micro Sparkline Chart */}
             <div className="h-10 w-full relative flex items-end gap-1 px-1">
-              {[30, 45, 25, 60, 40, 75, 50, 85, 35, 90, 65, 40, 55, 70, 80, 45, 60, 30, 50, 70, 40, 60, 80, 50].map((h, i) => (
+              {sparklineBars.map((bar) => (
                 <div
-                  key={i}
+                  key={bar.id}
                   className="flex-1 rounded-t bg-purple-500/40 dark:bg-purple-500/30 hover:bg-purple-500 transition-colors"
-                  style={{ height: `${h}%` }}
+                  style={{ height: `${bar.h}%` }}
                 />
               ))}
             </div>
@@ -145,8 +163,12 @@ export function SecurityVisual() {
         {/* Bottom Rules Summary Bar */}
         <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950/60 p-2 flex items-center justify-between">
           <div className="flex items-center gap-2 text-[9.5px] font-mono">
-            <span className="text-zinc-500 dark:text-zinc-400">Mitigation Rules:</span>
-            <span className="text-zinc-950 dark:text-white font-semibold">2.5M requests inspected</span>
+            <span className="text-zinc-500 dark:text-zinc-400">
+              Mitigation Rules:
+            </span>
+            <span className="text-zinc-950 dark:text-white font-semibold">
+              2.5M requests inspected
+            </span>
           </div>
           <span className="font-mono text-[9px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
             <CheckCircle2 className="size-2.5" />
@@ -156,7 +178,7 @@ export function SecurityVisual() {
 
         {/* Bottom Gradient Fade Overlay */}
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-2xl bg-gradient-to-b from-transparent via-white/40 to-white dark:via-black/85 dark:to-black"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-2xl bg-linear-to-b from-transparent via-white/40 to-white dark:via-black/85 dark:to-black"
           aria-hidden="true"
         />
       </div>

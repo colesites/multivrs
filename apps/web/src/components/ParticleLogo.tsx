@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import { type CSSProperties, useEffect, useRef } from "react";
 
 export interface ParticleLogoProps {
   particleSize?: number;
@@ -56,7 +56,7 @@ const rgbToCss = (rgb: Rgb): string => `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(Math.max(value, min), max);
-const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3;
 
 export default function ParticleLogo({
   particleSize = 2.4,
@@ -208,8 +208,7 @@ export default function ParticleLogo({
           const dy = baseY - pointer.smoothY;
           const distance = Math.hypot(dx, dy);
           if (distance > 0 && distance < repelRadius) {
-            const force =
-              Math.pow(1 - distance / repelRadius, 2) * pointerRepel;
+            const force = (1 - distance / repelRadius) ** 2 * pointerRepel;
             baseX += (dx / distance) * force;
             baseY += (dy / distance) * force;
           }
@@ -267,7 +266,7 @@ export default function ParticleLogo({
 
       offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
       offCtx.save();
-      
+
       const scale = logoSize / 100;
       offCtx.scale(scale, scale);
       offCtx.strokeStyle = "#ffffff";
@@ -319,11 +318,7 @@ export default function ParticleLogo({
         const depth = 0.45 + (((index * 233 + 97) % 1000) / 1000) * 0.9;
         const blend =
           baseRgb && highlightRgb
-            ? clamp(
-                target.x / Math.max(1, width) + (seed - 0.5) * 0.35,
-                0,
-                1,
-              )
+            ? clamp(target.x / Math.max(1, width) + (seed - 0.5) * 0.35, 0, 1)
             : 0;
         const particleColor =
           baseRgb && highlightRgb
@@ -332,9 +327,7 @@ export default function ParticleLogo({
         const angle = seed * Math.PI * 2;
         const distance = (reducedMotion ? 0 : scatter) * (0.35 + depth * 0.75);
         const startX =
-          target.x +
-          Math.cos(angle) * distance +
-          (seed - 0.5) * scatter * 0.45;
+          target.x + Math.cos(angle) * distance + (seed - 0.5) * scatter * 0.45;
         const startY =
           target.y +
           Math.sin(angle) * distance +
@@ -439,16 +432,26 @@ export default function ParticleLogo({
     };
 
     reduceMotionQuery?.addEventListener("change", handleReduceMotionChange);
-    canvas.addEventListener("pointerenter", handlePointerEnter, { passive: true });
-    canvas.addEventListener("pointermove", handlePointerMove, { passive: true });
-    canvas.addEventListener("pointerleave", handlePointerLeave, { passive: true });
+    canvas.addEventListener("pointerenter", handlePointerEnter, {
+      passive: true,
+    });
+    canvas.addEventListener("pointermove", handlePointerMove, {
+      passive: true,
+    });
+    canvas.addEventListener("pointerleave", handlePointerLeave, {
+      passive: true,
+    });
     canvas.addEventListener("pointerup", handleResetPointer, { passive: true });
-    canvas.addEventListener("pointercancel", handleResetPointer, { passive: true });
+    canvas.addEventListener("pointercancel", handleResetPointer, {
+      passive: true,
+    });
     canvas.addEventListener("click", handleClick);
 
     window.addEventListener("scroll", handleResetPointer, { passive: true });
     window.addEventListener("touchend", handleResetPointer, { passive: true });
-    window.addEventListener("touchcancel", handleResetPointer, { passive: true });
+    window.addEventListener("touchcancel", handleResetPointer, {
+      passive: true,
+    });
 
     const resizeObserver = new ResizeObserver(queueSample);
     resizeObserver.observe(container);
@@ -491,15 +494,15 @@ export default function ParticleLogo({
   return (
     <div
       ref={containerRef}
-      className={`relative block h-full min-h-[260px] w-full overflow-hidden touch-pan-y ${className}`}
+      className={`relative block h-full min-h-65 w-full overflow-hidden touch-pan-y ${className}`}
       style={{ touchAction: "pan-y", ...style }}
+      role="img"
       aria-label="Multivrs Logo"
     >
       <canvas
         ref={canvasRef}
         className="absolute inset-0 block h-full w-full touch-pan-y"
         style={{ touchAction: "pan-y" }}
-        aria-hidden="true"
       />
       <span className="sr-only">Multivrs Logo</span>
     </div>

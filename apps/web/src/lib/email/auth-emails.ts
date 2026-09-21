@@ -83,4 +83,3 @@ export async function sendOtpEmail({
     throw error instanceof Error ? error : new Error(String(error));
   }
 }
-

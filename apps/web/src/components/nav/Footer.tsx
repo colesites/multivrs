@@ -2,8 +2,8 @@
 
 import { ArrowUpRight, ChevronDown, Copy } from "lucide-react";
 import Link from "next/link";
-import { MultivrsMark } from "@/components/brand/Logo";
 import { FooterParticleBrand } from "@/components/brand/FooterParticleBrand";
+import { MultivrsMark } from "@/components/brand/Logo";
 import type { NavColumn } from "@/components/nav/navigation";
 import SpecularButton from "@/components/SpecularButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -44,7 +44,7 @@ export default function Footer() {
                   <span className="font-semibold">Deploy an app</span>
                 </SpecularButton>
               </Link>
-              <Link href="/docs">
+              <Link href="/templates">
                 <SpecularButton
                   size="sm"
                   radius={9999}

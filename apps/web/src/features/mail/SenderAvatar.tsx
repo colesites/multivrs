@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +44,7 @@ function getInitials(name?: string, address?: string): string {
     }
     return name.slice(0, 2).toUpperCase();
   }
-  if (address && address.includes("@")) {
+  if (address?.includes("@")) {
     const local = address.split("@")[0] || "??";
     return local.slice(0, 2).toUpperCase();
   }
@@ -61,7 +62,7 @@ function getColorClass(str: string): string {
 }
 
 function resolveAvatarUrl(address: string): string | null {
-  if (!address || !address.includes("@")) return null;
+  if (!address?.includes("@")) return null;
   const domain = address.split("@")[1]?.toLowerCase();
   if (!domain) return null;
 
@@ -107,12 +108,15 @@ export function SenderAvatar({
           className,
         )}
       >
-        <img
+        <Image
           src={logoUrl}
           alt={name || address}
-          className="size-full rounded-full object-cover"
+          fill
+          sizes="40px"
+          className="rounded-full object-cover"
           onError={() => setImageError(true)}
           loading="lazy"
+          unoptimized
         />
       </div>
     );

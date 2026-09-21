@@ -21,10 +21,10 @@ import { cn } from "@/lib/utils";
  * when the user enters the Emails section. Designed to slot into the
  * existing Sidebar's middle zone, inheriting its width and design tokens.
  */
-export function SidebarMailNav({ 
+export function SidebarMailNav({
   onLinkClick,
   onBack,
-}: { 
+}: {
   onLinkClick?: () => void;
   onBack?: () => void;
 } = {}) {

@@ -3,12 +3,12 @@
 import type { Project } from "@multivrs/client";
 import { projectSchema } from "@multivrs/client";
 import { FRAMEWORK_IDS } from "@multivrs/config";
+import { Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Settings } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -96,7 +96,9 @@ export function ProjectSettingsPage({
           <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
             Project configuration
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Settings</h1>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+            Settings
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Configure how {project.name} is identified and built.
           </p>
@@ -114,58 +116,61 @@ export function ProjectSettingsPage({
           </p>
         </div>
         <div className="space-y-6 p-5">
-        <label
-          htmlFor="project-name"
-          className="block max-w-xl space-y-2 text-xs text-muted-foreground"
-        >
-          <span>Project name</span>
-          <Input
-            id="project-name"
-            value={name}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, name: event.target.value }))
-            }
-          />
-        </label>
-        <div className="block max-w-xl space-y-2 text-xs text-muted-foreground">
-          <span>Framework preset</span>
-          <Select
-            value={framework}
-            onValueChange={(value) =>
-              setDraft((current) => ({ ...current, framework: value }))
-            }
+          <label
+            htmlFor="project-name"
+            className="block max-w-xl space-y-2 text-xs text-muted-foreground"
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="auto">Auto detect</SelectItem>
-              {FRAMEWORK_IDS.map((id) => (
-                <SelectItem key={id} value={id}>
-                  {id}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <label
-          htmlFor="project-repository-url"
-          className="block max-w-xl space-y-2 text-xs text-muted-foreground"
-        >
-          <span>GitHub repository URL</span>
-          <Input
-            id="project-repository-url"
-            inputMode="url"
-            placeholder="https://github.com/owner/repository"
-            value={repositoryUrl}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current,
-                repositoryUrl: event.target.value,
-              }))
-            }
-          />
-        </label>
+            <span>Project name</span>
+            <Input
+              id="project-name"
+              value={name}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  name: event.target.value,
+                }))
+              }
+            />
+          </label>
+          <div className="block max-w-xl space-y-2 text-xs text-muted-foreground">
+            <span>Framework preset</span>
+            <Select
+              value={framework}
+              onValueChange={(value) =>
+                setDraft((current) => ({ ...current, framework: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">Auto detect</SelectItem>
+                {FRAMEWORK_IDS.map((id) => (
+                  <SelectItem key={id} value={id}>
+                    {id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <label
+            htmlFor="project-repository-url"
+            className="block max-w-xl space-y-2 text-xs text-muted-foreground"
+          >
+            <span>GitHub repository URL</span>
+            <Input
+              id="project-repository-url"
+              inputMode="url"
+              placeholder="https://github.com/owner/repository"
+              value={repositoryUrl}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  repositoryUrl: event.target.value,
+                }))
+              }
+            />
+          </label>
         </div>
         <div className="flex items-center justify-between border-t border-(--hairline) bg-black/2 dark:bg-white/2 px-5 py-3">
           <p className="text-xs text-muted-foreground">
@@ -178,9 +183,12 @@ export function ProjectSettingsPage({
       </section>
       <section className="overflow-hidden rounded-2xl border border-red-500/20 bg-red-500/2">
         <div className="px-5 py-5">
-          <h2 className="text-sm font-semibold text-red-600 dark:text-red-400">Delete project</h2>
+          <h2 className="text-sm font-semibold text-red-600 dark:text-red-400">
+            Delete project
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            The project will be permanently deleted, including its deployments and domains. This action is irreversible and can not be undone.
+            The project will be permanently deleted, including its deployments
+            and domains. This action is irreversible and can not be undone.
           </p>
         </div>
         <div className="flex items-center justify-between border-t border-red-500/20 bg-red-500/5 px-5 py-3">

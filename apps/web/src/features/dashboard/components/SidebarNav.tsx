@@ -49,7 +49,9 @@ export function SidebarNav({
                   strokeWidth={1.75}
                 />
                 <div className="flex min-w-0 items-center gap-2">
-                  <span className="truncate tracking-[-0.01em]">{item.name}</span>
+                  <span className="truncate tracking-[-0.01em]">
+                    {item.name}
+                  </span>
                   {item.badge && (
                     <span className="shrink-0 rounded-lg border border-accent/20 bg-accent/10 px-1.5 py-px text-[9.5px] font-medium text-accent">
                       {item.badge}

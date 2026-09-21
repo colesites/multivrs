@@ -1,17 +1,17 @@
-import { cacheLife, cacheTag } from "next/cache";
 import { logWarning } from "@/lib/services/logger.service";
 import { recommendedPricingComparison } from "../seed/recommended-pricing-comparison";
-import { client } from "./client";
+import { type DynamicFetchOptions, sanityFetch } from "./live";
 import type { PricingComparison } from "./pricing-comparison.types";
 import { pricingComparisonQuery } from "./queries";
 
 function isUsableComparison(
-  comparison: PricingComparison | null,
+  comparison: unknown,
 ): comparison is PricingComparison {
+  const candidate = comparison as Partial<PricingComparison> | null | undefined;
   return Boolean(
-    comparison?.plans?.length &&
-      comparison.sections?.length &&
-      comparison.title?.trim(),
+    candidate?.plans?.length &&
+      candidate?.sections?.length &&
+      candidate?.title?.trim(),
   );
 }
 
@@ -44,15 +44,15 @@ function withRequiredPricingSections(
   };
 }
 
-export async function getPricingComparison(): Promise<PricingComparison> {
-  "use cache";
-  cacheLife({ stale: 60, revalidate: 300, expire: 3600 });
-  cacheTag("pricing", "pricing-comparison");
-
+export async function getPricingComparison(
+  options: DynamicFetchOptions = { perspective: "published", stega: false },
+): Promise<PricingComparison> {
   try {
-    const comparison = await client.fetch<PricingComparison | null>(
-      pricingComparisonQuery,
-    );
+    const { data: comparison } = await sanityFetch({
+      query: pricingComparisonQuery,
+      perspective: options.perspective,
+      stega: options.stega,
+    });
     return isUsableComparison(comparison)
       ? withRequiredPricingSections(comparison)
       : recommendedPricingComparison;

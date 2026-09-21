@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { DeploymentsPage } from "@/features/dashboard/components/DeploymentsPage";
 import { DomainsPage } from "@/features/dashboard/components/DomainsPage";
 import { LogsPage } from "@/features/dashboard/components/LogsPage";
@@ -6,6 +7,7 @@ import { PlatformSectionStream } from "@/features/dashboard/components/PlatformS
 import { ProjectSettingsPage } from "@/features/dashboard/components/ProjectSettingsPage";
 import { SectionPlaceholder } from "@/features/dashboard/components/SectionPlaceholder";
 import { SettingsPage } from "@/features/dashboard/components/SettingsPage";
+import { TemplatesDashboard } from "@/features/dashboard/components/TemplatesDashboard";
 import { ALL_PROJECTS_SCOPE } from "@/features/dashboard/constants/navigation";
 import { getSectionMeta } from "@/features/dashboard/constants/sections";
 import { isPlatformProjectSection } from "@/features/dashboard/lib/project-platform-sections";
@@ -26,6 +28,11 @@ import {
 } from "@/lib/services/domain.service";
 import { getProject } from "@/lib/services/project.service";
 import { listProjectRuntimeLogs } from "@/lib/services/runtime-log.service";
+import {
+  getSellerTemplates,
+  getTemplateCategories,
+  getTemplateStacks,
+} from "@/sanity/lib/template.service";
 
 /**
  * Section pages, e.g. /c-tech/~/cdn (all projects) or
@@ -126,6 +133,24 @@ export default async function SectionPage({
         projects={projects}
         teamSlug={username}
         scope={scope}
+      />
+    );
+  }
+
+  if (section === "templates") {
+    await connection();
+    const session = await getServerSession();
+    if (!session) notFound();
+    const [categories, stacks, templates] = await Promise.all([
+      getTemplateCategories(),
+      getTemplateStacks(),
+      getSellerTemplates(session.user.id),
+    ]);
+    return (
+      <TemplatesDashboard
+        categories={categories}
+        stacks={stacks}
+        templates={templates}
       />
     );
   }

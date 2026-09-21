@@ -48,6 +48,7 @@ export const FOOTER_GROUPS_PRIMARY: NavColumn[] = [
     links: [
       { title: "Multivrs Agent", href: "/agent" },
       { title: "Multivrs Plugin", href: "/plugin" },
+      { title: "Templates", href: "/templates" },
       { title: "Agent Skills", href: "/agent" },
       { title: "CLI", href: "/docs" },
     ],
@@ -99,7 +100,7 @@ export const FOOTER_GROUPS_SECONDARY: NavColumn[] = [
     heading: "Explore",
     links: [
       { title: "Customers", href: "/customers" },
-      { title: "Marketplace", href: "/marketplace" },
+      { title: "Marketplace", href: "/templates" },
       { title: "Templates", href: "/templates" },
       { title: "Startups", href: "/startups" },
       { title: "Shipped", href: "/shipped" },

@@ -109,9 +109,13 @@ export function MailCreateDialog({
               <div className="grid grid-cols-2 gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/2.5 dark:bg-white/2.5 p-3 text-xs">
                 <span className="text-black/40 dark:text-white/40">Host</span>
                 <code>{connection.host}</code>
-                <span className="text-black/40 dark:text-white/40">Port / security</span>
+                <span className="text-black/40 dark:text-white/40">
+                  Port / security
+                </span>
                 <code>{connection.port} / TLS</code>
-                <span className="text-black/40 dark:text-white/40">Username</span>
+                <span className="text-black/40 dark:text-white/40">
+                  Username
+                </span>
                 <code className="break-all">{connection.username}</code>
               </div>
             ) : null}

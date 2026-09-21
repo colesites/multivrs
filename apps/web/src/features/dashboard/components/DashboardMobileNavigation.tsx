@@ -1,8 +1,7 @@
 "use client";
 
 import { Menu } from "lucide-react";
-import { Suspense, use, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -11,9 +10,9 @@ import {
 } from "@/components/ui/sheet";
 import { SidebarFooter } from "@/features/dashboard/components/SidebarFooter";
 import { SidebarHeader } from "@/features/dashboard/components/SidebarHeader";
+import { SidebarMailNav } from "@/features/dashboard/components/SidebarMailNav";
 import { SidebarNav } from "@/features/dashboard/components/SidebarNav";
 import { SidebarObservabilityNav } from "@/features/dashboard/components/SidebarObservabilityNav";
-import { SidebarMailNav } from "@/features/dashboard/components/SidebarMailNav";
 import { SidebarSearch } from "@/features/dashboard/components/SidebarSearch";
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
 import type { DashboardNotification } from "@/features/dashboard/types/notification.types";
@@ -23,26 +22,33 @@ export function DashboardMobileNavigation({
   user,
   workspaceName,
 }: {
-  notifications: Promise<DashboardNotification[]>;
+  notifications: DashboardNotification[];
   user: { email: string; image?: string | null; name: string };
   workspaceName: string;
 }) {
   const { activeSlug } = useDashboardScope();
   const isEmails = activeSlug === "emails" || activeSlug === "email";
   const isObservability = activeSlug === "observability";
-  
-  const [open, setOpen] = useState(false);
-  const [viewOverride, setViewOverride] = useState<"default" | "emails" | "observability" | null>(null);
 
-  const currentView = viewOverride ?? (isEmails ? "emails" : isObservability ? "observability" : "default");
+  const [open, setOpen] = useState(false);
+  const [viewOverride, setViewOverride] = useState<
+    "default" | "emails" | "observability" | null
+  >(null);
+
+  const currentView =
+    viewOverride ??
+    (isEmails ? "emails" : isObservability ? "observability" : "default");
 
   return (
-    <Sheet open={open} onOpenChange={(val) => {
-      setOpen(val);
-      if (!val) {
-        setTimeout(() => setViewOverride(null), 300);
-      }
-    }}>
+    <Sheet
+      open={open}
+      onOpenChange={(val) => {
+        setOpen(val);
+        if (!val) {
+          setTimeout(() => setViewOverride(null), 300);
+        }
+      }}
+    >
       <SheetTrigger asChild>
         <button
           type="button"
@@ -72,9 +78,15 @@ export function DashboardMobileNavigation({
         <SheetTitle className="sr-only">Dashboard navigation</SheetTitle>
         <SidebarHeader displayName={workspaceName} image={user.image} />
         {currentView === "emails" ? (
-          <SidebarMailNav onLinkClick={() => setOpen(false)} onBack={() => setViewOverride("default")} />
+          <SidebarMailNav
+            onLinkClick={() => setOpen(false)}
+            onBack={() => setViewOverride("default")}
+          />
         ) : currentView === "observability" ? (
-          <SidebarObservabilityNav onLinkClick={() => setOpen(false)} onBack={() => setViewOverride("default")} />
+          <SidebarObservabilityNav
+            onLinkClick={() => setOpen(false)}
+            onBack={() => setViewOverride("default")}
+          />
         ) : (
           <>
             <div className="px-3 pb-1 pt-3">
@@ -95,20 +107,8 @@ export function DashboardMobileNavigation({
             </div>
           </>
         )}
-        <Suspense fallback={<SidebarFooter {...user} notifications={[]} />}>
-          <MobileSidebarFooter notifications={notifications} user={user} />
-        </Suspense>
+        <SidebarFooter {...user} notifications={notifications} />
       </SheetContent>
     </Sheet>
   );
-}
-
-function MobileSidebarFooter({
-  notifications,
-  user,
-}: {
-  notifications: Promise<DashboardNotification[]>;
-  user: { email: string; image?: string | null; name: string };
-}) {
-  return <SidebarFooter {...user} notifications={use(notifications)} />;
 }

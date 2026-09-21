@@ -17,8 +17,16 @@ export function GlitchText({
   speed = 40,
   enableShadows = true,
 }: GlitchTextProps) {
-  const [sliceTop, setSliceTop] = useState({ clip: "polygon(0 20%, 100% 20%, 100% 45%, 0 45%)", x: -4, y: 2 });
-  const [sliceBottom, setSliceBottom] = useState({ clip: "polygon(0 60%, 100% 60%, 100% 85%, 0 85%)", x: 4, y: -2 });
+  const [sliceTop, setSliceTop] = useState({
+    clip: "polygon(0 20%, 100% 20%, 100% 45%, 0 45%)",
+    x: -4,
+    y: 2,
+  });
+  const [sliceBottom, setSliceBottom] = useState({
+    clip: "polygon(0 60%, 100% 60%, 100% 85%, 0 85%)",
+    x: 4,
+    y: -2,
+  });
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
@@ -53,6 +61,7 @@ export function GlitchText({
   }, [speed, isHovered]);
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Visual glitch hover trigger
     <div
       className="relative inline-flex flex-col items-center select-none cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}

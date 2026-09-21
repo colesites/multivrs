@@ -1,14 +1,14 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import { useTheme } from "next-themes";
 import Link from "next/link";
-import { authClient } from "@/lib/auth-client";
+import { useTheme } from "next-themes";
+import { useEffect, useRef, useState } from "react";
 import { DeployVisual } from "@/components/marketing/services/DeployVisual";
 import { DomainVisual } from "@/components/marketing/services/DomainVisual";
 import { MailboxVisual } from "@/components/marketing/services/MailboxVisual";
-import { ServerlessVisual } from "@/components/marketing/services/ServerlessVisual";
 import { SecurityVisual } from "@/components/marketing/services/SecurityVisual";
+import { ServerlessVisual } from "@/components/marketing/services/ServerlessVisual";
+import { authClient } from "@/lib/auth-client";
 
 export type ServiceItem = {
   id: string;
@@ -24,8 +24,8 @@ const SERVICES: ServiceItem[] = [
   {
     id: "deploy-apps",
     index: "01",
-    tabLabel: "DEPLOY APPS",
-    title: "High-performance cloud deployment engineered for modern teams",
+    tabLabel: "DEPLOY APPS & AGENTS",
+    title: "High-performance cloud deployment for apps and agents",
     desc: "Push to git and ship worldwide in seconds. Every commit gets an immutable preview, and production rolls out to the edge automatically with zero configuration.",
     bullets: [
       "Global edge CDN",
@@ -33,7 +33,7 @@ const SERVICES: ServiceItem[] = [
       "Instant zero-downtime rollouts",
       "Native preview environments",
     ],
-    buttonText: "DEPLOY APPS",
+    buttonText: "DEPLOY APPS & AGENTS",
   },
   {
     id: "custom-domains",
@@ -52,16 +52,16 @@ const SERVICES: ServiceItem[] = [
   {
     id: "transactional-mailbox",
     index: "03",
-    tabLabel: "TRANSACTIONAL MAILBOX",
-    title: "Dedicated enterprise transactional email infrastructure",
-    desc: "Send and receive authenticated transactional emails directly from your domain with dedicated IP reputation, DKIM, SPF, and DMARC verification.",
+    tabLabel: "MAILBOX",
+    title: "One mailbox for transactional and marketing email",
+    desc: "Send transactional and marketing email straight from your domain, and receive every reply as a real thread. Authenticated with SPF, DKIM, and DMARC.",
     bullets: [
-      "Built-in transactional inbox & API",
+      "Transactional send API & SMTP relay",
+      "Broadcasts, templates & audiences",
       "Automatic SPF, DKIM & DMARC setup",
-      "High deliverability routing",
-      "Real-time telemetry & webhook logs",
+      "Inbound threads & webhook logs",
     ],
-    buttonText: "MAIL ENGINE",
+    buttonText: "EXPLORE MAILBOX",
   },
   {
     id: "serverless-infra",
@@ -93,7 +93,13 @@ const SERVICES: ServiceItem[] = [
   },
 ];
 
-function DotMatrixCanvas({ isLight = false, className = "" }: { isLight?: boolean; className?: string }) {
+function DotMatrixCanvas({
+  isLight = false,
+  className = "",
+}: {
+  isLight?: boolean;
+  className?: string;
+}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -177,7 +183,9 @@ function DotMatrixCanvas({ isLight = false, className = "" }: { isLight?: boolea
       const spring = 0.08;
       const friction = 0.84;
 
-      ctx.fillStyle = isLight ? "rgba(0, 0, 0, 0.45)" : "rgba(255, 255, 255, 0.65)";
+      ctx.fillStyle = isLight
+        ? "rgba(0, 0, 0, 0.45)"
+        : "rgba(255, 255, 255, 0.65)";
 
       for (let i = 0; i < dots.length; i++) {
         const dot = dots[i]!;
@@ -216,7 +224,10 @@ function DotMatrixCanvas({ isLight = false, className = "" }: { isLight?: boolea
     return () => {
       cancelAnimationFrame(animId);
       parent.removeEventListener("mousemove", handleMouseMove as EventListener);
-      parent.removeEventListener("mouseleave", handleMouseLeave as EventListener);
+      parent.removeEventListener(
+        "mouseleave",
+        handleMouseLeave as EventListener,
+      );
       window.removeEventListener("resize", buildGrid);
     };
   }, [isLight]);
@@ -225,12 +236,15 @@ function DotMatrixCanvas({ isLight = false, className = "" }: { isLight?: boolea
     <canvas
       ref={canvasRef}
       className={`block h-full w-full pointer-events-none select-none ${className}`}
-      aria-hidden="true"
     />
   );
 }
 
-function getServiceHref(serviceId: string, user: unknown): string {
+function getServiceHref(
+  serviceId: string,
+  user: unknown,
+  username?: string,
+): string {
   if (serviceId === "deploy-apps") {
     return user ? "/deploy" : "/signup";
   }
@@ -238,7 +252,7 @@ function getServiceHref(serviceId: string, user: unknown): string {
     return user ? "/domains" : "/domains/search";
   }
   if (serviceId === "transactional-mailbox") {
-    return user ? "/mail" : "/emails";
+    return username ? `/${username}/~/email` : "/emails";
   }
   if (serviceId === "serverless-infra") {
     return "/compute";
@@ -252,6 +266,7 @@ function getServiceHref(serviceId: string, user: unknown): string {
 export function Services() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
+  const username = session?.user?.username ?? undefined;
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -342,7 +357,8 @@ export function Services() {
     setActiveIndex(index);
     const targetEl = mobileItemRefs.current[index];
     if (targetEl) {
-      const topOffset = targetEl.getBoundingClientRect().top + window.scrollY - 110;
+      const topOffset =
+        targetEl.getBoundingClientRect().top + window.scrollY - 110;
       window.scrollTo({ top: topOffset, behavior: "instant" });
     }
   };
@@ -350,7 +366,10 @@ export function Services() {
   const activeService = SERVICES[activeIndex] ?? SERVICES[0]!;
 
   return (
-    <section id="services" className="relative w-full bg-background text-foreground py-20 lg:py-32 overflow-x-clip transition-colors duration-500">
+    <section
+      id="services"
+      className="relative w-full bg-background text-foreground py-20 lg:py-32 overflow-x-clip transition-colors duration-500"
+    >
       <div className="w-full max-w-[1920px] mx-auto px-6 sm:px-12 lg:px-20 xl:px-28">
         <div className="mb-14 lg:mb-28">
           <h2 className="font-sans text-4xl sm:text-6xl lg:text-7xl xl:text-[5.5rem] font-medium tracking-tight text-foreground leading-[1.04] text-left">
@@ -372,7 +391,7 @@ export function Services() {
               ref={mobileTabsContainerRef}
               data-lenis-prevent="true"
               data-lenis-prevent-touch="true"
-              className="flex items-center gap-8 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden touch-pan-x scroll-smooth"
+              className="flex items-center gap-8 overflow-x-auto scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden touch-pan-x scroll-smooth"
               style={{
                 touchAction: "pan-x",
                 overscrollBehavior: "contain",
@@ -443,7 +462,7 @@ export function Services() {
 
                 <div className="mb-6">
                   <Link
-                    href={getServiceHref(service.id, user)}
+                    href={getServiceHref(service.id, user, username)}
                     className="inline-flex w-fit items-center rounded-full border border-foreground px-4 py-1.5 font-mono text-xs tracking-widest text-foreground uppercase hover:bg-foreground hover:text-background transition-colors"
                   >
                     {service.buttonText}
@@ -459,7 +478,6 @@ export function Services() {
         </div>
 
         <div className="hidden lg:grid grid-cols-12 gap-10 items-start relative">
-          
           <div className="col-span-3 sticky top-28 flex flex-col justify-start h-[calc(100vh-9rem)]">
             <nav
               className="relative z-10 flex flex-col space-y-7 shrink-0 bg-background pb-8 transition-colors"
@@ -497,7 +515,7 @@ export function Services() {
               })}
             </nav>
 
-            <div className="flex-1 w-full min-h-[200px] overflow-hidden relative">
+            <div className="flex-1 w-full min-h-50 overflow-hidden relative">
               <DotMatrixCanvas isLight={isLight} className="h-full w-full" />
             </div>
           </div>
@@ -521,7 +539,10 @@ export function Services() {
 
                 <ul className="space-y-2.5 mb-8 text-xs sm:text-sm text-foreground/90 font-normal">
                   {service.bullets.map((bullet) => (
-                    <li key={bullet} className="flex items-center gap-2.5 text-foreground">
+                    <li
+                      key={bullet}
+                      className="flex items-center gap-2.5 text-foreground"
+                    >
                       <span className="text-foreground">•</span>
                       <span>{bullet}</span>
                     </li>
@@ -529,7 +550,7 @@ export function Services() {
                 </ul>
 
                 <Link
-                  href={getServiceHref(service.id, user)}
+                  href={getServiceHref(service.id, user, username)}
                   className="inline-flex w-fit items-center rounded-full border border-foreground px-4 py-1 font-mono text-[11px] tracking-widest text-foreground uppercase hover:bg-foreground hover:text-background transition-colors"
                 >
                   {service.buttonText}
@@ -545,7 +566,6 @@ export function Services() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>

@@ -15,6 +15,7 @@ const SECTION_DESCRIPTIONS: Record<string, string> = {
   workflows: "Durable steps, event runs and UTC schedules.",
   domains: "Custom domains, DNS and certificates.",
   emails: "Transactional delivery, templates and logs.",
+  templates: "Create and sell templates in the Multivrs marketplace.",
   settings: "Account, members, billing and developer settings.",
 };
 

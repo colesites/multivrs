@@ -6,15 +6,18 @@ import {
 } from "@/lib/schemas/mail-provider.schemas";
 import { logError, logInfo } from "@/lib/services/logger.service";
 import { receiveMail } from "@/lib/services/mail-message.service";
-import { readInboundEmailFromS3 } from "@/lib/services/ses-inbound-reader.service";
 import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.service";
+import { readInboundEmailFromS3 } from "@/lib/services/ses-inbound-reader.service";
 
 export async function POST(request: Request) {
   let bodyText: string;
   try {
     bodyText = await request.text();
-  } catch (error) {
-    return Response.json({ error: "Failed to read request body" }, { status: 400 });
+  } catch {
+    return Response.json(
+      { error: "Failed to read request body" },
+      { status: 400 },
+    );
   }
 
   let bodyJson: unknown;
@@ -31,16 +34,29 @@ export async function POST(request: Request) {
 
     // Handle SNS Subscription Confirmation automatically
     if (snsData.Type === "SubscriptionConfirmation" && snsData.SubscribeURL) {
-      logInfo("ses.webhook.confirming_subscription", snsData.TopicArn ? { topicArn: snsData.TopicArn } : undefined);
+      logInfo(
+        "ses.webhook.confirming_subscription",
+        snsData.TopicArn ? { topicArn: snsData.TopicArn } : undefined,
+      );
       try {
         const response = await fetch(snsData.SubscribeURL);
         if (response.ok) {
-          logInfo("ses.webhook.subscription_confirmed", snsData.TopicArn ? { topicArn: snsData.TopicArn } : undefined);
+          logInfo(
+            "ses.webhook.subscription_confirmed",
+            snsData.TopicArn ? { topicArn: snsData.TopicArn } : undefined,
+          );
           return Response.json({ status: "subscribed" }, { status: 200 });
         }
       } catch (error) {
-        logError("ses.webhook.subscription_failed", error, snsData.TopicArn ? { topicArn: snsData.TopicArn } : undefined);
-        return Response.json({ error: "Subscription confirmation failed" }, { status: 500 });
+        logError(
+          "ses.webhook.subscription_failed",
+          error,
+          snsData.TopicArn ? { topicArn: snsData.TopicArn } : undefined,
+        );
+        return Response.json(
+          { error: "Subscription confirmation failed" },
+          { status: 500 },
+        );
       }
     }
 
@@ -49,12 +65,18 @@ export async function POST(request: Request) {
         const parsedMessage = JSON.parse(snsData.Message);
         return handleSesEvent(parsedMessage, snsData.MessageId);
       } catch {
-        return Response.json({ error: "Failed to parse SNS message JSON" }, { status: 400 });
+        return Response.json(
+          { error: "Failed to parse SNS message JSON" },
+          { status: 400 },
+        );
       }
     }
 
     if (snsData.Type === "UnsubscribeConfirmation") {
-      logInfo("ses.webhook.unsubscribed", snsData.TopicArn ? { topicArn: snsData.TopicArn } : undefined);
+      logInfo(
+        "ses.webhook.unsubscribed",
+        snsData.TopicArn ? { topicArn: snsData.TopicArn } : undefined,
+      );
       return Response.json({ status: "unsubscribed" }, { status: 200 });
     }
   }
@@ -83,9 +105,7 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
   // Handle Inbound Received emails
   if (isInbound) {
     let from =
-      sesEvent.mail.source ||
-      sesEvent.mail.commonHeaders?.from?.[0] ||
-      "";
+      sesEvent.mail.source || sesEvent.mail.commonHeaders?.from?.[0] || "";
     let fromName: string | undefined;
     let recipient =
       sesEvent.mail.destination?.[0] ||
@@ -164,8 +184,6 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
         attachments: attachmentsList,
       });
 
-
-
       return Response.json({ received: true, ...result }, { status: 200 });
     } catch (error) {
       logError("ses.webhook.receive_mail_failed", error, {
@@ -174,7 +192,12 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
         from,
       });
       return Response.json(
-        { error: error instanceof Error ? error.message : "Failed to store received mail" },
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to store received mail",
+        },
         { status: 500 },
       );
     }
@@ -185,7 +208,6 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
     where: { providerMessageId: messageId },
     select: { id: true, userId: true },
   });
-
 
   if (!message) {
     logInfo("ses.webhook.message_not_found", {
@@ -200,13 +222,11 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
     : new Date();
   const eventType = sesEvent.eventType || "Delivery";
   const providerEventId =
-    snsMessageId ||
-    `${messageId}:${eventType}:${occurredAt.getTime()}`;
+    snsMessageId || `${messageId}:${eventType}:${occurredAt.getTime()}`;
 
   // Map to internal event type and message status
   let internalEventType = `email.${eventType.toLowerCase()}`;
   let messageStatus: string | undefined;
-
 
   if (eventType === "Delivery") {
     internalEventType = "email.delivered";
@@ -242,7 +262,6 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
       },
       update: {},
     });
-
 
     // 2. Update MailMessage status if applicable
     if (messageStatus) {
@@ -310,5 +329,8 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
 
   await enqueueMailWebhooks(savedEvent.id);
 
-  return Response.json({ accepted: true, matched: true, eventId: savedEvent.id }, { status: 200 });
+  return Response.json(
+    { accepted: true, matched: true, eventId: savedEvent.id },
+    { status: 200 },
+  );
 }

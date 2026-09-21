@@ -67,11 +67,15 @@ export function ApiTokensPage({
   }
 
   return (
-    <div className={embedded ? "" : "mx-auto w-full max-w-4xl space-y-7 px-5 py-8"}>
+    <div
+      className={embedded ? "" : "mx-auto w-full max-w-4xl space-y-7 px-5 py-8"}
+    >
       {!embedded ? (
         <header className="flex items-start justify-between gap-6">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Developer tokens</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Developer tokens
+            </h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Manage CLI access to your account.
             </p>

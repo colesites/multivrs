@@ -74,6 +74,7 @@ export const PRODUCT_COLUMNS: NavColumn[] = [
       },
       { title: "Multivrs Agent", href: "/agent" },
       { title: "Multivrs Plugin", href: "/plugin" },
+      { title: "Templates", href: "/templates" },
       { title: "Domains", href: "/domains" },
       { title: "Emails", href: "/emails" },
     ],

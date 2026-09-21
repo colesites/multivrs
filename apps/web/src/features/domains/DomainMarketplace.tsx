@@ -1,10 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useDeferredValue, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { DomainCartSheet } from "./DomainCartSheet";
 import { useDomainCommerce } from "./DomainCommerceProvider";
 import {
   type AvailabilityFilter,
@@ -12,6 +11,7 @@ import {
   type DomainSort,
 } from "./DomainFilters";
 import { DomainResult } from "./DomainResult";
+import { DomainResultsSkeleton } from "./DomainResultsSkeleton";
 import { DomainSearchField } from "./DomainSearchField";
 import type { DomainSearchResult } from "./domain-marketplace";
 import {
@@ -20,22 +20,16 @@ import {
   relevantDomainExtensions,
 } from "./domain-marketplace";
 import { RotatingDomainWord } from "./RotatingDomainWord";
-import { SavedDomainsSheet } from "./SavedDomainsSheet";
 
-const Beams = dynamic(() => import("@/components/Beams"), { ssr: false });
 type SearchState = "idle" | "loading" | "ready" | "not-configured" | "error";
 
-export function DomainMarketplace({
-  query,
-  teamSlug,
-  projectSlug,
-  source,
-}: {
-  query: string;
-  teamSlug?: string;
-  projectSlug?: string;
-  source?: string;
-}) {
+export function DomainMarketplace() {
+  const searchParams = useSearchParams();
+  const { username } = useDomainCommerce();
+  const query = searchParams.get("q") ?? "";
+  const teamSlug = searchParams.get("teamSlug") ?? username ?? undefined;
+  const projectSlug = searchParams.get("projectSlug") ?? undefined;
+  const source = searchParams.get("source") ?? undefined;
   const [editedValue, setEditedValue] = useState<string>();
   const [tld, setTld] = useState("");
   const [availability, setAvailability] = useState<AvailabilityFilter>("all");
@@ -93,83 +87,67 @@ export function DomainMarketplace({
   );
 
   return (
-    <main
-      id="dark-marketing-header"
-      className="relative min-h-screen overflow-hidden bg-black pt-16 text-white"
-    >
-      <div className="pointer-events-none absolute inset-0 opacity-30">
-        <Beams
-          beamNumber={14}
-          beamWidth={1.8}
-          lightColor="#A855F7"
-          speed={0.7}
-          noiseIntensity={1.2}
-          rotation={18}
-        />
-      </div>
-      <div className="relative z-10 mx-auto max-w-6xl px-5 pb-24 pt-6">
-        <section
-          className={
-            searching
-              ? "mx-auto max-w-3xl pt-5"
-              : "mx-auto flex min-h-[72vh] max-w-2xl flex-col items-center justify-center text-center"
-          }
-        >
-          {!searching ? (
-            <>
-              <h1 className="font-clash text-[clamp(2.6rem,7vw,5.4rem)] font-semibold leading-[0.95]">
-                Find a domain for your
-                <RotatingDomainWord />
-              </h1>
-              <p className="mb-7 mt-6 text-sm text-white/45">
-                Fast. At-cost. Private.
-              </p>
-            </>
-          ) : null}
-          <DomainSearchField value={value} onChange={updateValue} />
-        </section>
-
-        {searching ? (
-          <section className="pt-8">
-            {state === "not-configured" ? (
-              <Status message="Domain search is not configured." />
-            ) : null}
-            {state === "error" ? (
-              <Status
-                message={
-                  message || "Domain availability is temporarily unavailable."
-                }
-              />
-            ) : null}
-            {state === "ready" && results.length ? (
-              <Results
-                results={visibleResults}
-                catalog={catalog}
-                total={total}
-                tld={tld}
-                onTldChange={(next) => {
-                  setTld(next);
-                  setLimit(60);
-                }}
-                availability={availability}
-                onAvailabilityChange={setAvailability}
-                sort={sort}
-                onSortChange={setSort}
-                canLoadMore={!tld && limit < total && limit < 180}
-                onLoadMore={() =>
-                  setLimit((current) => Math.min(180, current + 60))
-                }
-              />
-            ) : null}
-            {state === "ready" && message ? (
-              <p className="mt-4 text-xs text-amber-200/70">{message}</p>
-            ) : null}
-          </section>
+    <>
+      <section
+        className={
+          searching
+            ? "mx-auto max-w-3xl pt-5"
+            : "mx-auto flex min-h-[72vh] max-w-2xl flex-col items-center justify-center text-center"
+        }
+      >
+        {!searching ? (
+          <>
+            <h1 className="font-clash text-[clamp(2.6rem,7vw,5.4rem)] font-semibold leading-[0.95]">
+              Find a domain for your
+              <RotatingDomainWord />
+            </h1>
+            <p className="mb-7 mt-6 text-sm text-white/45">
+              Fast. At-cost. Private.
+            </p>
+          </>
         ) : null}
-      </div>
-      <DomainCartSheet />
-      <SavedDomainsSheet />
-    </main>
+        <DomainSearchField value={value} onChange={updateValue} />
+      </section>
+
+      {searching ? (
+        <section className="pt-8">
+          {state === "loading" ? <DomainResultsSkeleton /> : null}
+          {state === "not-configured" ? (
+            <Status message="Domain search is not configured." />
+          ) : null}
+          {state === "error" ? (
+            <Status
+              message={
+                message || "Domain availability is temporarily unavailable."
+              }
+            />
+          ) : null}
+          {state === "ready" && results.length ? (
+            <Results
+              results={visibleResults}
+              catalog={catalog}
+              total={total}
+              tld={tld}
+              onTldChange={(next) => {
+                setTld(next);
+                setLimit(60);
+              }}
+              availability={availability}
+              onAvailabilityChange={setAvailability}
+              sort={sort}
+              onSortChange={setSort}
+              canLoadMore={!tld && limit < total && limit < 180}
+              onLoadMore={() =>
+                setLimit((current) => Math.min(180, current + 60))
+              }
+            />
+          ) : null}
+          {state === "ready" && message ? (
+            <p className="mt-4 text-xs text-amber-200/70">{message}</p>
+          ) : null}
+        </section>
+      ) : null}
+    </>
   );
 }
 

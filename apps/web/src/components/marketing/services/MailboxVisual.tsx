@@ -1,33 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import {
-  Inbox,
-  Send,
-  FileText,
-  Clock,
-  ShieldAlert,
-  Trash2,
-  Mail,
-  Users,
-  Settings,
   Activity,
   ArrowUpRight,
-  Radio,
-  Share2,
-  Lock,
-  Layers,
-  Search,
-  Plus,
-  Star,
-  Archive,
-  MousePointerClick,
   CheckCircle2,
+  FileText,
+  Inbox,
+  MousePointerClick,
+  Plus,
+  Radio,
+  Search,
+  Send,
 } from "lucide-react";
+import { useState } from "react";
 
 export function MailboxVisual() {
   const [activeTab, setActiveTab] = useState("Overview");
-  const [searchQuery, setSearchQuery] = useState("");
 
   const sidebarNav = [
     { name: "Overview", icon: Activity, active: true },
@@ -64,7 +52,9 @@ export function MailboxVisual() {
         <div className="hidden sm:flex flex-col w-36 shrink-0 border-r border-zinc-200 dark:border-white/10 pr-2.5">
           {/* User / Back header */}
           <div className="flex items-center gap-1.5 px-1 pb-2 mb-1 border-b border-zinc-200 dark:border-white/10">
-            <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-sans">← Email</span>
+            <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-sans">
+              ← Email
+            </span>
           </div>
 
           {/* Compose Button */}
@@ -103,9 +93,13 @@ export function MailboxVisual() {
           {/* Top Search & Actions Bar */}
           <div className="flex items-center justify-between gap-2 border-b border-zinc-200 dark:border-white/10 pb-2">
             <div className="flex items-center gap-1 text-[10px] font-mono text-zinc-500 dark:text-zinc-400">
-              <span className="text-zinc-600 dark:text-zinc-300">All Projects</span>
+              <span className="text-zinc-600 dark:text-zinc-300">
+                All Projects
+              </span>
               <span>›</span>
-              <span className="text-zinc-950 dark:text-white font-semibold">Emails</span>
+              <span className="text-zinc-950 dark:text-white font-semibold">
+                Emails
+              </span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -134,10 +128,12 @@ export function MailboxVisual() {
                 Communications Control Plane
               </p>
               <h5 className="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white tracking-tight mb-1">
-                One mailbox for product mail, support conversations, and campaigns.
+                One mailbox for product mail, support conversations, and
+                campaigns.
               </h5>
               <p className="text-[9px] text-zinc-600 dark:text-zinc-400 font-sans leading-tight">
-                Incoming and outgoing mail share a real thread model with authenticated DKIM & SPF delivery.
+                Incoming and outgoing mail share a real thread model with
+                authenticated DKIM & SPF delivery.
               </p>
             </div>
           </div>
@@ -148,32 +144,48 @@ export function MailboxVisual() {
               <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400 mb-1">
                 <Send className="size-3" />
               </div>
-              <p className="font-mono text-sm font-bold text-zinc-950 dark:text-white">142,850</p>
-              <p className="font-sans text-[8.5px] text-zinc-500 dark:text-zinc-400">Sent this month</p>
+              <p className="font-mono text-sm font-bold text-zinc-950 dark:text-white">
+                142,850
+              </p>
+              <p className="font-sans text-[8.5px] text-zinc-500 dark:text-zinc-400">
+                Sent this month
+              </p>
             </div>
 
             <div className="rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950/60 p-2">
               <div className="flex items-center gap-1 text-cyan-600 dark:text-cyan-400 mb-1">
                 <Inbox className="size-3" />
               </div>
-              <p className="font-mono text-sm font-bold text-zinc-950 dark:text-white">28,490</p>
-              <p className="font-sans text-[8.5px] text-zinc-500 dark:text-zinc-400">Received</p>
+              <p className="font-mono text-sm font-bold text-zinc-950 dark:text-white">
+                28,490
+              </p>
+              <p className="font-sans text-[8.5px] text-zinc-500 dark:text-zinc-400">
+                Received
+              </p>
             </div>
 
             <div className="rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950/60 p-2">
               <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 mb-1">
                 <CheckCircle2 className="size-3" />
               </div>
-              <p className="font-mono text-sm font-bold text-zinc-950 dark:text-white">99.98%</p>
-              <p className="font-sans text-[8.5px] text-zinc-500 dark:text-zinc-400">Delivery rate</p>
+              <p className="font-mono text-sm font-bold text-zinc-950 dark:text-white">
+                99.98%
+              </p>
+              <p className="font-sans text-[8.5px] text-zinc-500 dark:text-zinc-400">
+                Delivery rate
+              </p>
             </div>
 
             <div className="rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950/60 p-2">
               <div className="flex items-center gap-1 text-pink-600 dark:text-pink-400 mb-1">
                 <MousePointerClick className="size-3" />
               </div>
-              <p className="font-mono text-sm font-bold text-zinc-950 dark:text-white">64.2%</p>
-              <p className="font-sans text-[8.5px] text-zinc-500 dark:text-zinc-400">Open rate</p>
+              <p className="font-mono text-sm font-bold text-zinc-950 dark:text-white">
+                64.2%
+              </p>
+              <p className="font-sans text-[8.5px] text-zinc-500 dark:text-zinc-400">
+                Open rate
+              </p>
             </div>
           </div>
 
@@ -191,23 +203,39 @@ export function MailboxVisual() {
             <div className="space-y-1">
               <div className="flex items-center justify-between rounded bg-zinc-100 dark:bg-white/[0.04] p-1.5 text-[9px]">
                 <div className="flex items-center gap-2">
-                  <div className="size-4.5 rounded bg-zinc-200 dark:bg-zinc-800 grid place-items-center font-mono text-[8px] text-zinc-900 dark:text-white">LN</div>
+                  <div className="size-4.5 rounded bg-zinc-200 dark:bg-zinc-800 grid place-items-center font-mono text-[8px] text-zinc-900 dark:text-white">
+                    LN
+                  </div>
                   <div>
-                    <p className="font-semibold text-zinc-950 dark:text-white font-sans">Linear Security</p>
-                    <p className="text-[8px] text-zinc-500 dark:text-zinc-400 truncate">New personal API key generated</p>
+                    <p className="font-semibold text-zinc-950 dark:text-white font-sans">
+                      Linear Security
+                    </p>
+                    <p className="text-[8px] text-zinc-500 dark:text-zinc-400 truncate">
+                      New personal API key generated
+                    </p>
                   </div>
                 </div>
-                <span className="font-mono text-[7.5px] text-zinc-400 dark:text-zinc-500">2m ago</span>
+                <span className="font-mono text-[7.5px] text-zinc-400 dark:text-zinc-500">
+                  2m ago
+                </span>
               </div>
               <div className="flex items-center justify-between rounded bg-zinc-100 dark:bg-white/[0.04] p-1.5 text-[9px]">
                 <div className="flex items-center gap-2">
-                  <div className="size-4.5 rounded bg-zinc-200 dark:bg-zinc-800 grid place-items-center font-mono text-[8px] text-zinc-900 dark:text-white">GH</div>
+                  <div className="size-4.5 rounded bg-zinc-200 dark:bg-zinc-800 grid place-items-center font-mono text-[8px] text-zinc-900 dark:text-white">
+                    GH
+                  </div>
                   <div>
-                    <p className="font-semibold text-zinc-950 dark:text-white font-sans">GitHub Deploy</p>
-                    <p className="text-[8px] text-zinc-500 dark:text-zinc-400 truncate">[multivrs/core] Release v2.4.0 success</p>
+                    <p className="font-semibold text-zinc-950 dark:text-white font-sans">
+                      GitHub Deploy
+                    </p>
+                    <p className="text-[8px] text-zinc-500 dark:text-zinc-400 truncate">
+                      [multivrs/core] Release v2.4.0 success
+                    </p>
                   </div>
                 </div>
-                <span className="font-mono text-[7.5px] text-zinc-400 dark:text-zinc-500">14m ago</span>
+                <span className="font-mono text-[7.5px] text-zinc-400 dark:text-zinc-500">
+                  14m ago
+                </span>
               </div>
             </div>
           </div>

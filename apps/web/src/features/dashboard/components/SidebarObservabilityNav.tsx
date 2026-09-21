@@ -58,10 +58,10 @@ const OBSERVABILITY_NAVIGATION = [
   { label: "Queues", view: "queues", icon: Send },
 ] as const;
 
-export function SidebarObservabilityNav({ 
+export function SidebarObservabilityNav({
   onLinkClick,
   onBack,
-}: { 
+}: {
   onLinkClick?: () => void;
   onBack?: () => void;
 } = {}) {
@@ -112,7 +112,6 @@ export function SidebarObservabilityNav({
               );
             }
 
-            const Icon = item.icon;
             const isActive = activeView === item.view;
             return (
               <li key={item.view}>

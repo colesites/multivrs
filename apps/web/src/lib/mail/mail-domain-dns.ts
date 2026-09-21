@@ -39,4 +39,3 @@ export function isAuthenticatedSendingDomain(
       domain.providerDomainId,
   );
 }
-

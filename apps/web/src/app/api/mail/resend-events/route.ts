@@ -7,10 +7,9 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { data?: { id?: string } };
     if (body?.data?.id) {
-      return Response.json(
-        await refreshMailDomainFromProvider(body.data.id),
-        { status: 200 },
-      );
+      return Response.json(await refreshMailDomainFromProvider(body.data.id), {
+        status: 200,
+      });
     }
     return Response.json({ matched: false }, { status: 200 });
   } catch {

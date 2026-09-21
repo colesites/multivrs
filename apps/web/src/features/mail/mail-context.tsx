@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   createContext,
   type Dispatch,
@@ -10,7 +11,6 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
 import type {
   MailDashboardData,
   MailMessageDetail,

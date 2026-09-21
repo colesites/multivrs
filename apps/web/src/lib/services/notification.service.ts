@@ -1,5 +1,6 @@
 import "server-only";
 import { NotFoundError } from "@multivrs/error-utils";
+import { cache } from "react";
 import type {
   DashboardNotification,
   NotificationType,
@@ -39,7 +40,7 @@ export async function createNotification(input: {
   await prisma.notification.create({ data: input });
 }
 
-export async function listNotifications(
+export const listNotifications = cache(async function listNotifications(
   userId: string,
 ): Promise<DashboardNotification[]> {
   const rows = await prisma.notification.findMany({
@@ -48,7 +49,7 @@ export async function listNotifications(
     where: { archivedAt: null, userId },
   });
   return rows.map(mapNotification);
-}
+});
 
 export async function mutateNotification(
   userId: string,

@@ -189,8 +189,6 @@ function mapDkimStatus(status?: string): DomainVerificationStatus {
     case "FAILED":
     case "TEMPORARY_FAILURE":
       return "failed";
-    case "PENDING":
-    case "NOT_STARTED":
     default:
       return "pending";
   }

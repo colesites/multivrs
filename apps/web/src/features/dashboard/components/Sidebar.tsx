@@ -1,6 +1,5 @@
 "use client";
 
-import { Suspense, use } from "react";
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
 import type { DashboardNotification } from "@/features/dashboard/types/notification.types";
 import { SidebarFooter } from "./SidebarFooter";
@@ -14,7 +13,7 @@ export interface SidebarProps {
   user: { name: string; email: string; image?: string | null };
   workspaceName?: string;
   plan?: string;
-  notifications: Promise<DashboardNotification[]>;
+  notifications: DashboardNotification[];
 }
 
 export function Sidebar({
@@ -48,25 +47,7 @@ export function Sidebar({
           </div>
         </>
       )}
-      <Suspense
-        fallback={
-          <SidebarFooter
-            name={user.name}
-            email={user.email}
-            image={user.image}
-            notifications={[]}
-          />
-        }
-      >
-        <SidebarFooterData notifications={notifications} user={user} />
-      </Suspense>
+      <SidebarFooter {...user} notifications={notifications} />
     </aside>
   );
-}
-
-function SidebarFooterData({
-  notifications,
-  user,
-}: Pick<SidebarProps, "notifications" | "user">) {
-  return <SidebarFooter {...user} notifications={use(notifications)} />;
 }

@@ -28,7 +28,7 @@ export function useHeroAnimations() {
           reduceMotion: "(prefers-reduced-motion: reduce)",
         },
         (context) => {
-          const { reduceMotion } = context.conditions as {
+          const { isDesktop, reduceMotion } = context.conditions as {
             isDesktop: boolean;
             isMobile: boolean;
             reduceMotion: boolean;
@@ -70,7 +70,10 @@ export function useHeroAnimations() {
           /* Right column list items stagger in */
           const rightItems =
             rightColRef.current?.querySelectorAll(".hero-feature-item");
-          if (rightItems?.length) {
+          // The WordFlip item exists in the DOM at every breakpoint but is
+          // hidden on desktop. Animate the column there; on mobile, animate
+          // the visible WordFlip item itself.
+          if (rightItems?.length && !isDesktop) {
             tl.fromTo(
               rightItems,
               { autoAlpha: 0, x: 20 },

@@ -9,9 +9,14 @@ interface AccountChromeProps {
   workspaceName: string;
 }
 
-export function AccountChrome({ user, workspaceName }: AccountChromeProps) {
-  const projects = loadProjectOptions(workspaceName, user.id);
-  const notifications = listNotifications(user.id);
+export async function AccountChrome({
+  user,
+  workspaceName,
+}: AccountChromeProps) {
+  const [projects, notifications] = await Promise.all([
+    loadProjectOptions(workspaceName, user.id),
+    listNotifications(user.id),
+  ]);
   const publicUser = { name: user.name, email: user.email, image: user.image };
 
   return (

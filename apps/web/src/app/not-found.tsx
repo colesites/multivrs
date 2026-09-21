@@ -1,8 +1,8 @@
+import { ArrowLeft, BookOpen, Compass, Radio } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Compass, Radio } from "lucide-react";
-import { GridDistortion } from "@/components/effects/GridDistortion";
 import { GlitchText } from "@/components/effects/GlitchText";
+import { GridDistortion } from "@/components/effects/GridDistortion";
 import SpecularButton from "@/components/SpecularButton";
 
 export const metadata: Metadata = {
@@ -53,7 +53,8 @@ export default function NotFound() {
 
         {/* Descriptive Subtext */}
         <p className="mt-6 max-w-lg font-sans text-sm sm:text-base leading-relaxed text-zinc-400">
-          The universe coordinate or edge route you requested does not exist or has been relocated.
+          The universe coordinate or edge route you requested does not exist or
+          has been relocated.
         </p>
 
         {/* Action Buttons */}

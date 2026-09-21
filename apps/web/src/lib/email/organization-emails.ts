@@ -26,7 +26,6 @@ export async function sendOrganizationInvitation(input: {
   });
 }
 
-
 function escapeHtml(value: string): string {
   return value.replace(/[&<>'"]/g, (character) => {
     if (character === "&") return "&amp;";

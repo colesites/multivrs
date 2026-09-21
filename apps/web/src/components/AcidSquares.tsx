@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import { Renderer, Program, Mesh, Triangle, RenderTarget } from 'ogl';
+import { Mesh, Program, Renderer, RenderTarget, Triangle } from "ogl";
+import type React from "react";
+import { useEffect, useRef } from "react";
 
-export type AcidSquaresDetail = 'low' | 'medium' | 'high';
+export type AcidSquaresDetail = "low" | "medium" | "high";
 
 export interface AcidSquaresProps {
   color1?: string;
@@ -32,12 +33,21 @@ export interface AcidSquaresProps {
 const hexToRgb = (hex?: string): [number, number, number] => {
   if (!hex) return [1, 1, 1];
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result || !result[1] || !result[2] || !result[3]) return [1, 1, 1];
-  return [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255];
+  if (!result?.[1] || !result[2] || !result[3]) return [1, 1, 1];
+  return [
+    parseInt(result[1], 16) / 255,
+    parseInt(result[2], 16) / 255,
+    parseInt(result[3], 16) / 255,
+  ];
 };
 
-const DETAIL_STEPS: Record<AcidSquaresDetail, number> = { low: 20, medium: 32, high: 48 };
-const stepsFor = (detail: AcidSquaresDetail): number => DETAIL_STEPS[detail] || DETAIL_STEPS.medium;
+const DETAIL_STEPS: Record<AcidSquaresDetail, number> = {
+  low: 20,
+  medium: 32,
+  high: 48,
+};
+const stepsFor = (detail: AcidSquaresDetail): number =>
+  DETAIL_STEPS[detail] || DETAIL_STEPS.medium;
 
 const vertex = `#version 300 es
 in vec2 position;
@@ -168,11 +178,22 @@ type AcidSquaresCtx = {
 };
 const ctxMap = new WeakMap<HTMLDivElement, AcidSquaresCtx>();
 
+/** OGL keeps uniforms in an untyped bag; these narrow it at the point of use. */
+type UniformBag = Record<string, { value: unknown } | undefined>;
+
+function vectorUniform(
+  uniform: { value: unknown } | undefined,
+): number[] | undefined {
+  return Array.isArray(uniform?.value)
+    ? (uniform.value as number[])
+    : undefined;
+}
+
 const AcidSquares: React.FC<AcidSquaresProps> = ({
-  color1 = '#5227FF',
-  color2 = '#A855F7',
-  color3 = '#FFFFFF',
-  detail = 'medium',
+  color1 = "#5227FF",
+  color2 = "#A855F7",
+  color3 = "#FFFFFF",
+  detail = "medium",
   speed = 0.7,
   waveDepth = 1,
   zoom = 1.3,
@@ -191,7 +212,7 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
   blur = 0,
   grain = true,
   grainIntensity = 0.05,
-  className = ''
+  className = "",
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mouseTarget = useRef<[number, number]>([0, 0]);
@@ -213,15 +234,15 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
       alpha: true,
       premultipliedAlpha: true,
       antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2)
+      dpr: Math.min(window.devicePixelRatio || 1, 2),
     });
 
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
     const canvas = gl.canvas as HTMLCanvasElement;
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.display = 'block';
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    canvas.style.display = "block";
     container.appendChild(canvas);
 
     const geometry = new Triangle(gl);
@@ -253,8 +274,8 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
         uEnableMouse: { value: 1.0 },
         uMouseActive: { value: 0.0 },
         uGrain: { value: 1.0 },
-        uGrainIntensity: { value: 0.05 }
-      }
+        uGrainIntensity: { value: 0.05 },
+      },
     });
 
     const mesh = new Mesh(gl, { geometry, program });
@@ -269,12 +290,12 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
         uRadius: { value: 0 },
         uGrain: { value: 0 },
         uGrainIntensity: { value: 0.05 },
-        iTime: { value: 0 }
-      }
+        iTime: { value: 0 },
+      },
     });
     const postMesh = new Mesh(gl, { geometry, program: postProgram });
-    const pu = postProgram.uniforms as Record<string, { value: any }>;
-    const mu = program.uniforms as Record<string, { value: any }>;
+    const pu = postProgram.uniforms as UniformBag;
+    const mu = program.uniforms as UniformBag;
 
     let rtA: InstanceType<typeof RenderTarget> | null = null;
     let rtB: InstanceType<typeof RenderTarget> | null = null;
@@ -295,19 +316,27 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
       if (blurRef.current > 0) {
         ensureTargets();
         if (mu.uGrain) mu.uGrain.value = 0.0;
-        renderer.render({ scene: mesh, target: rtA as unknown as RenderTarget | undefined });
+        renderer.render({
+          scene: mesh,
+          target: rtA as unknown as RenderTarget | undefined,
+        });
         if (pu.uRadius) pu.uRadius.value = blurRef.current * 14.0;
         if (pu.tMap && rtA) pu.tMap.value = rtA.texture;
-        if (pu.uDirection) {
-          pu.uDirection.value[0] = 1;
-          pu.uDirection.value[1] = 0;
+        const horizontal = vectorUniform(pu.uDirection);
+        if (horizontal) {
+          horizontal[0] = 1;
+          horizontal[1] = 0;
         }
         if (pu.uGrain) pu.uGrain.value = 0.0;
-        renderer.render({ scene: postMesh, target: rtB as unknown as RenderTarget | undefined });
+        renderer.render({
+          scene: postMesh,
+          target: rtB as unknown as RenderTarget | undefined,
+        });
         if (pu.tMap && rtB) pu.tMap.value = rtB.texture;
-        if (pu.uDirection) {
-          pu.uDirection.value[0] = 0;
-          pu.uDirection.value[1] = 1;
+        const vertical = vectorUniform(pu.uDirection);
+        if (vertical) {
+          vertical[0] = 0;
+          vertical[1] = 1;
         }
         if (pu.uGrain) pu.uGrain.value = grainOn;
         renderer.render({ scene: postMesh });
@@ -326,7 +355,8 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
       renderer.setSize(w, h);
       const bw = gl.drawingBufferWidth;
       const bh = gl.drawingBufferHeight;
-      const res = (program.uniforms.iResolution as { value: Float32Array }).value;
+      const res = (program.uniforms.iResolution as { value: Float32Array })
+        .value;
       res[0] = bw;
       res[1] = bh;
       const pres = pu.iResolution?.value as Float32Array | undefined;
@@ -334,9 +364,9 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
         pres[0] = bw;
         pres[1] = bh;
       }
-      if (rtA) {
+      if (rtA && rtB) {
         rtA.setSize(bw, bh);
-        rtB!.setSize(bw, bh);
+        rtB.setSize(bw, bh);
       }
       renderFrame();
     };
@@ -355,8 +385,8 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
     const handleMouseLeave = () => {
       mouseActiveTarget.current = 0;
     };
-    container.addEventListener('mousemove', handleMouseMove);
-    container.addEventListener('mouseleave', handleMouseLeave);
+    container.addEventListener("mousemove", handleMouseMove);
+    container.addEventListener("mouseleave", handleMouseLeave);
 
     let raf = 0;
     let isVisible = true;
@@ -373,11 +403,16 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
       const m = (program.uniforms.uMouse as { value: Float32Array }).value;
       m[0] = cur[0];
       m[1] = cur[1];
-      const activeTarget = enableMouseRef.current ? mouseActiveTarget.current : 0;
+      const activeTarget = enableMouseRef.current
+        ? mouseActiveTarget.current
+        : 0;
       mouseActive.current += 0.05 * (activeTarget - mouseActive.current);
-      (program.uniforms.uMouseActive as { value: number }).value = mouseActive.current;
-      (program.uniforms.uEnableMouse as { value: number }).value = enableMouseRef.current ? 1.0 : 0.0;
-      (program.uniforms.uMouseStrength as { value: number }).value = mouseStrengthRef.current;
+      (program.uniforms.uMouseActive as { value: number }).value =
+        mouseActive.current;
+      (program.uniforms.uEnableMouse as { value: number }).value =
+        enableMouseRef.current ? 1.0 : 0.0;
+      (program.uniforms.uMouseStrength as { value: number }).value =
+        mouseStrengthRef.current;
 
       if (pu.iTime) {
         pu.iTime.value = (program.uniforms.iTime as { value: number }).value;
@@ -387,7 +422,8 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
     };
 
     const tryStart = () => {
-      if (isVisible && isPageVisible && raf === 0) raf = requestAnimationFrame(loop);
+      if (isVisible && isPageVisible && raf === 0)
+        raf = requestAnimationFrame(loop);
     };
     const tryStop = () => {
       if (raf !== 0) {
@@ -404,7 +440,7 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
           isVisible ? tryStart() : tryStop();
         }
       },
-      { threshold: 0 }
+      { threshold: 0 },
     );
     io.observe(container);
 
@@ -412,7 +448,7 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
       isPageVisible = !document.hidden;
       isPageVisible ? tryStart() : tryStop();
     };
-    document.addEventListener('visibilitychange', onVisibility);
+    document.addEventListener("visibilitychange", onVisibility);
 
     tryStart();
 
@@ -420,20 +456,26 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
       tryStop();
       ro.disconnect();
       io.disconnect();
-      document.removeEventListener('visibilitychange', onVisibility);
-      container.removeEventListener('mousemove', handleMouseMove);
-      container.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener("visibilitychange", onVisibility);
+      container.removeEventListener("mousemove", handleMouseMove);
+      container.removeEventListener("mouseleave", handleMouseLeave);
       ctxMap.delete(container);
       if (rtA) {
         gl.deleteFramebuffer(rtA.buffer);
-        gl.deleteFramebuffer(rtB!.buffer);
-        rtA.textures.forEach(tex => gl.deleteTexture(tex.texture));
-        rtB!.textures.forEach(tex => gl.deleteTexture(tex.texture));
+        rtA.textures.forEach((tex) => {
+          gl.deleteTexture(tex.texture);
+        });
+      }
+      if (rtB) {
+        gl.deleteFramebuffer(rtB.buffer);
+        rtB.textures.forEach((tex) => {
+          gl.deleteTexture(tex.texture);
+        });
       }
       try {
         container.removeChild(canvas);
       } catch {}
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
   }, []);
 
@@ -443,7 +485,7 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
     const ctx = ctxMap.get(container);
     if (!ctx) return;
     const { program } = ctx;
-    const u = program.uniforms as Record<string, { value: any }>;
+    const u = program.uniforms as UniformBag;
 
     if (u.uSpeed) u.uSpeed.value = speed;
     if (u.uWaveDepth) u.uWaveDepth.value = waveDepth;
@@ -509,10 +551,15 @@ const AcidSquares: React.FC<AcidSquaresProps> = ({
     mouseRadius,
     blur,
     grain,
-    grainIntensity
+    grainIntensity,
   ]);
 
-  return <div ref={containerRef} className={`relative h-full w-full overflow-hidden ${className}`.trim()} />;
+  return (
+    <div
+      ref={containerRef}
+      className={`relative h-full w-full overflow-hidden ${className}`.trim()}
+    />
+  );
 };
 
 export default AcidSquares;

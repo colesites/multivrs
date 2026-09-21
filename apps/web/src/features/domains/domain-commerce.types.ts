@@ -4,6 +4,8 @@ export interface DomainCommerceContextValue {
   cartItems: DomainSearchResult[];
   savedDomains: DomainSearchResult[];
   isSignedIn: boolean;
+  /** The signed-in user's workspace slug, used when building domain links. */
+  username?: string;
   hydrated: boolean;
   cartOpen: boolean;
   savedOpen: boolean;

@@ -1,7 +1,7 @@
 "use client";
 
+import { ArrowRight, ChevronDown, GitBranch, Search } from "lucide-react";
 import { useState } from "react";
-import { GitBranch, Search, ChevronDown, ArrowRight } from "lucide-react";
 
 export function DeployVisual() {
   const [gitUrl, setGitUrl] = useState("");
@@ -72,14 +72,19 @@ export function DeployVisual() {
             Import a Git repository
           </h4>
           <p className="text-xs text-zinc-600 dark:text-zinc-400 font-sans leading-tight">
-            Choose a repository, configure the detected framework, and run an isolated cloud build.
+            Choose a repository, configure the detected framework, and run an
+            isolated cloud build.
           </p>
         </div>
 
         {/* Repository URL Input Bar */}
         <div className="mb-3.5 flex items-center justify-between gap-3 rounded-lg border border-zinc-200 dark:border-white/15 bg-zinc-50 dark:bg-zinc-950 px-3 py-1.5 focus-within:border-zinc-400 dark:focus-within:border-white/40 transition-colors">
           <div className="flex flex-1 items-center gap-2.5">
-            <svg className="size-3.5 shrink-0 fill-zinc-500 dark:fill-zinc-400" viewBox="0 0 16 16">
+            <svg
+              aria-hidden="true"
+              className="size-3.5 shrink-0 fill-zinc-500 dark:fill-zinc-400"
+              viewBox="0 0 16 16"
+            >
               <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
             </svg>
             <input
@@ -136,13 +141,14 @@ export function DeployVisual() {
           {filteredRepos.slice(0, 3).map((repo) => {
             const isSelected = selectedRepo === repo.name;
             return (
-              <div
+              <button
+                type="button"
                 key={repo.name}
                 onClick={() => setSelectedRepo(repo.name)}
-                className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer ${
+                className={`w-full text-left flex items-center justify-between rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer ${
                   isSelected
-                    ? "bg-zinc-100 dark:bg-white/[0.08] border border-zinc-300 dark:border-white/15 shadow-sm"
-                    : "hover:bg-zinc-100/60 dark:hover:bg-white/[0.04]"
+                    ? "bg-zinc-100 dark:bg-white/8 border border-zinc-300 dark:border-white/15 shadow-sm"
+                    : "hover:bg-zinc-100/60 dark:hover:bg-white/4"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -158,8 +164,7 @@ export function DeployVisual() {
                     </p>
                   </div>
                 </div>
-                <button
-                  type="button"
+                <span
                   className={`rounded-full px-3 py-0.5 font-mono text-[10px] font-semibold transition-colors ${
                     isSelected
                       ? "bg-zinc-900 text-white dark:bg-white dark:text-black"
@@ -167,15 +172,15 @@ export function DeployVisual() {
                   }`}
                 >
                   Import
-                </button>
-              </div>
+                </span>
+              </button>
             );
           })}
         </div>
 
         {/* Bottom Gradient Fade Overlay */}
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-2xl bg-gradient-to-b from-transparent via-white/40 to-white dark:via-black/85 dark:to-black"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-2xl bg-linear-to-b from-transparent via-white/40 to-white dark:via-black/85 dark:to-black"
           aria-hidden="true"
         />
       </div>

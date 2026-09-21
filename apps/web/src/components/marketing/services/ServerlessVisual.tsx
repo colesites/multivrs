@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import {
-  Zap,
-  Lock,
-  Globe2,
+  // Activity,
+  // ArrowRight,
+  // CheckCircle2,
   Cpu,
   Database,
-  ArrowRight,
-  Sparkles,
-  Activity,
-  CheckCircle2,
+  Globe2,
+  Lock,
+  // Sparkles,
+  // Zap,
 } from "lucide-react";
+import { useState } from "react";
 
 export function ServerlessVisual() {
   const [activeNode, setActiveNode] = useState<string>("auth");
@@ -109,10 +109,11 @@ export function ServerlessVisual() {
           {nodes.map((node) => {
             const isSelected = activeNode === node.id;
             return (
-              <div
+              <button
+                type="button"
                 key={node.id}
                 onClick={() => setActiveNode(node.id)}
-                className={`relative rounded-xl border p-2.5 transition-all cursor-pointer ${
+                className={`w-full text-left relative rounded-xl border p-2.5 transition-all cursor-pointer ${
                   isSelected
                     ? "border-purple-500/50 bg-purple-500/10 shadow-[0_0_15px_rgba(168,85,247,0.15)]"
                     : "border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-950/60 hover:border-zinc-300 dark:hover:border-white/20"
@@ -120,7 +121,9 @@ export function ServerlessVisual() {
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
-                    <div className={`p-1 rounded-lg bg-zinc-200/70 dark:bg-white/5 ${node.color}`}>
+                    <div
+                      className={`p-1 rounded-lg bg-zinc-200/70 dark:bg-white/5 ${node.color}`}
+                    >
                       <node.icon className="size-3.5" />
                     </div>
                     <span className="font-mono text-xs font-bold text-zinc-950 dark:text-white">
@@ -135,10 +138,15 @@ export function ServerlessVisual() {
                   {node.desc}
                 </p>
                 <div className="flex items-center justify-between text-[8.5px] font-mono pt-1.5 border-t border-zinc-200/80 dark:border-white/10 text-zinc-500 dark:text-zinc-400">
-                  <span>Latency: <span className="text-zinc-950 dark:text-white font-semibold">{node.latency}</span></span>
+                  <span>
+                    Latency:{" "}
+                    <span className="text-zinc-950 dark:text-white font-semibold">
+                      {node.latency}
+                    </span>
+                  </span>
                   <span>{node.memory}</span>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -148,7 +156,11 @@ export function ServerlessVisual() {
           <div className="flex items-center gap-2">
             <div className="size-2 rounded-full bg-emerald-500 animate-ping" />
             <span className="font-mono text-[10px] text-zinc-600 dark:text-zinc-300">
-              Active Runtime: <span className="text-zinc-950 dark:text-white font-semibold">{selectedNode.title}</span> ({selectedNode.memory})
+              Active Runtime:{" "}
+              <span className="text-zinc-950 dark:text-white font-semibold">
+                {selectedNode.title}
+              </span>{" "}
+              ({selectedNode.memory})
             </span>
           </div>
           <span className="font-mono text-[9px] text-purple-600 dark:text-purple-400">
@@ -158,7 +170,7 @@ export function ServerlessVisual() {
 
         {/* Bottom Gradient Fade Overlay */}
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-2xl bg-gradient-to-b from-transparent via-white/40 to-white dark:via-black/85 dark:to-black"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-20 rounded-b-2xl bg-linear-to-b from-transparent via-white/40 to-white dark:via-black/85 dark:to-black"
           aria-hidden="true"
         />
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
 import { Download, FileText, Image as ImageIcon } from "lucide-react";
+import { useRef, useState } from "react";
 import type { MailMessageDetail } from "@/features/mail/mail.types";
 
 function formatFileSize(bytes: number): string {

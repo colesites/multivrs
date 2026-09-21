@@ -1,11 +1,11 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
+import FoldText from "@/components/FoldText";
 import { useHeroAnimations } from "@/components/marketing/hero-animations";
 import SpecularButton from "@/components/SpecularButton";
-import FoldText from "@/components/FoldText";
 import { WordFlip } from "@/components/WordFlip";
 
 const ParticleLogo = dynamic(() => import("@/components/ParticleLogo"), {
@@ -14,9 +14,9 @@ const ParticleLogo = dynamic(() => import("@/components/ParticleLogo"), {
 });
 
 const HIGHLIGHTS = [
-  "For shipping apps",
+  "For shipping apps & agents",
   "To buy custom domains",
-  "With transactional mailboxes",
+  "With transactional & marketing mail",
 ];
 
 /**
@@ -75,7 +75,7 @@ export function HeroContent() {
       {/* 2. HEADLINE: Center on mobile (order-2) / Left on desktop (lg:order-1) */}
       <div
         ref={leftColRef}
-        className="order-2 my-auto flex w-full max-w-full flex-col items-center text-center px-2 sm:px-0 lg:order-1 lg:my-0 lg:max-w-[360px] xl:max-w-[420px] lg:items-start lg:text-left"
+        className="order-2 my-auto flex w-full max-w-full flex-col items-center text-center opacity-0 px-2 sm:px-0 lg:order-1 lg:my-0 lg:max-w-[360px] xl:max-w-[420px] lg:items-start lg:text-left"
       >
         <h1 className="mb-2 lg:mb-8 font-clash max-w-full">
           <FoldText
@@ -134,27 +134,45 @@ export function HeroContent() {
       {/* 3. SUBTITLE / VALUE PROP: Word Flip on Mobile ONLY (order-3), Clean text lines on Desktop (lg:order-3) */}
       <div
         ref={rightColRef}
-        className="order-3 mt-1 flex w-full flex-col items-center text-center lg:order-3 lg:mt-0 lg:items-start lg:text-left lg:pl-6 xl:pl-8"
+        className="order-3 mt-1 flex w-full flex-col items-center text-center opacity-0 lg:order-3 lg:mt-0 lg:items-start lg:text-left lg:pl-6 xl:pl-8"
       >
         {/* Mobile-only WordFlip */}
-        <div className="block lg:hidden hero-feature-item font-mono text-xs sm:text-sm font-normal text-white select-none">
+        <div className="block lg:hidden hero-feature-item font-mono text-xs sm:text-sm font-normal text-white select-none [text-shadow:0_1px_10px_rgba(0,0,0,0.85)]">
           <WordFlip words={HIGHLIGHTS} duration={2600} />
         </div>
 
-        {/* Desktop clean text (no bullets) */}
-        <div className="hidden lg:flex lg:flex-col space-y-3 font-sans text-base xl:text-lg text-white font-normal select-none">
-          {HIGHLIGHTS.map((item) => (
-            <div key={item} className="text-white">
-              {item}
-            </div>
-          ))}
+        {/* Desktop list. The shader behind it swings from black to bright
+            streaks, so the column carries its own scrim and a hairline stem
+            to stay legible and feel anchored rather than floating. */}
+        <div className="relative hidden lg:block select-none">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-x-14 -inset-y-10 rounded-[2.5rem] bg-black/80 backdrop-blur-md"
+            style={{
+              maskImage:
+                "radial-gradient(ellipse at center, #000 60%, transparent 100%)",
+              WebkitMaskImage:
+                "radial-gradient(ellipse at center, #000 60%, transparent 100%)",
+            }}
+          />
+          <ul className="relative flex flex-col gap-3.5 border-l border-white/15 pl-5 font-sans text-base font-normal text-white xl:text-lg">
+            {HIGHLIGHTS.map((item) => (
+              <li
+                key={item}
+                className="flex items-center gap-3 [text-shadow:0_1px_12px_rgba(0,0,0,0.95)]"
+              >
+                <span className="size-1 shrink-0 rounded-full bg-[#A855F7] shadow-[0_0_8px_#A855F7]" />
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
       {/* 4. MOBILE CTAs: Full-width stacked buttons under WordFlip (order-4, hidden on desktop) */}
       <div
         ref={ctaRef}
-        className="order-4 mt-6 flex w-full max-w-xs flex-col items-center justify-center gap-3 lg:hidden"
+        className="order-4 mt-6 flex w-full max-w-xs flex-col items-center justify-center gap-3 opacity-0 lg:hidden"
       >
         <Link href="/signup" className="w-full">
           <SpecularButton
@@ -187,13 +205,18 @@ export function HeroContent() {
             className="w-full py-3.5"
             forceTheme="dark"
           >
-            <span className="flex items-center justify-center font-medium text-sm">Talk to sales</span>
+            <span className="flex items-center justify-center font-medium text-sm">
+              Talk to sales
+            </span>
           </SpecularButton>
         </Link>
       </div>
 
       {/* 5. Reserved bottom spacing / logo placeholder on mobile */}
-      <div className="order-5 h-10 sm:h-14 w-full lg:hidden" aria-hidden="true" />
+      <div
+        className="order-5 h-10 sm:h-14 w-full lg:hidden"
+        aria-hidden="true"
+      />
     </div>
   );
 }

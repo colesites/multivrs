@@ -232,7 +232,8 @@ export function PricingComparisonTable({
   comparison: PricingComparison;
 }) {
   const [search, setSearch] = useState("");
-  const [selectedMobilePlan, setSelectedMobilePlan] = useState<PricingPlanKey>("hobby");
+  const [selectedMobilePlan, setSelectedMobilePlan] =
+    useState<PricingPlanKey>("hobby");
   const query = normalized(search);
   const filteredSections = query
     ? comparison.sections.flatMap((section) => {
@@ -299,12 +300,18 @@ export function PricingComparisonTable({
             <div className="relative">
               <select
                 value={selectedMobilePlan}
-                onChange={(e) => setSelectedMobilePlan(e.target.value as PricingPlanKey)}
+                onChange={(e) =>
+                  setSelectedMobilePlan(e.target.value as PricingPlanKey)
+                }
                 aria-label="Select pricing plan to view"
                 className="h-10 w-full appearance-none rounded-full border border-border bg-background px-4 pr-10 text-sm font-medium text-foreground outline-none transition-colors focus:border-foreground/40 cursor-pointer"
               >
                 {comparison.plans.map((plan) => (
-                  <option key={plan.key} value={plan.key} className="bg-background text-foreground py-1">
+                  <option
+                    key={plan.key}
+                    value={plan.key}
+                    className="bg-background text-foreground py-1"
+                  >
                     {plan.name}
                   </option>
                 ))}

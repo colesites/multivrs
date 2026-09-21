@@ -22,7 +22,11 @@ export const mailProviderEventSchema = z.object({
 export type MailProviderEventInput = z.infer<typeof mailProviderEventSchema>;
 
 export const snsMessageSchema = z.object({
-  Type: z.enum(["Notification", "SubscriptionConfirmation", "UnsubscribeConfirmation"]),
+  Type: z.enum([
+    "Notification",
+    "SubscriptionConfirmation",
+    "UnsubscribeConfirmation",
+  ]),
   MessageId: z.string().optional(),
   TopicArn: z.string().optional(),
   Subject: z.string().optional(),
@@ -75,7 +79,6 @@ export const sesEventPayloadSchema = z.object({
     .optional(),
   content: z.string().optional(),
   mail: z.object({
-
     timestamp: z.string().optional(),
     messageId: z.string(),
     source: z.string().optional(),
@@ -83,7 +86,9 @@ export const sesEventPayloadSchema = z.object({
     sendingAccountId: z.string().optional(),
     destination: z.array(z.string()).optional(),
     headersTruncated: z.boolean().optional(),
-    headers: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
+    headers: z
+      .array(z.object({ name: z.string(), value: z.string() }))
+      .optional(),
     commonHeaders: z
       .object({
         from: z.array(z.string()).optional(),

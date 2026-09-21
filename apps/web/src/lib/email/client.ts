@@ -6,9 +6,9 @@
 
 import {
   type MessageHeader,
+  SESv2Client,
   SendEmailCommand,
   type SendEmailCommandInput,
-  SESv2Client,
 } from "@aws-sdk/client-sesv2";
 
 const region = process.env.AWS_REGION || "us-east-1";
@@ -40,7 +40,8 @@ export const COMPANY_EMAILS = {
   /**
    * Dedicated to customer service, issue resolution, and technical assistance.
    */
-  support: process.env.EMAIL_SUPPORT || "Multivrs Support <support@multivrs.space>",
+  support:
+    process.env.EMAIL_SUPPORT || "Multivrs Support <support@multivrs.space>",
 
   /**
    * Inbound sales leads, product demo requests, and partnership queries.
@@ -50,18 +51,23 @@ export const COMPANY_EMAILS = {
   /**
    * Accounts payable/receivable, invoice submissions, payment receipts, and vendor financial queries.
    */
-  billing: process.env.EMAIL_BILLING || "Multivrs Billing <billing@multivrs.space>",
+  billing:
+    process.env.EMAIL_BILLING || "Multivrs Billing <billing@multivrs.space>",
 
   /**
    * Outbound transactional emails (password resets, OTP codes, order updates, system alerts)
    * that are not monitored for incoming replies.
    */
-  noreply: process.env.EMAIL_FROM || process.env.EMAIL_NOREPLY || "Multivrs <noreply@multivrs.space>",
+  noreply:
+    process.env.EMAIL_FROM ||
+    process.env.EMAIL_NOREPLY ||
+    "Multivrs <noreply@multivrs.space>",
 
   /**
    * Data protection officer communications, GDPR/CCPA data deletion requests, and privacy policy inquiries.
    */
-  privacy: process.env.EMAIL_PRIVACY || "Multivrs Privacy <privacy@multivrs.space>",
+  privacy:
+    process.env.EMAIL_PRIVACY || "Multivrs Privacy <privacy@multivrs.space>",
 } as const;
 
 /**
@@ -122,7 +128,6 @@ export async function sendEmail(
         .filter(([name]) => !FORBIDDEN_SES_HEADERS.has(name.toLowerCase()))
         .map(([Name, Value]) => ({ Name, Value }))
     : undefined;
-
 
   const input: SendEmailCommandInput = {
     FromEmailAddress: from,

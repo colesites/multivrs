@@ -15,7 +15,9 @@ export function MailAnalytics({ data }: { data: MailDashboardData }) {
         {stats.map(([label, value]) => (
           <div className="bg-white dark:bg-black p-6" key={label}>
             <p className="text-3xl tracking-tight">{value}</p>
-            <p className="mt-2 text-xs text-black/35 dark:text-white/35">{label}</p>
+            <p className="mt-2 text-xs text-black/35 dark:text-white/35">
+              {label}
+            </p>
             <div className="mt-8 h-12 bg-[linear-gradient(150deg,transparent_45%,rgba(168,85,247,.45)_46%,transparent_48%)]" />
           </div>
         ))}

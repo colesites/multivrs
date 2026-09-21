@@ -1,29 +1,22 @@
 "use client";
 
-import { useState } from "react";
 import {
-  Globe,
-  Plus,
-  RefreshCw,
-  Search,
-  Server,
-  Lock,
-  Layers,
-  Rocket,
-  FileText,
-  Activity,
-  Zap,
-  Eye,
-  ShieldAlert,
-  Wifi,
-  Settings,
-  Mail,
-  Copy,
   CheckCircle2,
+  FileText,
+  Globe,
+  Layers,
+  Lock,
+  Mail,
+  RefreshCw,
+  Rocket,
+  Search,
+  Settings,
+  Wifi,
+  Zap,
 } from "lucide-react";
+import { useState } from "react";
 
 export function DomainVisual() {
-  const [autoRenew, setAutoRenew] = useState(true);
   const [sidebarSearch, setSidebarSearch] = useState("");
 
   const sidebarNav = [
@@ -65,7 +58,9 @@ export function DomainVisual() {
             <div className="grid size-4.5 place-items-center rounded bg-zinc-200 dark:bg-zinc-800 font-mono text-[8px] font-bold text-zinc-900 dark:text-white">
               C
             </div>
-            <span className="font-mono text-[9.5px] text-zinc-700 dark:text-zinc-300">ctech</span>
+            <span className="font-mono text-[9.5px] text-zinc-700 dark:text-zinc-300">
+              ctech
+            </span>
           </div>
 
           {/* Search bar */}
@@ -100,7 +95,9 @@ export function DomainVisual() {
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
                     <item.icon className="size-3 text-zinc-500 dark:text-zinc-400" />
-                    <span className="truncate text-[10px] font-sans">{item.name}</span>
+                    <span className="truncate text-[10px] font-sans">
+                      {item.name}
+                    </span>
                   </div>
                   {item.badge && (
                     <span className="rounded bg-zinc-200/70 dark:bg-white/10 px-1 py-0.2 font-mono text-[7px] text-zinc-700 dark:text-zinc-300">
@@ -155,7 +152,9 @@ export function DomainVisual() {
               </p>
               <div className="flex items-center gap-1">
                 <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400" />
-                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">Enabled</span>
+                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">
+                  Enabled
+                </span>
               </div>
             </div>
 
@@ -165,7 +164,9 @@ export function DomainVisual() {
               </p>
               <div className="flex items-center gap-1">
                 <Lock className="size-3 text-cyan-600 dark:text-cyan-400" />
-                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">Auto-TLS 1.3</span>
+                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">
+                  Auto-TLS 1.3
+                </span>
               </div>
             </div>
 
@@ -175,7 +176,9 @@ export function DomainVisual() {
               </p>
               <div className="flex items-center gap-1">
                 <Zap className="size-3 text-amber-600 dark:text-amber-400" />
-                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">0.2ms Edge</span>
+                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">
+                  0.2ms Edge
+                </span>
               </div>
             </div>
 
@@ -185,7 +188,9 @@ export function DomainVisual() {
               </p>
               <div className="flex items-center gap-1">
                 <Wifi className="size-3 text-purple-600 dark:text-purple-400" />
-                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">Multivrs Edge</span>
+                <span className="font-mono text-[10px] font-semibold text-zinc-950 dark:text-white">
+                  Multivrs Edge
+                </span>
               </div>
             </div>
           </div>
@@ -196,32 +201,52 @@ export function DomainVisual() {
               <span className="font-mono text-[9px] font-semibold text-zinc-950 dark:text-white uppercase tracking-wider">
                 DNS Routing Records
               </span>
-              <span className="font-mono text-[8px] text-zinc-500 dark:text-zinc-400">4 Active</span>
+              <span className="font-mono text-[8px] text-zinc-500 dark:text-zinc-400">
+                4 Active
+              </span>
             </div>
             <div className="space-y-1">
               <div className="flex items-center justify-between rounded bg-zinc-100 dark:bg-white/[0.04] px-2 py-1 text-[9px] font-mono">
                 <div className="flex items-center gap-2">
-                  <span className="rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 px-1 font-bold">A</span>
+                  <span className="rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 px-1 font-bold">
+                    A
+                  </span>
                   <span className="text-zinc-950 dark:text-white">@</span>
                 </div>
-                <span className="text-zinc-600 dark:text-zinc-400">76.76.21.21</span>
-                <span className="text-emerald-600 dark:text-emerald-400">Proxied</span>
+                <span className="text-zinc-600 dark:text-zinc-400">
+                  76.76.21.21
+                </span>
+                <span className="text-emerald-600 dark:text-emerald-400">
+                  Proxied
+                </span>
               </div>
               <div className="flex items-center justify-between rounded bg-zinc-100 dark:bg-white/[0.04] px-2 py-1 text-[9px] font-mono">
                 <div className="flex items-center gap-2">
-                  <span className="rounded bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 px-1 font-bold">CNAME</span>
+                  <span className="rounded bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 px-1 font-bold">
+                    CNAME
+                  </span>
                   <span className="text-zinc-950 dark:text-white">www</span>
                 </div>
-                <span className="text-zinc-600 dark:text-zinc-400">cname.multivrs.dev</span>
-                <span className="text-emerald-600 dark:text-emerald-400">Proxied</span>
+                <span className="text-zinc-600 dark:text-zinc-400">
+                  cname.multivrs.dev
+                </span>
+                <span className="text-emerald-600 dark:text-emerald-400">
+                  Proxied
+                </span>
               </div>
               <div className="flex items-center justify-between rounded bg-zinc-100 dark:bg-white/[0.04] px-2 py-1 text-[9px] font-mono">
                 <div className="flex items-center gap-2">
-                  <span className="rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1 font-bold">MX</span>
+                  <span className="rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1 font-bold">
+                    MX
+                  </span>
                   <span className="text-zinc-950 dark:text-white">mail</span>
                 </div>
-                <span className="text-zinc-600 dark:text-zinc-400">mx.multivrs.net</span>
-                <span className="text-zinc-500 dark:text-zinc-400">Priority 10</span>
+                <span className="text-zinc-600 dark:text-zinc-400">
+                  mx.multivrs.net
+                </span>
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  Priority 10
+                </span>
               </div>
             </div>
           </div>

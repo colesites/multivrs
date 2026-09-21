@@ -1,14 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import Link from "next/link";
 import { AcidSquaresBackground } from "@/components/marketing/AcidSquaresBackground";
 import { DepthText } from "@/components/marketing/DepthText";
 import SpecularButton from "@/components/SpecularButton";
 
 export function ComingSoonPage() {
   return (
-    <section className="relative min-h-[85vh] lg:min-h-[90vh] w-full overflow-hidden bg-black text-white flex flex-col justify-center items-center py-20 px-6 select-none">
+    <section className="dark relative min-h-[85vh] lg:min-h-[90vh] w-full overflow-hidden bg-black text-white flex flex-col justify-center items-center py-20 px-6 select-none">
       {/* Interactive Acid Squares Canvas Background */}
       <AcidSquaresBackground />
 
@@ -41,6 +41,7 @@ export function ComingSoonPage() {
               baseColor="#ffffff"
               lineColor="#ffffff"
               textColor="#000000"
+              forceTheme="dark"
             >
               <span className="flex items-center gap-1.5 font-semibold text-xs">
                 <BookOpen className="size-3.5" />
@@ -57,6 +58,7 @@ export function ComingSoonPage() {
               baseColor="#1c1c1c"
               lineColor="#ffffff"
               textColor="#ffffff"
+              forceTheme="dark"
             >
               <span className="font-medium text-xs">Explore Platform</span>
             </SpecularButton>
@@ -70,6 +72,7 @@ export function ComingSoonPage() {
               baseColor="#1c1c1c"
               lineColor="#ffffff"
               textColor="#ffffff"
+              forceTheme="dark"
             >
               <span className="font-medium text-xs">View Changelog</span>
             </SpecularButton>

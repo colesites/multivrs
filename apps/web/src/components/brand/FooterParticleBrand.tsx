@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
+import { useEffect, useRef, useState } from "react";
 
 interface Particle {
   x: number;
@@ -14,7 +14,11 @@ interface Particle {
   baseAlpha: number;
 }
 
-export function FooterParticleBrand({ className = "" }: { className?: string }) {
+export function FooterParticleBrand({
+  className = "",
+}: {
+  className?: string;
+}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -230,7 +234,10 @@ export function FooterParticleBrand({ className = "" }: { className?: string }) 
   }, [isLight]);
 
   return (
-    <div className={`relative w-full overflow-hidden ${className}`} style={{ touchAction: "pan-y" }}>
+    <div
+      className={`relative w-full overflow-hidden ${className}`}
+      style={{ touchAction: "pan-y" }}
+    >
       <canvas
         ref={canvasRef}
         className="block h-[180px] sm:h-[260px] md:h-[320px] w-full select-none cursor-pointer"

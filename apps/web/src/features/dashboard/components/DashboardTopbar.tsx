@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronRight, MailPlus } from "lucide-react";
-import { Suspense, use } from "react";
 import { Button } from "@/components/ui/button";
 import { DashboardSearchInput } from "@/features/dashboard/components/DashboardSearchInput";
 import { DASHBOARD_NAV_ITEMS } from "@/features/dashboard/constants/navigation";
@@ -14,7 +13,7 @@ import {
 
 interface DashboardTopbarProps {
   mobileNavigation?: React.ReactNode;
-  projects?: Promise<ProjectOption[]>;
+  projects?: ProjectOption[];
 }
 
 /**
@@ -36,9 +35,7 @@ export function DashboardTopbar({
     <header className="sticky top-0 z-30 flex h-14 items-center gap-2.5 border-b border-(--hairline) bg-(--ink)/80 px-5 backdrop-blur-xl">
       {mobileNavigation}
       {projects ? (
-        <Suspense fallback={<ProjectScopeSwitcher />}>
-          <ProjectSwitcherData projects={projects} />
-        </Suspense>
+        <ProjectScopeSwitcher projects={projects} />
       ) : (
         <ProjectScopeSwitcher />
       )}
@@ -67,12 +64,4 @@ export function DashboardTopbar({
       ) : null}
     </header>
   );
-}
-
-function ProjectSwitcherData({
-  projects,
-}: {
-  projects: Promise<ProjectOption[]>;
-}) {
-  return <ProjectScopeSwitcher projects={use(projects)} />;
 }

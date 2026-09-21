@@ -60,7 +60,7 @@ export function MailCompose({
         className={cn(
           "w-full flex flex-col border-black/10 dark:border-white/10 bg-white dark:bg-[#07080a] transition-[max-width] duration-200 sm:max-w-xl",
           expanded && "sm:max-w-[min(92vw,1100px)]",
-          side === "bottom" && "max-h-[calc(100dvh-2rem)] rounded-t-xl"
+          side === "bottom" && "max-h-[calc(100dvh-2rem)] rounded-t-xl",
         )}
         side={side}
         style={

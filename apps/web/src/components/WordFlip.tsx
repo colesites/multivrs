@@ -6,12 +6,18 @@ interface WordFlipProps {
   words: string[];
   duration?: number;
   className?: string;
+  /**
+   * Classes for the word itself. Pass "" to inherit the parent's colour, which
+   * lets the word take part in a gradient applied with `bg-clip-text`.
+   */
+  wordClassName?: string;
 }
 
 export function WordFlip({
   words,
   duration = 2400,
   className = "",
+  wordClassName = "text-white",
 }: WordFlipProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -33,12 +39,12 @@ export function WordFlip({
   const currentWord = words[currentIndex] || "";
 
   return (
-    <div
+    <span
       className={`relative inline-flex items-center justify-center lg:justify-start ${className}`}
       style={{ perspective: "1000px" }}
     >
       <span
-        className={`inline-block text-white transition-all duration-400 ease-out will-change-transform ${
+        className={`inline-block transition-all duration-400 ease-out will-change-transform ${wordClassName} ${
           isFlipping
             ? "opacity-0 -translate-y-4 rotate-x-90 blur-[2px]"
             : "opacity-100 translate-y-0 rotate-x-0 blur-0"
@@ -49,6 +55,6 @@ export function WordFlip({
       >
         {currentWord}
       </span>
-    </div>
+    </span>
   );
 }

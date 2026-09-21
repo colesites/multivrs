@@ -9,6 +9,9 @@ import {
   pricingPlanValueType,
   pricingSectionType,
 } from "./pricingComparison";
+import { templateType } from "./template";
+import { templateCategoryType } from "./templateCategory";
+import { templateStackType } from "./templateStack";
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -20,5 +23,8 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     pricingFeatureGroupType,
     pricingSectionType,
     pricingComparisonType,
+    templateType,
+    templateCategoryType,
+    templateStackType,
   ],
 };

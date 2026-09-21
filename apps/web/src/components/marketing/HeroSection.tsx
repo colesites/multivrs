@@ -7,10 +7,7 @@ import { HeroOverlays } from "@/components/marketing/HeroOverlays";
 const MoltenMetal = dynamic(() => import("@/components/MoltenMetal"), {
   ssr: false,
   loading: () => (
-    <div
-      className="absolute inset-0 z-0 bg-black"
-      aria-hidden="true"
-    />
+    <div className="absolute inset-0 z-0 bg-black" aria-hidden="true" />
   ),
 });
 

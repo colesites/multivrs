@@ -59,8 +59,8 @@ export function AcidSquaresBackground({
 
     const render = () => {
       time += 0.02;
-      const width = canvas.width / (Math.min(window.devicePixelRatio || 1, 2));
-      const height = canvas.height / (Math.min(window.devicePixelRatio || 1, 2));
+      const width = canvas.width / Math.min(window.devicePixelRatio || 1, 2);
+      const height = canvas.height / Math.min(window.devicePixelRatio || 1, 2);
 
       ctx.clearRect(0, 0, width, height);
 
@@ -132,7 +132,10 @@ export function AcidSquaresBackground({
     return () => {
       cancelAnimationFrame(animationFrameId);
       parent.removeEventListener("mousemove", handleMouseMove as EventListener);
-      parent.removeEventListener("mouseleave", handleMouseLeave as EventListener);
+      parent.removeEventListener(
+        "mouseleave",
+        handleMouseLeave as EventListener,
+      );
       window.removeEventListener("resize", handleResize);
     };
   }, [cellSize, hoverRadius]);
@@ -141,7 +144,6 @@ export function AcidSquaresBackground({
     <canvas
       ref={canvasRef}
       className={`pointer-events-none absolute inset-0 block size-full ${className}`}
-      aria-hidden="true"
     />
   );
 }

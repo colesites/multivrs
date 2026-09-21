@@ -76,7 +76,9 @@ export function MailResourcePage({
           <div className="grid min-h-64 place-items-center text-center">
             <div>
               <CircleDashed className="mx-auto size-7 text-black/60 dark:text-white/60" />
-              <p className="mt-3 text-sm font-medium text-black dark:text-white">Nothing here yet</p>
+              <p className="mt-3 text-sm font-medium text-black dark:text-white">
+                Nothing here yet
+              </p>
               <p className="mt-1 text-xs text-black/80 dark:text-white/80">
                 Create your first resource to get started.
               </p>

@@ -16,12 +16,20 @@ import { Pool } from "pg";
 declare global {
   // eslint-disable-next-line no-var
   var multivrsPrisma: PrismaClient | undefined;
+  // eslint-disable-next-line no-var
+  var multivrsPrismaUrl: string | undefined;
 }
 
 function getDatabaseUrl(): string {
-  const databaseUrl = process.env.DATABASE_URL;
+  // The Supabase transaction pooler can return EAUTHITIMEOUT while it is
+  // authenticating a connection. That was breaking every dashboard request at
+  // the session lookup. Prefer the configured direct connection for the app;
+  // retain DATABASE_URL as a fallback for environments that only provide it.
+  const databaseUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
   if (!databaseUrl) {
-    throw new Error("DATABASE_URL environment variable is required");
+    throw new Error(
+      "DIRECT_URL or DATABASE_URL environment variable is required",
+    );
   }
   if (!URL.canParse(databaseUrl)) {
     throw new Error("DATABASE_URL must be a valid PostgreSQL URL");
@@ -34,9 +42,9 @@ function getDatabaseUrl(): string {
   return url.toString();
 }
 
-function createPrismaClient(): PrismaClient {
+function createPrismaClient(databaseUrl: string): PrismaClient {
   const pool = new Pool({
-    connectionString: getDatabaseUrl(),
+    connectionString: databaseUrl,
   });
 
   const adapter = new PrismaPg(pool);
@@ -54,13 +62,32 @@ function createPrismaClient(): PrismaClient {
  * - Production: Creates new instance once
  * - Development: Reuses instance from globalThis to prevent hot-reload issues
  */
-export const prisma = globalThis.multivrsPrisma ?? createPrismaClient();
+const databaseUrl = getDatabaseUrl();
+const reusesCurrentConnection = Boolean(
+  globalThis.multivrsPrisma && globalThis.multivrsPrismaUrl === databaseUrl,
+);
+
+if (globalThis.multivrsPrisma && !reusesCurrentConnection) {
+  // HMR preserves global state. Release the old pool when an environment
+  // change switches between the Supabase pooled and direct connection URLs.
+  void globalThis.multivrsPrisma.$disconnect();
+}
+
+let prismaClient: PrismaClient;
+if (reusesCurrentConnection && globalThis.multivrsPrisma) {
+  prismaClient = globalThis.multivrsPrisma;
+} else {
+  prismaClient = createPrismaClient(databaseUrl);
+}
+
+export const prisma = prismaClient;
 
 /**
  * Store instance on globalThis in development to persist across hot-reloads
  */
 if (process.env.NODE_ENV !== "production") {
   globalThis.multivrsPrisma = prisma;
+  globalThis.multivrsPrismaUrl = databaseUrl;
 }
 
 /**

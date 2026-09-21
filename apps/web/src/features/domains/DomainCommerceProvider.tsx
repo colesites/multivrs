@@ -66,6 +66,7 @@ export function DomainCommerceProvider({ children }: { children: ReactNode }) {
     cartItems,
     savedDomains: visibleSavedDomains,
     isSignedIn: Boolean(userId),
+    username: session?.user.username ?? undefined,
     hydrated,
     cartOpen,
     savedOpen: visibleSavedOpen,

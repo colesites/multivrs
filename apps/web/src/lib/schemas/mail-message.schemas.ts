@@ -94,7 +94,6 @@ export const inboundMailSchema = z.object({
   attachments: z.array(inboundAttachmentSchema).default([]),
 });
 
-
 export type ComposeMailInput = z.infer<typeof composeMailSchema>;
 export type InboundMailInput = z.infer<typeof inboundMailSchema>;
 

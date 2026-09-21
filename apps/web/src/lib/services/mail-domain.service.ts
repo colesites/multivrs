@@ -261,7 +261,6 @@ async function persistSnapshot(
   });
 }
 
-
 async function storedRecords(
   records: ProviderDomainRecord[],
   managed = new Set<string>(),
@@ -478,4 +477,3 @@ function mailDomainStatus(status: ProviderDomainSnapshot["status"]) {
       ? "failed"
       : "pending";
 }
-

@@ -115,7 +115,8 @@ export async function readInboundEmailFromS3(
     let htmlContent: string | undefined =
       typeof parsed.html === "string" && parsed.html.trim().length > 0
         ? parsed.html
-        : typeof parsed.textAsHtml === "string" && parsed.textAsHtml.trim().length > 0
+        : typeof parsed.textAsHtml === "string" &&
+            parsed.textAsHtml.trim().length > 0
           ? parsed.textAsHtml
           : undefined;
 
@@ -123,7 +124,10 @@ export async function readInboundEmailFromS3(
     if (htmlContent && attachments.length > 0) {
       for (const att of attachments) {
         if (att.contentId && att.contentBase64) {
-          const cidRegex = new RegExp(`cid:${att.contentId.replace(/[<>]/g, "")}`, "gi");
+          const cidRegex = new RegExp(
+            `cid:${att.contentId.replace(/[<>]/g, "")}`,
+            "gi",
+          );
           htmlContent = htmlContent.replace(
             cidRegex,
             `data:${att.contentType};base64,${att.contentBase64}`,

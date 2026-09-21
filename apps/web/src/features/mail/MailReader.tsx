@@ -1,6 +1,6 @@
 import {
-  ArrowLeft,
   Archive,
+  ArrowLeft,
   Forward,
   Inbox,
   Mail,
@@ -12,11 +12,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MailMessageBody } from "@/features/mail/MailMessageBody";
-import { SenderAvatar } from "@/features/mail/SenderAvatar";
 import type {
   MailMessageDetail,
   MailThreadSummary,
 } from "@/features/mail/mail.types";
+import { SenderAvatar } from "@/features/mail/SenderAvatar";
 
 export function MailReader({
   messages,
@@ -43,7 +43,12 @@ export function MailReader({
     );
   const latest = messages.at(-1);
   return (
-    <section className={className || "flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background dark:bg-[#07080a]"}>
+    <section
+      className={
+        className ||
+        "flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background dark:bg-[#07080a]"
+      }
+    >
       <div className="flex min-h-14 shrink-0 items-center gap-2 border-b border-black/10 dark:border-white/10 px-2 md:px-4">
         {onClose ? (
           <Button

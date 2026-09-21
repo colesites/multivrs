@@ -1,6 +1,5 @@
-import { cacheLife, cacheTag } from "next/cache";
 import { logWarning } from "@/lib/services/logger.service";
-import { client } from "./client";
+import { type DynamicFetchOptions, sanityFetch } from "./live";
 import { faqsQuery } from "./queries";
 
 export interface FaqItem {
@@ -14,16 +13,18 @@ export interface FaqItem {
 
 export async function getFaqs(
   page?: "home" | "pricing" | "all",
+  options: DynamicFetchOptions = { perspective: "published", stega: false },
 ): Promise<FaqItem[]> {
-  "use cache";
-  cacheLife({ stale: 30, revalidate: 60, expire: 300 });
-  cacheTag("faqs", `faqs-${page ?? "all"}`);
-
   try {
-    const data = await client.fetch<FaqItem[]>(faqsQuery, {
-      page: page || "all",
+    const { data } = await sanityFetch({
+      query: faqsQuery,
+      params: {
+        page: page || "all",
+      },
+      perspective: options.perspective,
+      stega: options.stega,
     });
-    return data || [];
+    return Array.isArray(data) ? (data as FaqItem[]) : [];
   } catch (error) {
     logWarning("sanity.faq.fetch_failed", error);
     return [];

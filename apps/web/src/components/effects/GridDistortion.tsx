@@ -105,8 +105,8 @@ export function GridDistortion({
 
     const render = () => {
       time += 0.015;
-      const width = canvas.width / (Math.min(window.devicePixelRatio || 1, 2));
-      const height = canvas.height / (Math.min(window.devicePixelRatio || 1, 2));
+      const width = canvas.width / Math.min(window.devicePixelRatio || 1, 2);
+      const height = canvas.height / Math.min(window.devicePixelRatio || 1, 2);
 
       ctx.clearRect(0, 0, width, height);
 
@@ -117,7 +117,7 @@ export function GridDistortion({
         40,
         width / 2,
         height / 2,
-        Math.max(width, height) * 0.75
+        Math.max(width, height) * 0.75,
       );
       bgGrad.addColorStop(0, "rgba(88, 28, 135, 0.45)"); // Deep neon purple
       bgGrad.addColorStop(0.35, "rgba(59, 7, 100, 0.35)");
@@ -181,7 +181,7 @@ export function GridDistortion({
           // Cell distortion intensity
           const centerDist = Math.hypot(
             (p1.x + p3.x) / 2 - mousePos.x,
-            (p1.y + p3.y) / 2 - mousePos.y
+            (p1.y + p3.y) / 2 - mousePos.y,
           );
           const activeGlow = Math.max(0, 1 - centerDist / mouseRadius);
 
@@ -222,7 +222,10 @@ export function GridDistortion({
     return () => {
       cancelAnimationFrame(animationFrameId);
       parent.removeEventListener("mousemove", handleMouseMove as EventListener);
-      parent.removeEventListener("mouseleave", handleMouseLeave as EventListener);
+      parent.removeEventListener(
+        "mouseleave",
+        handleMouseLeave as EventListener,
+      );
       window.removeEventListener("resize", handleResize);
     };
   }, [grid, mouse, strength, relaxation]);
@@ -231,7 +234,6 @@ export function GridDistortion({
     <canvas
       ref={canvasRef}
       className={`pointer-events-none absolute inset-0 block size-full ${className}`}
-      aria-hidden="true"
     />
   );
 }

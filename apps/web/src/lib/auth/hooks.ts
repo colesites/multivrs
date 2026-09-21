@@ -98,4 +98,3 @@ export const databaseHooks: BetterAuthOptions["databaseHooks"] = {
     },
   },
 };
-
