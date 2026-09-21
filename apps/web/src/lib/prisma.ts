@@ -21,14 +21,17 @@ declare global {
 }
 
 function getDatabaseUrl(): string {
-  // The Supabase transaction pooler can return EAUTHITIMEOUT while it is
-  // authenticating a connection. That was breaking every dashboard request at
-  // the session lookup. Prefer the configured direct connection for the app;
-  // retain DATABASE_URL as a fallback for environments that only provide it.
-  const databaseUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+  // In production (serverless), prefer DATABASE_URL (transaction pooler, port 6543)
+  // to avoid exhausting the 15-connection session limit across concurrent lambdas.
+  // In development (localhost), prefer DIRECT_URL (port 5432) to avoid transaction pooler EAUTHITIMEOUT.
+  const isProduction = process.env.NODE_ENV === "production";
+  const databaseUrl = isProduction
+    ? (process.env.DATABASE_URL ?? process.env.DIRECT_URL)
+    : (process.env.DIRECT_URL ?? process.env.DATABASE_URL);
+
   if (!databaseUrl) {
     throw new Error(
-      "DIRECT_URL or DATABASE_URL environment variable is required",
+      "DATABASE_URL or DIRECT_URL environment variable is required",
     );
   }
   if (!URL.canParse(databaseUrl)) {
@@ -45,6 +48,10 @@ function getDatabaseUrl(): string {
 function createPrismaClient(databaseUrl: string): PrismaClient {
   const pool = new Pool({
     connectionString: databaseUrl,
+    // In serverless environments, cap connections per lambda instance to avoid pool exhaustion
+    max: process.env.NODE_ENV === "production" ? 2 : 10,
+    idleTimeoutMillis: 20000,
+    connectionTimeoutMillis: 15000,
   });
 
   const adapter = new PrismaPg(pool);
