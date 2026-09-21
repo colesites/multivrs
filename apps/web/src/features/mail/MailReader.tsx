@@ -41,7 +41,7 @@ export function MailReader({
         Select a conversation to read it.
       </div>
     );
-  const latest = messages.at(-1);
+  const latest = messages[messages.length - 1];
   return (
     <section
       className={

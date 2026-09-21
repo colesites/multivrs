@@ -34,7 +34,9 @@ export async function composeMail(
     : null;
   const scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null;
   const safeHtml = sanitizeOutboundMailHtml(input.html);
-  const messageIdDomain = mailbox.address.split("@").at(-1) ?? "multivrs.space";
+  const addressParts = mailbox.address.split("@");
+  const messageIdDomain =
+    addressParts[addressParts.length - 1] ?? "multivrs.space";
   const result = await prisma.$transaction(async (tx) => {
     const thread = reply
       ? await tx.mailThread.findUniqueOrThrow({ where: { id: reply.threadId } })

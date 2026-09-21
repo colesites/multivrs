@@ -1,4 +1,5 @@
 import { type CSSProperties, useEffect, useRef } from "react";
+import { watchMediaQuery } from "@/lib/browser/media-query";
 export interface ParticleTextProps {
   text?: string;
   particleSize?: number;
@@ -454,6 +455,7 @@ const ParticleText = ({
       if (trigger === "click") startGather(true);
     };
 
+    let unwatchReduceMotion: (() => void) | undefined;
     const reduceMotionQuery = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)",
     );
@@ -462,7 +464,12 @@ const ParticleText = ({
       void sampleText();
     };
 
-    reduceMotionQuery?.addEventListener("change", handleReduceMotionChange);
+    if (reduceMotionQuery) {
+      unwatchReduceMotion = watchMediaQuery(
+        reduceMotionQuery,
+        handleReduceMotionChange,
+      );
+    }
     canvas.addEventListener("pointerenter", handlePointerEnter);
     canvas.addEventListener("pointermove", handlePointerMove);
     canvas.addEventListener("pointerleave", handlePointerLeave);
@@ -475,10 +482,7 @@ const ParticleText = ({
     return () => {
       buildId += 1;
       resizeObserver.disconnect();
-      reduceMotionQuery?.removeEventListener(
-        "change",
-        handleReduceMotionChange,
-      );
+      unwatchReduceMotion?.();
       canvas.removeEventListener("pointerenter", handlePointerEnter);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerleave", handlePointerLeave);

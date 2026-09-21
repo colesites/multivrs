@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { watchMediaQuery } from "@/lib/browser/media-query";
 
 const DESKTOP_MEDIA_QUERY = "(min-width: 768px)";
 
@@ -9,9 +10,7 @@ function serverSnapshot(): boolean {
 }
 
 function subscribeDesktop(onChange: () => void): () => void {
-  const media = window.matchMedia(DESKTOP_MEDIA_QUERY);
-  media.addEventListener("change", onChange);
-  return () => media.removeEventListener("change", onChange);
+  return watchMediaQuery(window.matchMedia(DESKTOP_MEDIA_QUERY), onChange);
 }
 
 function desktopSnapshot(): boolean {

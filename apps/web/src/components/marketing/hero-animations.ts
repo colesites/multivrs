@@ -67,30 +67,25 @@ export function useHeroAnimations() {
             "<0.1",
           );
 
-          /* Right column list items stagger in */
+          /* Right column reveals, then its items stagger in.
+             The column starts at `opacity-0` in the markup, so it always has
+             to be animated to visible: revealing only the items inside it
+             left the whole column hidden on mobile. */
+          tl.fromTo(
+            rightColRef.current,
+            { autoAlpha: 0, x: 20 },
+            { autoAlpha: 1, x: 0, duration: 0.6 },
+            "<0.2",
+          );
+
           const rightItems =
             rightColRef.current?.querySelectorAll(".hero-feature-item");
-          // The WordFlip item exists in the DOM at every breakpoint but is
-          // hidden on desktop. Animate the column there; on mobile, animate
-          // the visible WordFlip item itself.
           if (rightItems?.length && !isDesktop) {
             tl.fromTo(
               rightItems,
               { autoAlpha: 0, x: 20 },
-              {
-                autoAlpha: 1,
-                x: 0,
-                stagger: 0.1,
-                duration: 0.6,
-              },
-              "<0.2",
-            );
-          } else {
-            tl.fromTo(
-              rightColRef.current,
-              { autoAlpha: 0, x: 20 },
-              { autoAlpha: 1, x: 0, duration: 0.6 },
-              "<0.2",
+              { autoAlpha: 1, x: 0, stagger: 0.1, duration: 0.6 },
+              "<0.1",
             );
           }
 

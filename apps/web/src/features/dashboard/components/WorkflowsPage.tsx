@@ -18,6 +18,7 @@ import type {
   DashboardWorkflowStep,
 } from "@/features/dashboard/types/platform-workflow.types";
 import { requestOk } from "@/lib/api/request.client";
+import { randomId } from "@/lib/browser/random-id";
 
 interface EditableStep extends DashboardWorkflowStep {
   clientId: string;
@@ -301,7 +302,7 @@ export function WorkflowsPage({
   );
 }
 
-function newHttpStep(clientId = crypto.randomUUID()): EditableStep {
+function newHttpStep(clientId = randomId()): EditableStep {
   return {
     clientId,
     headers: {},
@@ -316,7 +317,7 @@ function newHttpStep(clientId = crypto.randomUUID()): EditableStep {
 
 function newDelayStep(): EditableStep {
   return {
-    clientId: crypto.randomUUID(),
+    clientId: randomId(),
     durationSeconds: 60,
     name: "Wait",
     type: "delay",

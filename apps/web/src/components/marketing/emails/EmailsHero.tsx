@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import SpecularButton from "@/components/SpecularButton";
 import { WordFlip } from "@/components/WordFlip";
 import { authClient } from "@/lib/auth-client";
+import { onIdle } from "@/lib/browser/idle";
 
 const SceneFallback = () => (
   <div className="grid h-full w-full place-items-center" aria-hidden="true">
@@ -22,27 +23,28 @@ const EnvelopeStackScene = dynamic(
   { ssr: false, loading: SceneFallback },
 );
 
-/** Mount the WebGL scene once the browser is idle so it never blocks first paint. */
+/**
+ * Mounts the WebGL scene without holding up the page.
+ *
+ * The scene's chunk is fetched as soon as the hero mounts, so the download and
+ * parse overlap with hydration instead of starting after it. The canvas itself
+ * still waits for the first idle moment, which keeps the main thread free for
+ * the rest of the page.
+ */
 function useSceneReady() {
   const [state, setState] = useState<{ ready: boolean; animate: boolean }>({
     ready: false,
     animate: true,
   });
   useEffect(() => {
+    void import("./EnvelopeStackScene");
     const animate = !window.matchMedia("(prefers-reduced-motion: reduce)")
       .matches;
-    const start = () => setState({ ready: true, animate });
-    if ("requestIdleCallback" in window) {
-      const id = window.requestIdleCallback(start, { timeout: 1200 });
-      return () => window.cancelIdleCallback(id);
-    }
-    const id = setTimeout(start, 200);
-    return () => clearTimeout(id);
+    return onIdle(() => setState({ ready: true, animate }), 400);
   }, []);
   return state;
 }
 
-/** The headline's rotating second line: who the mail is for. */
 const AUDIENCES = ["builders", "developers", "marketers", "businesses"];
 
 export function EmailsHero() {

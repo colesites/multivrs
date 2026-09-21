@@ -28,8 +28,8 @@ export function DashboardSectionSkeleton({
   requestedSection?: string;
 } = {}) {
   const segments = usePathname().split("/").filter(Boolean);
-  const section = requestedSection ?? segments.at(-1);
-  const scope = requestedScope ?? segments.at(-2);
+  const section = requestedSection ?? segments[segments.length - 1];
+  const scope = requestedScope ?? segments[segments.length - 2];
 
   if (section === "emails" || section === "email") return <MailPageSkeleton />;
   if (section === "settings")
