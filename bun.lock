@@ -123,9 +123,9 @@
         "@multivrs/client": "*",
         "@multivrs/config": "*",
         "@multivrs/error-utils": "*",
-        "@prisma/adapter-neon": "latest",
+        "@prisma/adapter-neon": "^7.9.1",
         "@prisma/adapter-pg": "^7.9.1",
-        "@prisma/client": "latest",
+        "@prisma/client": "^7.9.1",
         "@react-three/drei": "^10.7.7",
         "@react-three/fiber": "^9.6.1",
         "@repo/backend": "*",
@@ -134,6 +134,7 @@
         "@stripe/react-stripe-js": "^6.8.0",
         "@stripe/stripe-js": "^9.12.0",
         "@types/sanitize-html": "^2.16.1",
+        "@vercel/analytics": "^2.0.1",
         "better-auth": "^1.6.20",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -178,7 +179,7 @@
         "babel-plugin-react-compiler": "1.0.0",
         "dotenv": "^17.4.2",
         "gsap": "^3.13.0",
-        "prisma": "latest",
+        "prisma": "^7.9.1",
         "tailwindcss": "^4",
         "typescript": "^5",
         "ws": "^8.21.0",
@@ -1739,6 +1740,8 @@
     "@vanilla-extract/dynamic": ["@vanilla-extract/dynamic@2.1.5", "", { "dependencies": { "@vanilla-extract/private": "^1.0.9" } }, "sha512-QGIFGb1qyXQkbzx6X6i3+3LMc/iv/ZMBttMBL+Wm/DetQd36KsKsFg5CtH3qy+1hCA/5w93mEIIAiL4fkM8ycw=="],
 
     "@vanilla-extract/private": ["@vanilla-extract/private@1.0.9", "", {}, "sha512-gT2jbfZuaaCLrAxwXbRgIhGhcXbRZCG3v4TTUnjw0EJ7ArdBRxkq4msNJkbuRkCgfIK5ATmprB5t9ljvLeFDEA=="],
+
+    "@vercel/analytics": ["@vercel/analytics@2.0.1", "", { "peerDependencies": { "@remix-run/react": "^2", "@sveltejs/kit": "^1 || ^2", "next": ">= 13", "nuxt": ">= 3", "react": "^18 || ^19 || ^19.0.0-rc", "svelte": ">= 4", "vue": "^3", "vue-router": "^4" }, "optionalPeers": ["@remix-run/react", "@sveltejs/kit", "next", "nuxt", "react", "svelte", "vue", "vue-router"] }, "sha512-MTQG6V9qQrt1tsDeF+2Uoo5aPjqbVPys1xvnIftXSJYG2SrwXRHnqEvVoYID7BTruDz4lCd2Z7rM1BdkUehk2g=="],
 
     "@vercel/error-utils": ["@vercel/error-utils@2.2.0", "", {}, "sha512-WFWiRxfPzoYWYifaj4thSKvAaZZwUOqD4k5GINRIgZgCiS2E3iAJbWbIsIZmkQdTecWFHcWGA6q48CjisgpOBA=="],
 
