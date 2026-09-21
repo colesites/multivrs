@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { logWarning } from "@/lib/services/logger.service";
 import { recommendedPricingComparison } from "../seed/recommended-pricing-comparison";
 import { type DynamicFetchOptions, sanityFetch } from "./live";
@@ -60,4 +61,18 @@ export async function getPricingComparison(
     logWarning("sanity.pricing.fetch_failed", error);
     return recommendedPricingComparison;
   }
+}
+
+export const PRICING_COMPARISON_TAG = "pricing:comparison";
+
+/**
+ * The published comparison table, cached so the pricing route can prerender.
+ * Sanity Live tags the query inside this boundary, so edits still appear
+ * without waiting for the lifetime to lapse.
+ */
+export async function getCachedPricingComparison(): Promise<PricingComparison> {
+  "use cache";
+  cacheLife("days");
+  cacheTag(PRICING_COMPARISON_TAG);
+  return getPricingComparison();
 }
