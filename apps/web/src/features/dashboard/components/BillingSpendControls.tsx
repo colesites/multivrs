@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { billingRequest } from "@/features/dashboard/lib/billing-api";
 import type { BillingScopeSummary } from "@/features/dashboard/types/billing.types";
+import { randomId } from "@/lib/browser/random-id";
 import { billingUpdatedSchema } from "@/lib/schemas/billing.schemas";
 
 export function BillingSpendControls({
@@ -24,7 +25,7 @@ export function BillingSpendControls({
       "/api/billing/spend",
       "PUT",
       {
-        operationId: crypto.randomUUID(),
+        operationId: randomId(),
         overagesEnabled: form.get("overages") === "on",
         scopeId: scope.scopeId,
         spendAlertCents: cents(form.get("alert")),

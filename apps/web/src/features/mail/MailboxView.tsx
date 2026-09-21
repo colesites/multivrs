@@ -75,7 +75,8 @@ export function MailboxView({
   const openThread = (threadId: string) => {
     setSelectedId(threadId);
     const thread = threads.find((item) => item.id === threadId);
-    const latest = data.messages[threadId]?.at(-1);
+    const threadMessages = data.messages[threadId];
+    const latest = threadMessages?.[threadMessages.length - 1];
     if (!thread?.unread || !latest) return;
     setLocallyReadThreadIds((current) => {
       const next = new Set(current);

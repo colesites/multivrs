@@ -246,7 +246,7 @@ export function EnvelopeStackScene({ animate = true }: { animate?: boolean }) {
         scale={9}
         blur={2.8}
         far={3.5}
-        frames={animate ? Number.POSITIVE_INFINITY : 1}
+        frames={60}
       />
 
       {/* Local studio lighting: no HDR download, just a few light panels. */}

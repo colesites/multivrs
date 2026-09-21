@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { billingRequest } from "@/features/dashboard/lib/billing-api";
 import type { BillingScopeSummary } from "@/features/dashboard/types/billing.types";
+import { randomId } from "@/lib/browser/random-id";
 import type { AddOnKey } from "@/lib/payments/billing.types";
 import { billingUpdatedSchema } from "@/lib/schemas/billing.schemas";
 
@@ -36,7 +37,7 @@ export function BillingAddOnRow({
       "PUT",
       {
         addOn: product.key,
-        operationId: crypto.randomUUID(),
+        operationId: randomId(),
         projectIds: isSpeed ? projectIds : [],
         quantity: isSpeed ? projectIds.length : quantity,
         scopeId: scope.scopeId,

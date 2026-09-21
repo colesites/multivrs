@@ -28,9 +28,19 @@ export const metadata: Metadata = {
   alternates: { canonical: "/templates" },
 };
 
+/**
+ * The whole marketplace is dark, so it carries the `dark-marketing-header`
+ * marker the navbar looks for. Without it the header renders its light-mode
+ * styling over a black page, the same marker home, emails and domains use.
+ */
 export default function TemplatesMarketplacePage() {
   return (
-    <main className="dark min-h-screen bg-black pt-16 text-white">
+    <main
+      className="dark relative min-h-screen bg-black pt-16 text-white"
+      id="dark-marketing-header"
+    >
+      {/* Covers the white page background when mobile rubber-bands at the top. */}
+      <div className="absolute inset-x-0 bottom-full h-[50vh] bg-black" />
       <TemplatesHero />
       <Suspense fallback={<TemplateGridSkeleton />}>
         <TemplatesGrid />

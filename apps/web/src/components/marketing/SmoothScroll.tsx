@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { onIdle } from "@/lib/browser/idle";
 
 async function createSmoothScroll(): Promise<() => void> {
   const [{ default: Lenis }, { default: gsap }, { ScrollTrigger }] =
@@ -31,18 +32,15 @@ export function SmoothScroll() {
 
     let disposed = false;
     let teardown: (() => void) | undefined;
-    const idleId = window.requestIdleCallback(
-      () => {
-        void createSmoothScroll().then((cleanup) => {
-          if (disposed) cleanup();
-          else teardown = cleanup;
-        });
-      },
-      { timeout: 1200 },
-    );
+    const cancelIdle = onIdle(() => {
+      void createSmoothScroll().then((cleanup) => {
+        if (disposed) cleanup();
+        else teardown = cleanup;
+      });
+    }, 1200);
     return () => {
       disposed = true;
-      window.cancelIdleCallback(idleId);
+      cancelIdle();
       teardown?.();
     };
   }, []);

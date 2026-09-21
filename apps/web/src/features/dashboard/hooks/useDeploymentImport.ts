@@ -13,6 +13,7 @@ import type {
   DeploymentImportConfig,
   RepositorySource,
 } from "@/features/dashboard/types/deployment-import.types";
+import { randomId } from "@/lib/browser/random-id";
 
 export type ImportDeploymentStatus =
   | "idle"
@@ -92,7 +93,7 @@ export function useDeploymentImport(source: RepositorySource) {
       setLogs((current) => [
         ...current,
         {
-          id: crypto.randomUUID(),
+          id: randomId(),
           message:
             error instanceof Error ? error.message : "Status update failed",
         },
@@ -130,7 +131,7 @@ export function useDeploymentImport(source: RepositorySource) {
       setLogs((current) => [
         ...current,
         {
-          id: crypto.randomUUID(),
+          id: randomId(),
           message: error instanceof Error ? error.message : "Deployment failed",
         },
       ]);

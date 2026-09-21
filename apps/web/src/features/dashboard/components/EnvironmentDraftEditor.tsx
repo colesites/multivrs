@@ -5,6 +5,7 @@ import type {
   DeploymentImportConfig,
   EnvironmentDraft,
 } from "@/features/dashboard/types/deployment-import.types";
+import { randomId } from "@/lib/browser/random-id";
 
 export function EnvironmentDraftEditor({
   config,
@@ -85,7 +86,7 @@ export function EnvironmentDraftEditor({
                 ...config,
                 environment: [
                   ...config.environment,
-                  { id: crypto.randomUUID(), key: "", value: "" },
+                  { id: randomId(), key: "", value: "" },
                 ],
               })
             }

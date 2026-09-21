@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { onIdle } from "@/lib/browser/idle";
 
 const Fallback = () => (
   <div className="fixed inset-0 z-0 bg-[#030303]" aria-hidden="true" />
@@ -25,10 +26,7 @@ export function DeferredUniverseCanvas() {
     ) {
       return;
     }
-    const idleId = window.requestIdleCallback(() => setReady(true), {
-      timeout: 1600,
-    });
-    return () => window.cancelIdleCallback(idleId);
+    return onIdle(() => setReady(true), 1600);
   }, []);
 
   return ready ? <UniverseCanvas /> : <Fallback />;
