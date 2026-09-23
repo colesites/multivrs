@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Bell, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
 import {
@@ -24,10 +25,11 @@ export function SidebarFooter({
   image,
   notifications,
 }: SidebarFooterProps) {
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const initial = (name?.[0] ?? "U").toUpperCase();
 
   return (
-    <div className="flex items-center gap-2 border-t border-[var(--hairline)] px-4 py-3">
+    <div className="flex items-center gap-2 border-t border-(--hairline) px-4 py-3">
       {image ? (
         <Image
           src={image}
@@ -35,10 +37,10 @@ export function SidebarFooter({
           height={28}
           unoptimized
           width={28}
-          className="size-7 shrink-0 rounded-full border border-[var(--hairline-strong)] object-cover"
+          className="size-7 shrink-0 rounded-full border border-(--hairline-strong) object-cover"
         />
       ) : (
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-[var(--hairline-strong)] bg-white/[0.04] font-geist-mono text-[12px] font-medium text-foreground">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-(--hairline-strong) bg-white/4 font-geist-mono text-[12px] font-medium text-foreground">
           {initial}
         </span>
       )}
@@ -46,10 +48,10 @@ export function SidebarFooter({
         {name}
       </span>
 
-      <DropdownMenu>
+      <DropdownMenu open={accountMenuOpen} onOpenChange={setAccountMenuOpen}>
         <DropdownMenuTrigger
           aria-label="Account menu"
-          className="flex size-8 items-center justify-center rounded-full border border-[var(--hairline)] text-muted-foreground transition-colors hover:border-[var(--hairline-strong)] hover:text-foreground"
+          className="flex size-8 items-center justify-center rounded-full border border-(--hairline) text-muted-foreground transition-colors hover:border-(--hairline-strong) hover:text-foreground"
         >
           <MoreHorizontal className="size-4" strokeWidth={1.75} />
         </DropdownMenuTrigger>
@@ -57,27 +59,31 @@ export function SidebarFooter({
           side="top"
           align="end"
           sideOffset={10}
-          className="w-[300px] rounded-2xl border border-[var(--hairline)] bg-[var(--ink)] p-1.5 font-hanken shadow-2xl shadow-black/40 dashboard-surface"
+          className="w-75 rounded-2xl border border-(--hairline) bg-(--ink) p-1.5 font-hanken shadow-2xl shadow-black/40 dashboard-surface"
         >
-          <AccountMenu name={name} email={email} />
+          <AccountMenu
+            name={name}
+            email={email}
+            onClose={() => setAccountMenuOpen(false)}
+          />
         </DropdownMenuContent>
       </DropdownMenu>
 
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label="Notifications"
-          className="relative flex size-8 items-center justify-center rounded-full border border-[var(--hairline)] text-muted-foreground transition-colors hover:border-[var(--hairline-strong)] hover:text-foreground"
+          className="relative flex size-8 items-center justify-center rounded-full border border-(--hairline) text-muted-foreground transition-colors hover:border-(--hairline-strong) hover:text-foreground"
         >
           <Bell className="size-4" strokeWidth={1.75} />
           {notifications.some((item) => !item.read) ? (
-            <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-accent ring-2 ring-[var(--ink)]" />
+            <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-accent ring-2 ring-(--ink)" />
           ) : null}
         </DropdownMenuTrigger>
         <DropdownMenuContent
           side="top"
           align="end"
           sideOffset={10}
-          className="w-[340px] overflow-hidden rounded-2xl border border-[var(--hairline)] bg-[var(--ink)] p-0 font-hanken shadow-2xl shadow-black/40 dashboard-surface"
+          className="w-85 overflow-hidden rounded-2xl border border-(--hairline) bg-(--ink) p-0 font-hanken shadow-2xl shadow-black/40 dashboard-surface"
         >
           <NotificationsPanel initialNotifications={notifications} />
         </DropdownMenuContent>

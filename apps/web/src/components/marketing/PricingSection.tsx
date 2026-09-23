@@ -1,15 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
 import CursorGrid from "@/components/CursorGrid";
 import { PricingCard } from "@/components/marketing/PricingCard";
 import {
   ENTERPRISE_FEATURES,
   iconForPricingFeature,
 } from "@/components/marketing/pricing-plans";
-import { startSubscriptionCheckout } from "@/features/billing/subscription-checkout-api";
 import { authClient } from "@/lib/auth-client";
 import type { StripePlan } from "@/lib/payments/pricing";
 
@@ -21,7 +18,6 @@ export function PricingSection({
   proPlan: StripePlan;
 }) {
   const router = useRouter();
-  const [checkoutPending, setCheckoutPending] = useState(false);
   const { data: session } = authClient.useSession();
 
   function handleProAction() {
@@ -29,19 +25,12 @@ export function PricingSection({
       router.push("/contact/sales");
       return;
     }
+    const target = "/dashboard?upgradeTeam=pricing-page-plan-card-cta";
     if (!session?.user) {
-      router.push("/signup?next=/pricing");
+      router.push(`/signup?next=${encodeURIComponent(target)}`);
       return;
     }
-    setCheckoutPending(true);
-    void startSubscriptionCheckout()
-      .then((url) => window.location.assign(url))
-      .catch((error: unknown) => {
-        toast.error(
-          error instanceof Error ? error.message : "Unable to start checkout",
-        );
-        setCheckoutPending(false);
-      });
+    router.push(target);
   }
 
   return (
@@ -95,15 +84,12 @@ export function PricingSection({
               icon: iconForPricingFeature(text),
             }))}
             action={
-              checkoutPending
-                ? "Opening checkout…"
-                : proPlan.configured
-                  ? session?.user
-                    ? "Upgrade now"
-                    : "Start with Pro"
-                  : "Contact us"
+              proPlan.configured
+                ? session?.user
+                  ? "Upgrade now"
+                  : "Start with Pro"
+                : "Contact us"
             }
-            actionDisabled={checkoutPending}
             variant="featured"
             onAction={handleProAction}
           />

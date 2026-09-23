@@ -75,7 +75,7 @@ export function HeroContent() {
       {/* 2. HEADLINE: Center on mobile (order-2) / Left on desktop (lg:order-1) */}
       <div
         ref={leftColRef}
-        className="order-2 my-auto flex w-full max-w-full flex-col items-center text-center px-2 sm:px-0 lg:order-1 lg:my-0 lg:max-w-[360px] xl:max-w-[420px] lg:items-start lg:text-left"
+        className="order-2 my-auto flex w-full max-w-full flex-col items-center text-center opacity-0 px-2 sm:px-0 lg:order-1 lg:my-0 lg:max-w-[360px] xl:max-w-[420px] lg:items-start lg:text-left"
       >
         <h1 className="mb-2 lg:mb-8 font-clash max-w-full">
           <FoldText
@@ -134,7 +134,7 @@ export function HeroContent() {
       {/* 3. SUBTITLE / VALUE PROP: Word Flip on Mobile ONLY (order-3), Clean text lines on Desktop (lg:order-3) */}
       <div
         ref={rightColRef}
-        className="order-3 mt-1 flex w-full flex-col items-center text-center lg:order-3 lg:mt-0 lg:items-start lg:text-left lg:pl-6 xl:pl-8"
+        className="order-3 mt-1 flex w-full flex-col items-center text-center opacity-0 lg:order-3 lg:mt-0 lg:items-start lg:text-left lg:pl-6 xl:pl-8"
       >
         {/* Mobile-only WordFlip */}
         <div className="block lg:hidden hero-feature-item font-mono text-xs sm:text-sm font-normal text-white select-none [text-shadow:0_1px_10px_rgba(0,0,0,0.85)]">

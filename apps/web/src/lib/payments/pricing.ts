@@ -17,6 +17,7 @@ export type StripePlan = {
   configured: boolean;
   description: string;
   features: string[];
+  metadata?: Record<string, string>;
   name: string;
   priceId: string | null;
   priceLabel: string;
@@ -104,6 +105,7 @@ async function getStripePlan(
         product.marketing_features
           ?.map((feature) => feature.name?.trim())
           .filter((name): name is string => Boolean(name)) ?? [],
+      metadata: product.metadata ?? {},
       name: product.name,
       priceId: price.id,
       priceLabel: amount,
@@ -111,7 +113,8 @@ async function getStripePlan(
         ? `/${price.recurring.interval === "month" ? "mo." : price.recurring.interval}`
         : "",
     };
-  } catch {
+  } catch (error) {
+    console.error(`[getStripePlan:${name}] error:`, error);
     return unavailablePlan(name);
   }
 }

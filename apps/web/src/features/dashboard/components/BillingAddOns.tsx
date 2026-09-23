@@ -43,8 +43,19 @@ export function BillingAddOns({
 }) {
   if (!scope.subscriptionId) {
     return (
-      <p className="border-b border-[var(--hairline)] py-5 text-sm text-muted-foreground">
-        Upgrade to Pro to activate paid add-ons and metered overages.
+      <p className="border-b border-(--hairline) py-5 text-sm text-muted-foreground">
+        <button
+          type="button"
+          onClick={() =>
+            window.dispatchEvent(
+              new CustomEvent("open-upgrade-sheet", { detail: { step: 2 } }),
+            )
+          }
+          className="text-foreground underline underline-offset-4 hover:text-white cursor-pointer transition-colors"
+        >
+          Upgrade to Pro
+        </button>{" "}
+        to activate paid add-ons and metered overages.
       </p>
     );
   }

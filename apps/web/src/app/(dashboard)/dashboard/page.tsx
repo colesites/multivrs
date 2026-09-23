@@ -16,13 +16,35 @@ import { getServerSession } from "@/lib/auth/session";
  * gate. As a static segment it always wins over the sibling dynamic
  * `[username]` route, so there is no collision.
  */
-export default async function DashboardPage() {
-  const session = await getServerSession();
+export default async function DashboardPage(props: {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const [session, searchParams] = await Promise.all([
+    getServerSession(),
+    props.searchParams,
+  ]);
+
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams ?? {})) {
+    if (typeof value === "string") {
+      query.set(key, value);
+    } else if (Array.isArray(value)) {
+      for (const item of value) {
+        query.append(key, item);
+      }
+    }
+  }
+  const qs = query.toString();
 
   if (!session) {
-    redirect("/login");
+    const nextUrl = `/dashboard${qs ? `?${qs}` : ""}`;
+    redirect(`/login?next=${encodeURIComponent(nextUrl)}`);
   }
 
   const username = session.user.username;
-  redirect(username ? `/${username}` : "/signup?step=username");
+  redirect(
+    username
+      ? `/${username}${qs ? `?${qs}` : ""}`
+      : `/signup?step=username${qs ? `&${qs}` : ""}`,
+  );
 }

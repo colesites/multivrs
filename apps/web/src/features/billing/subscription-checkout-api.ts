@@ -5,9 +5,14 @@ const apiErrorSchema = z.object({
   error: z.object({ message: z.string().optional() }).optional(),
 });
 
-export async function startSubscriptionCheckout(): Promise<string> {
+export async function startSubscriptionCheckout(options?: {
+  organizationId?: string | null;
+  returnSlug?: string | null;
+}): Promise<string> {
   const response = await fetch("/api/stripe/checkout/subscriptions", {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(options ?? {}),
   });
   if (!response.ok) {
     const body: unknown = await response.json();
