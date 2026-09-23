@@ -1,4 +1,4 @@
-import { cacheLife, cacheTag } from "next/cache";
+import { cacheTag } from "next/cache";
 import { logWarning } from "@/lib/services/logger.service";
 import { recommendedPricingComparison } from "../seed/recommended-pricing-comparison";
 import { type DynamicFetchOptions, sanityFetch } from "./live";
@@ -72,7 +72,6 @@ export const PRICING_COMPARISON_TAG = "pricing:comparison";
  */
 export async function getCachedPricingComparison(): Promise<PricingComparison> {
   "use cache";
-  cacheLife("days");
   cacheTag(PRICING_COMPARISON_TAG);
   return getPricingComparison();
 }

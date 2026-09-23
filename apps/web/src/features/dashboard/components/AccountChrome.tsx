@@ -1,4 +1,4 @@
-import { dashboardProjects } from "@/lib/services/dashboard.service";
+import { dashboardProjectOptions } from "@/lib/services/dashboard.service";
 import { listNotifications } from "@/lib/services/notification.service";
 import { DashboardMobileNavigation } from "./DashboardMobileNavigation";
 import { DashboardTopbar } from "./DashboardTopbar";
@@ -43,6 +43,5 @@ export async function AccountChrome({
 }
 
 async function loadProjectOptions(workspaceName: string, viewerId: string) {
-  const projects = await dashboardProjects(workspaceName, viewerId);
-  return (projects ?? []).map(({ slug, name }) => ({ slug, name }));
+  return dashboardProjectOptions(workspaceName, viewerId);
 }

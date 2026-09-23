@@ -18,22 +18,18 @@ export default async function AccountLayout({
   children: React.ReactNode;
   params: Promise<{ username: string }>;
 }>) {
-  const [session, { username }, proPlan] = await Promise.all([
-    getServerSession(),
+  const session = await getServerSession();
+  if (!session) {
+    redirect("/login");
+  }
+
+  const [{ username }, proPlan] = await Promise.all([
     params,
     getProPlan().catch((err) => {
       console.error("[AccountLayout] getProPlan error:", err);
       return null;
     }),
   ]);
-  console.log("[AccountLayout] proPlan:", {
-    configured: proPlan?.configured,
-    features: proPlan?.features,
-    metadata: proPlan?.metadata,
-  });
-  if (!session) {
-    redirect("/login");
-  }
 
   if (
     session.user.username !== username &&

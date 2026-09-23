@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { FaqStream } from "@/components/marketing/FaqStream";
 import { PricingComparisonTable } from "@/components/marketing/PricingComparisonTable";
@@ -36,6 +37,7 @@ export default function PricingPage() {
 }
 
 async function PricingPlans() {
+  await connection();
   const plans = await getPricingPlans();
   return <PricingSection {...plans} />;
 }

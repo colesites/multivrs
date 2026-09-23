@@ -38,6 +38,30 @@ function duration(createdAt: Date, updatedAt: Date, state: string): string {
     : `${seconds}s`;
 }
 
+export const dashboardProjectOptions = cache(
+  async function dashboardProjectOptions(
+    username: string,
+    viewerId: string,
+  ): Promise<{ slug: string; name: string }[]> {
+    const owner = await prisma.user.findUnique({
+      where: { username },
+      select: { id: true },
+    });
+    if (!owner) return [];
+    return prisma.project.findMany({
+      where: {
+        ownerId: owner.id,
+        OR: [
+          { ownerId: viewerId },
+          { organization: { members: { some: { userId: viewerId } } } },
+        ],
+      },
+      select: { slug: true, name: true },
+      orderBy: { updatedAt: "desc" },
+    });
+  },
+);
+
 export const dashboardProjects = cache(async function dashboardProjects(
   username: string,
   viewerId: string,
