@@ -1,0 +1,13 @@
+node_modules/
+.swift-rust/
+.vercel/
+dist/
+.turbo/
+target/
+*.log
+.DS_Store
+
+# env files — ignore everything except the example
+.env
+.env.*
+!.env.example

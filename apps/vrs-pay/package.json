@@ -1,0 +1,36 @@
+{
+  "name": "vrs-pay",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "swift-rust dev",
+    "build": "swift-rust build",
+    "start": "swift-rust start",
+    "lint": "biome check .",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "format": "biome format --write ."
+  },
+  "dependencies": {
+    "swift-rust": "^1.10.11",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/postcss": "^4.0.0",
+    "postcss": "^8.4.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.6.0",
+    "lucide-react": "^0.460.0"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@biomejs/biome": "^2.4.16",
+    "@swift-rust/ui": "latest"
+  },
+  "engines": {
+    "bun": ">=1.3.0"
+  }
+}

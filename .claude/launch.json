@@ -7,6 +7,12 @@
       "runtimeArgs": ["run", "--cwd", "apps/web", "dev"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "vrs-pay",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "--cwd", "apps/vrs-pay", "dev"],
+      "port": 3210
     }
   ]
 }
