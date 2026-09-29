@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ogImage, siteTitle, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const description =
@@ -7,18 +8,21 @@ const description =
 export const metadata = {
   title: {
     template: "%s · VRS Pay",
-    default: "VRS Pay — Payment integration across every border",
+    default: siteTitle,
   },
   description,
   openGraph: {
-    title: "VRS Pay — Payment integration across every border",
+    title: siteTitle,
     description,
     type: "website",
+    url: siteUrl,
+    images: [ogImage],
   },
   twitter: {
     card: "summary_large_image",
-    title: "VRS Pay — Payment integration across every border",
+    title: siteTitle,
     description,
+    images: [ogImage.url],
   },
 };
 
