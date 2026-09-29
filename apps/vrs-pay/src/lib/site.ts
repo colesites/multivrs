@@ -1,13 +1,10 @@
 /**
- * Social cards need absolute https URLs. The page is prerendered at build
- * time, where Vercel exposes the production domain; set SITE_URL to override
- * it (e.g. once a custom domain is attached).
+ * The canonical production origin. Social crawlers need absolute https URLs,
+ * and previews/local builds should still point shares at the real site, so
+ * this is fixed rather than derived from the host. SITE_URL overrides it.
  */
 export const siteUrl = (
-  process.env.SITE_URL ??
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "http://localhost:3210")
+  process.env.SITE_URL ?? "https://vrs-pay.multivrs.space"
 ).replace(/\/+$/, "");
 
 export const siteName = "VRS Pay";
