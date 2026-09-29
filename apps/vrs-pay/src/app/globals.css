@@ -1,0 +1,340 @@
+@import "tailwindcss";
+
+/* ── Brand tokens ────────────────────────────────────────────────────────────
+   Ink (near-black) carries the text, violet is the single sharp accent, and
+   the landscape photography supplies the color. The site is light-only by
+   design, so there is no dark-mode override. */
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-ink: #0b0b12;
+  --color-ink-soft: #3b3b48;
+  --color-mute: #676776;
+  --color-line: #e9e9f0;
+  --color-wash: #f6f6f9;
+
+  --color-brand-50: #f5f2ff;
+  --color-brand-100: #ece6ff;
+  --color-brand-200: #d9ccff;
+  --color-brand-300: #bba4ff;
+  --color-brand-400: #9b77ff;
+  --color-brand-500: #7c4dff;
+  --color-brand-600: #6936f5;
+  --color-brand-700: #5724d9;
+  --color-brand-800: #461db0;
+  --color-brand-900: #2a1270;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-rise: rise 1s var(--ease-out-expo) both;
+  --animate-bob: bob 7s ease-in-out infinite;
+  --animate-orbit: orbit 40s linear infinite;
+  --animate-orbit-reverse: orbit 40s linear infinite reverse;
+  --animate-marquee: marquee 45s linear infinite;
+  --animate-pulse-dot: pulse-dot 2.4s ease-out infinite;
+}
+
+/* Keyframes live outside @theme so they're emitted even when only plain CSS
+   (not an animate-* utility) references them. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@keyframes bob {
+  50% {
+    translate: 0 -10px;
+  }
+}
+@keyframes orbit {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes pulse-dot {
+  0% {
+    box-shadow: 0 0 0 0 rgb(34 197 94 / 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgb(34 197 94 / 0);
+  }
+}
+
+/* Decorative motion is opt-in: users who ask for less motion get none. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ── swift-rust ui tokens ────────────────────────────────────────────────────
+   Button / Input / Card read these through the @theme inline mapping below. */
+:root {
+  --ui-bg: #ffffff;
+  --ui-fg: #0b0b12;
+  --ui-card: #ffffff;
+  --ui-card-fg: #0b0b12;
+  --ui-popover: #ffffff;
+  --ui-popover-fg: #0b0b12;
+  --ui-primary: #0b0b12;
+  --ui-primary-fg: #ffffff;
+  --ui-secondary: #f6f6f9;
+  --ui-secondary-fg: #0b0b12;
+  --ui-muted: #f6f6f9;
+  --ui-muted-fg: #676776;
+  --ui-accent: #ece6ff;
+  --ui-accent-fg: #461db0;
+  --ui-destructive: #dc2626;
+  --ui-destructive-fg: #ffffff;
+  --ui-border: #e9e9f0;
+  --ui-input: #e9e9f0;
+  --ui-ring: #6936f5;
+  --ui-radius: 0.75rem;
+}
+
+@theme inline {
+  --color-background: var(--ui-bg);
+  --color-foreground: var(--ui-fg);
+  --color-card: var(--ui-card);
+  --color-card-foreground: var(--ui-card-fg);
+  --color-popover: var(--ui-popover);
+  --color-popover-foreground: var(--ui-popover-fg);
+  --color-primary: var(--ui-primary);
+  --color-primary-foreground: var(--ui-primary-fg);
+  --color-secondary: var(--ui-secondary);
+  --color-secondary-foreground: var(--ui-secondary-fg);
+  --color-muted: var(--ui-muted);
+  --color-muted-foreground: var(--ui-muted-fg);
+  --color-accent: var(--ui-accent);
+  --color-accent-foreground: var(--ui-accent-fg);
+  --color-destructive: var(--ui-destructive);
+  --color-destructive-foreground: var(--ui-destructive-fg);
+  --color-border: var(--ui-border);
+  --color-input: var(--ui-input);
+  --color-ring: var(--ui-ring);
+  --radius: var(--ui-radius);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    background: #ffffff;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* Safety net for decorative bleed (glows, tilted cards); `clip` keeps sticky working. */
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--color-brand-200);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 3px;
+  }
+}
+
+/* ── Type ────────────────────────────────────────────────────────────────── */
+@utility font-display {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+}
+
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ── Texture ─────────────────────────────────────────────────────────────── */
+/* Film grain as an inline SVG — no request, composited once. */
+@utility grain {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.22;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* Diagonal hatching for dashboard bars. Set --bar to the stripe color. */
+@utility hatch {
+  background-image: repeating-linear-gradient(
+    -55deg,
+    var(--bar) 0 2.5px,
+    color-mix(in oklab, var(--bar) 45%, white) 2.5px 5px
+  );
+}
+
+/* Soft fade on both horizontal edges (logo marquee). */
+@utility fade-x {
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+/* Component styles sit in the components layer so Tailwind utilities
+   (absolute, hidden, lg:grid, …) can still override them per instance. */
+@layer components {
+  /* ── Scroll reveal ───────────────────────────────────────────────────────────
+     Scroll-driven, zero JS. Browsers without view timelines just show content. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .reveal {
+        animation: reveal linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 28%;
+      }
+    }
+  }
+
+  @keyframes reveal {
+    from {
+      opacity: 0;
+      transform: translateY(36px);
+    }
+  }
+
+  /* Dashed payment routes drift along their path. */
+  @media (prefers-reduced-motion: no-preference) {
+    .route {
+      animation: route-dash 1.6s linear infinite;
+    }
+  }
+
+  @keyframes route-dash {
+    to {
+      stroke-dashoffset: -20;
+    }
+  }
+
+  /* ── Mobile menu (native Popover API) ───────────────────────────────────── */
+  .mobile-nav {
+    position: fixed;
+    inset: 0.5rem 0.5rem auto;
+    width: auto;
+    max-height: calc(100dvh - 1rem);
+    margin: 0;
+    padding: 1rem;
+    overflow-y: auto;
+    border: 0;
+    border-radius: 1.5rem;
+    background: #ffffff;
+    color: var(--color-ink);
+    box-shadow: 0 30px 80px -20px rgb(11 11 18 / 0.45);
+  }
+
+  .mobile-nav::backdrop {
+    background: rgb(11 11 18 / 0.35);
+    backdrop-filter: blur(4px);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .mobile-nav:popover-open {
+      animation: menu-in 0.35s var(--ease-out-expo);
+    }
+  }
+
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+      transform: translateY(-12px) scale(0.98);
+    }
+  }
+
+  /* ── Code tabs (radio inputs + :has, no JS) ─────────────────────────────── */
+  .code-tabs [data-panel] {
+    display: none;
+  }
+  .code-tabs:has(#tab-server:checked) [data-panel="server"],
+  .code-tabs:has(#tab-react:checked) [data-panel="react"],
+  .code-tabs:has(#tab-webhook:checked) [data-panel="webhook"] {
+    display: block;
+  }
+  /* Label colors live here (not in utilities) so the adjacent-sibling
+     :checked rule can win — Tailwind's peer-checked would match every later
+     label, not just the one after the checked input. */
+  .code-tabs label {
+    flex-shrink: 0;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: rgb(255 255 255 / 0.5);
+    transition:
+      color 150ms,
+      background-color 150ms;
+  }
+  .code-tabs label:hover {
+    color: rgb(255 255 255 / 0.85);
+  }
+  .code-tabs input:checked + label {
+    background: rgb(255 255 255 / 0.1);
+    color: #ffffff;
+  }
+  .code-tabs input:focus-visible + label {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+  }
+
+  /* Syntax colors for the server-highlighted snippets. */
+  .tok-kw {
+    color: #c4b1ff;
+  }
+  .tok-str {
+    color: #8ee6a8;
+  }
+  .tok-num {
+    color: #ffc28a;
+  }
+  .tok-fn {
+    color: #ffffff;
+  }
+  .tok-tag {
+    color: #9fb4ff;
+  }
+  .tok-com {
+    color: #6f6f82;
+    font-style: italic;
+  }
+  .tok-pun {
+    color: #8b8b9c;
+  }
+}
