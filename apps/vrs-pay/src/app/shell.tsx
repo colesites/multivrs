@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ogImage, siteName, siteUrl } from "@/lib/site";
 
 /**
  * The app owns the outer document here; swift-rust injects metadata, icons,
@@ -28,6 +29,11 @@ export default function Shell({ children }: { children: ReactNode }) {
           content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
         <meta name="theme-color" content="#ffffff" />
+        <link rel="canonical" href={siteUrl} />
+        {/* Social tags swift-rust's metadata doesn't emit; og:image & friends come from layout.tsx. */}
+        <meta property="og:site_name" content={siteName} />
+        <meta property="og:locale" content="en_US" />
+        <meta name="twitter:image:alt" content={ogImage.alt} />
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
