@@ -114,7 +114,7 @@ export function Developers() {
     <section
       id="developers"
       aria-labelledby="developers-title"
-      className="relative scroll-mt-8 overflow-x-clip"
+      className="relative scroll-mt-24 overflow-x-clip"
     >
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-14 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-center lg:gap-16">
         <div>

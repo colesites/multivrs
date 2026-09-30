@@ -244,6 +244,24 @@
     }
   }
 
+  /* ── Headroom header ─────────────────────────────────────────────────────
+     SiteNav's useHeadroom hook sets data-hidden from scroll direction.
+     Keyboard focus inside the header, or an open mobile menu, always keeps
+     it on screen. */
+  .site-header {
+    transition: translate 0.45s var(--ease-out-expo);
+  }
+  .site-header[data-hidden="true"]:not(
+    :has(:focus-visible, #mobile-nav:popover-open)
+  ) {
+    translate: 0 calc(-100% - 0.75rem);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .site-header {
+      transition: none;
+    }
+  }
+
   /* ── Mobile menu (native Popover API) ───────────────────────────────────── */
   .mobile-nav {
     position: fixed;

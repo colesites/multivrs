@@ -17,7 +17,7 @@ export function Testimonial() {
     <section
       id="customers"
       aria-labelledby="customers-title"
-      className="mx-auto max-w-4xl scroll-mt-8 px-4 py-20 text-center sm:px-6 sm:py-28"
+      className="mx-auto max-w-4xl scroll-mt-24 px-4 py-20 text-center sm:px-6 sm:py-28"
     >
       <SectionHeading
         id="customers-title"

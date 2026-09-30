@@ -9,7 +9,7 @@ export function Features() {
     <section
       id="product"
       aria-labelledby="product-title"
-      className="mx-auto max-w-6xl scroll-mt-8 px-4 py-20 sm:px-6 sm:py-28"
+      className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6 sm:py-28"
     >
       <SectionHeading
         id="product-title"

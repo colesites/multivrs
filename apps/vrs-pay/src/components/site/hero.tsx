@@ -2,7 +2,6 @@ import { ArrowLeftRight, ArrowRight, Check, ChevronDown } from "lucide-react";
 import { Image } from "swift-rust/image";
 import { customer, hills, unsplashLoader } from "@/lib/photos";
 import { Flag } from "./flag";
-import { SiteNav } from "./site-nav";
 
 export function Hero() {
   return (
@@ -27,7 +26,9 @@ export function Hero() {
           className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgb(24_42_92/0.42)_0%,rgb(24_42_92/0.16)_34%,rgb(24_42_92/0)_52%,rgb(255_255_255/0)_72%,rgb(255_255_255/0.7)_100%)]"
         />
 
-        <SiteNav />
+        {/* Reserves the fixed header's height (SiteNav) so the hero layout is
+            unchanged; keep in sync with its py-4 / sm:py-5 + 36px row. */}
+        <div aria-hidden="true" className="h-[68px] sm:h-[76px]" />
 
         <div className="mx-auto max-w-5xl px-5 pt-14 text-center text-white sm:pt-20 lg:pt-24">
           <p className="eyebrow animate-rise text-white/80 [text-shadow:0_1px_12px_rgb(20_30_70/0.35)]">
@@ -77,7 +78,9 @@ export function Hero() {
 function HeroCards() {
   return (
     // Flex centering lets the cluster bleed evenly off both edges on phones.
-    <div className="mt-12 flex justify-center sm:mt-16">
+    // data-hero-end: the header stays bg-less (original design) until these
+    // cards reach it, then turns into the glass pill (useHeadroom in site-nav).
+    <div data-hero-end className="mt-12 flex justify-center sm:mt-16">
       <div
         role="img"
         aria-label="VRS Pay app preview: converting 100 US dollars to euros, a payment received notification, and a multi-currency balance of $16,568.20"

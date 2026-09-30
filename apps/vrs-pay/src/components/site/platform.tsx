@@ -11,7 +11,7 @@ export function Platform() {
     <section
       id="platform"
       aria-labelledby="platform-title"
-      className="scroll-mt-8 bg-wash py-20 sm:py-28"
+      className="scroll-mt-24 bg-wash py-20 sm:py-28"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <SectionHeading
