@@ -17,6 +17,8 @@ const FONTS_HREF =
 // fragment navigation fires `popstate`, which swift-rust's client router
 // answers by re-rendering the page and resetting scroll; replaceState doesn't.
 // Guarded because the router re-runs body scripts after client navigations.
+// It stays inline (the header's scroll behaviour is the SiteNav island) since
+// it must work before any island loads and covers every in-page link.
 const IN_PAGE_LINKS = `window.__vrsInPage||(window.__vrsInPage=1,document.addEventListener("click",function(e){if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;var a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;var m=document.getElementById("mobile-nav");if(m&&m.hidePopover&&m.matches(":popover-open"))m.hidePopover();var id=a.getAttribute("href").slice(1),t=id&&document.getElementById(id);if(!t)return;e.preventDefault();t.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});history.replaceState(history.state,"","#"+id)}));`;
 
 export default function Shell({ children }: { children: ReactNode }) {
