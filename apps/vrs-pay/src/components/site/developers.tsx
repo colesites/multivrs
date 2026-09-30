@@ -2,9 +2,9 @@ import {
   ArrowUpRight,
   CreditCard,
   FlaskConical,
-  Landmark,
   Receipt,
   Repeat,
+  UserCog,
   Webhook,
 } from "lucide-react";
 import { Fragment } from "react";
@@ -15,6 +15,24 @@ import { SectionHeading } from "./section-heading";
 // Illustrative API surface for the landing page — keep in sync with the SDK
 // once it ships.
 const TABS = [
+  {
+    id: "react",
+    file: "pricing.tsx",
+    code: `import { PricingTable, VrsProvider } from "@vrs-pay/react";
+
+export default function Pricing() {
+  // Drop-in billing UI: theme it or keep the defaults.
+  return (
+    <VrsProvider publishableKey="pk_test_51Hx9...">
+      <PricingTable
+        plans={["starter", "pro", "scale"]}
+        currency="auto"
+        appearance={{ accent: "#6936f5", radius: 12 }}
+      />
+    </VrsProvider>
+  );
+}`,
+  },
   {
     id: "server",
     file: "checkout.ts",
@@ -33,23 +51,6 @@ const session = await vrs.checkout.create({
 });
 
 return Response.redirect(session.url, 303);`,
-  },
-  {
-    id: "react",
-    file: "pricing.tsx",
-    code: `import { PricingTable, VrsProvider } from "@vrs-pay/react";
-
-export default function Pricing() {
-  return (
-    <VrsProvider publishableKey="pk_test_51Hx9...">
-      <PricingTable
-        plans={["starter", "pro", "scale"]}
-        currency="auto"
-        interval="month"
-      />
-    </VrsProvider>
-  );
-}`,
   },
   {
     id: "webhook",
@@ -76,11 +77,26 @@ export async function POST(req: Request) {
   },
 ] as const;
 
+// The two integration styles: Clerk-Billing-like drop-in UI, or
+// Stripe-like full control. Both sit on the same API and account.
+const MODES = [
+  {
+    tag: "Drop-in",
+    title: "Billing SDK",
+    body: "Pricing table, checkout and customer portal as ready components. Theme them or keep the defaults.",
+  },
+  {
+    tag: "Full control",
+    title: "Payments API",
+    body: "Typed SDKs, idempotent endpoints, embeddable card fields and signed webhooks. Build it your way.",
+  },
+];
+
 const CAPABILITIES = [
   {
     icon: CreditCard,
     title: "Checkout & payment links",
-    body: "Hosted, embedded or fully custom.",
+    body: "A hosted page in one call, or no-code links.",
   },
   {
     icon: Repeat,
@@ -88,9 +104,9 @@ const CAPABILITIES = [
     body: "Seats, metering, trials and proration.",
   },
   {
-    icon: Landmark,
-    title: "Local payouts",
-    body: "Pay sellers in their own currency.",
+    icon: UserCog,
+    title: "Customer portal",
+    body: "Upgrades, cancellations and invoices, prebuilt.",
   },
   {
     icon: Webhook,
@@ -105,7 +121,7 @@ const CAPABILITIES = [
   {
     icon: FlaskConical,
     title: "Test mode, free forever",
-    body: "Sandbox cards, simulated FX and payouts.",
+    body: "Sandbox cards and simulated FX.",
   },
 ];
 
@@ -125,12 +141,29 @@ export function Developers() {
             lead="Ship billing"
             rest="in an afternoon"
           >
-            Typed SDKs, idempotent APIs and webhooks that retry until they land.
-            Drop in hosted checkout or build your own — the API is the same
-            either way.
+            Two ways in, one platform. Drop in prebuilt billing UI and ship
+            today, or build every screen on the raw API. Same account, same
+            data, and you can mix both.
           </SectionHeading>
 
-          <div className="reveal mt-8 inline-flex max-w-full items-center gap-3 rounded-full border border-line bg-wash py-1.5 pr-1.5 pl-4 font-mono text-[13px] text-ink">
+          <div className="reveal mt-8 grid gap-3 sm:grid-cols-2">
+            {MODES.map((mode) => (
+              <div
+                key={mode.tag}
+                className="rounded-2xl border border-line bg-white p-4"
+              >
+                <p className="eyebrow text-brand-600">{mode.tag}</p>
+                <p className="mt-2 text-[15px] font-medium text-ink">
+                  {mode.title}
+                </p>
+                <p className="mt-1 text-[13.5px] leading-snug text-mute">
+                  {mode.body}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="reveal mt-6 inline-flex max-w-full items-center gap-3 rounded-full border border-line bg-wash py-1.5 pr-1.5 pl-4 font-mono text-[13px] text-ink">
             <span className="text-mute select-none" aria-hidden="true">
               $
             </span>
