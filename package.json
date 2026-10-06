@@ -12,6 +12,7 @@
     "dev:mail-worker": "bun run --cwd apps/mail-worker dev",
     "dev:mail-inbound": "bun run --cwd apps/mail-inbound dev",
     "dev:mail-smtp": "bun run --cwd apps/mail-smtp dev",
+    "dev:vrs-pay-api": "bun run --cwd apps/vrs-pay-api dev",
     "deploy:serve": "bun run --cwd apps/serve-worker deploy",
     "deploy:serve:dry": "bun run --cwd apps/serve-worker deploy:dry",
     "deploy:build-worker": "bun run --cwd apps/build-worker deploy",
@@ -55,6 +56,7 @@
     "@multivrs/mcp-adapter": "*",
     "@multivrs/routing-utils": "*",
     "@multivrs/static-build": "*",
+    "@vrs-pay/core": "*",
     "@types/bun": "^1.3.5",
     "turbo": "^2.9.18",
     "typescript": "5.9.2"
