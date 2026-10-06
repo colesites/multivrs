@@ -9,8 +9,8 @@ const COLUMNS = [
     links: [
       ["Payments", "/payments"],
       ["Billing", "/billing"],
-      ["Payouts", "/payouts"],
       ["Checkout", "/checkout"],
+      ["Payment Links", "/payment-links"],
       ["Pricing", "/pricing"],
     ],
   },
