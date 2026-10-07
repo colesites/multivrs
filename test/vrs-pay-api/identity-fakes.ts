@@ -53,12 +53,76 @@ export function documentOutputs(first: string, last: string, dob: string) {
   });
 }
 
-/** A Smile ID endpoint that answers every lookup with `body` and records the requests. */
-export function fakeSmileId(body: unknown, status = 200) {
-  const requests: Array<Record<string, unknown>> = [];
-  async function fetch(_url: string, init: RequestInit): Promise<Response> {
-    requests.push(JSON.parse(String(init.body)));
+/** A Didit endpoint that answers every lookup with `body` and records the form fields sent. */
+export function fakeDidit(body: unknown, status = 200) {
+  const requests: Array<{ url: string; apiKey: string | null; fields: Record<string, string> }> =
+    [];
+  async function fetch(url: string, init: RequestInit): Promise<Response> {
+    const form = init.body as FormData;
+    const fields = Object.fromEntries([...form.entries()].map(([k, v]) => [k, String(v)]));
+    requests.push({ url, apiKey: new Headers(init.headers).get("x-api-key"), fields });
     return new Response(JSON.stringify(body), { status });
   }
   return { fetch, requests };
+}
+
+/** A Didit database validation answer with one service result. */
+export function diditAnswer(
+  outcome: string,
+  record: Record<string, string> = {},
+  validation: Record<string, string> = {},
+) {
+  return {
+    request_id: "req_1",
+    status: outcome === "MATCH" ? "Approved" : "Declined",
+    issuing_state: "NGA",
+    validations: [
+      {
+        outcome_code: outcome,
+        service_id: "nga_national_id",
+        source_data: record,
+        validation,
+      },
+    ],
+  };
+}
+
+type DiditDecision = Record<string, unknown> & { session_id: string; status: string };
+
+/** Didit verification sessions in memory; `update` moves one on as the merchant and Didit would. */
+export function fakeDiditSessions() {
+  const decisions = new Map<string, DiditDecision>();
+  const created: Array<Record<string, unknown>> = [];
+  let down = false;
+  async function fetch(url: string, init: RequestInit): Promise<Response> {
+    if (down) throw new TypeError("fetch failed");
+    const path = new URL(url).pathname;
+    if (init.method === "POST" && path === "/v3/session/") {
+      const body = JSON.parse(String(init.body));
+      created.push(body);
+      const id = `0b6c3f5e-0000-4000-8000-00000000000${created.length}`;
+      decisions.set(id, {
+        session_id: id,
+        status: "Not Started",
+        session_url: `https://verify.didit.test/${id}`,
+        vendor_data: body.vendor_data,
+        id_verifications: [],
+      });
+      return Response.json({ session_id: id, url: `https://verify.didit.test/${id}` });
+    }
+    const id = path.match(/^\/v3\/session\/([^/]+)\/decision\/$/)?.[1];
+    const decision = id ? decisions.get(id) : undefined;
+    return decision
+      ? Response.json(decision)
+      : Response.json({ detail: "Not found" }, { status: 404 });
+  }
+  function update(id: string, patch: Partial<DiditDecision>) {
+    const decision = decisions.get(id);
+    if (!decision) throw new Error(`No such Didit session: ${id}`);
+    decisions.set(id, { ...decision, ...patch });
+  }
+  const setDown = (value: boolean) => {
+    down = value;
+  };
+  return { fetch, created, update, setDown };
 }

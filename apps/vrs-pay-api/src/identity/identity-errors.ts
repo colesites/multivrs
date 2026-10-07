@@ -31,3 +31,15 @@ export function idTypeNotSupported(): VrsPayError {
     param: "id_type",
   });
 }
+
+/** The merchant started too many ID checks lately; each one can cost money at the provider. */
+export function tooManyIdentityChecks(retryInSeconds: number): VrsPayError {
+  const hours = Math.max(1, Math.ceil(retryInSeconds / 3600));
+  return new VrsPayError({
+    type: "invalid_request_error",
+    code: "too_many_identity_checks",
+    message: `You've started the most ID checks allowed for today. Try again in ${hours} ${hours === 1 ? "hour" : "hours"}.`,
+    status: 429,
+    details: { retry_in_seconds: retryInSeconds },
+  });
+}

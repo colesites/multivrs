@@ -32,6 +32,8 @@ export interface OnboardingRecord {
   identityCheckedAt: number | null;
   /** The provider's session while the merchant finishes a document check (Stripe vs_…). */
   identitySessionId: string | null;
+  /** When recent ID checks started (unix seconds, oldest first), for the daily limit. */
+  identityAttempts: number[];
   payoutCurrency: string | null;
   payoutAccountName: string | null;
   payoutBankName: string | null;
@@ -69,6 +71,7 @@ export function emptyOnboarding(merchantId: string): OnboardingRecord {
     identityReason: null,
     identityCheckedAt: null,
     identitySessionId: null,
+    identityAttempts: [],
     payoutCurrency: null,
     payoutAccountName: null,
     payoutBankName: null,

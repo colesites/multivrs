@@ -51,6 +51,8 @@ model MerchantOnboarding {
   identityCheckedAt  DateTime?          @map("identity_checked_at")
   /// The provider's session while the merchant finishes a document check.
   identitySessionId  String?            @map("identity_session_id")
+  /// When the merchant's recent ID checks started, for the daily limit.
+  identityAttempts   DateTime[]         @default([]) @map("identity_attempts")
   payoutCurrency     String?            @map("payout_currency") @db.Char(3)
   payoutAccountName  String?            @map("payout_account_name")
   payoutBankName     String?            @map("payout_bank_name")

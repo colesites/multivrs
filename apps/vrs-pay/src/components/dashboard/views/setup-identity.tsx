@@ -25,8 +25,9 @@ function continueCheck(
 
 /**
  * Business location first; the official IDs we accept follow from it.
- * Registry IDs (BVN, NIN, Ghana Card…) are checked instantly; others take
- * a scan of the ID and a selfie on Stripe's page. No one reviews by hand.
+ * The merchant scans their ID and takes a selfie on Didit's page (Stripe's
+ * as a backup); a NIN can also be looked up instantly when that's turned
+ * on. No one reviews by hand.
  */
 export function IdentityForm({
   setup,
@@ -143,8 +144,8 @@ export function IdentityForm({
         </Field>
       </div>
       <p className="text-xs text-mute">
-        One real check covers test and live mode. Some IDs also need a quick
-        scan of the ID and a selfie.
+        One real check covers test and live mode. Next you scan your ID and take
+        a quick selfie.
       </p>
       <FormFooter pending={pending} error={error} label="Verify" />
     </form>

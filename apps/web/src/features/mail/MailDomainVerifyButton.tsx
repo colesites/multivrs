@@ -56,7 +56,7 @@ export function MailDomainVerifyButton({
           );
         } else if (result.stalled) {
           toast.error(
-            "Your records are correct, but AWS stopped checking this domain. Remove it and add it again to get fresh records.",
+            "Your records are correct, but AWS stopped checking this domain. Remove it and add it again, then replace the 3 DKIM records with the new ones.",
           );
         } else {
           toast.info(

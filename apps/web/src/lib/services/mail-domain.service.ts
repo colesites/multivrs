@@ -30,6 +30,7 @@ import { dnsRecordStatus } from "@/lib/mail/ses-domain-snapshot";
 import { prisma } from "@/lib/prisma";
 import type { createMailDomainSchema } from "@/lib/schemas/mail-resource.schemas";
 import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
+import { logError } from "@/lib/services/logger.service";
 import { assertMailProject } from "@/lib/services/mail-access.service";
 
 type DomainInput = z.infer<typeof createMailDomainSchema>;
@@ -168,7 +169,13 @@ async function restartStalledChecks(snapshot: ProviderDomainSnapshot) {
     mailFrom && restartMailFromVerification(snapshot.id),
   ].filter((restart) => restart !== false);
   if (!restarts.length) return snapshot;
-  await Promise.allSettled(restarts);
+  for (const outcome of await Promise.allSettled(restarts)) {
+    if (outcome.status === "rejected") {
+      logError("mail.domain.restart_failed", outcome.reason, {
+        domain: snapshot.id,
+      });
+    }
+  }
   return verifyCustomDomain(snapshot.id);
 }
 

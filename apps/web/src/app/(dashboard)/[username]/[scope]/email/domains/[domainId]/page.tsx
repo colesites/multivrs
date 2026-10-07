@@ -11,6 +11,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
 import { LocalTime } from "@/components/LocalTime";
+import { MailDomainDeleteButton } from "@/features/mail/MailDomainDeleteButton";
 import { MailDomainVerifyButton } from "@/features/mail/MailDomainVerifyButton";
 import { getServerSession } from "@/lib/auth/session";
 import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
@@ -79,7 +80,14 @@ export default async function MailDomainDnsPage({
             </span>
           </div>
         </div>
-        <MailDomainVerifyButton domainId={domain.id} verified={isVerified} />
+        <div className="flex items-center gap-2">
+          <MailDomainDeleteButton
+            backHref={`/${username}/${scope}/emails?view=domains`}
+            domain={domain.domain}
+            domainId={domain.id}
+          />
+          <MailDomainVerifyButton domainId={domain.id} verified={isVerified} />
+        </div>
       </header>
 
       <section

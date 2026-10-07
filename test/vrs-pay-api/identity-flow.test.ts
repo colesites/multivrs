@@ -22,7 +22,7 @@ const UK_PASSPORT = {
 async function setUp() {
   const stripe = fakeIdentityApi();
   const documents = createDocumentVerifier({ api: stripe.api, returnUrl: "https://vrs.test" });
-  const h = await dashboardHarness({ identity: routeIdentity({ documents }) });
+  const h = await dashboardHarness({ identity: routeIdentity({ stripe: documents }) });
   const identity = async () => (await (await h.dash("/setup")).json()).details.identity;
   const deliver = async (type: string, id: string, merchantId?: string) => {
     const session = {
@@ -88,6 +88,7 @@ describe("document checks", () => {
   test("old sessions and other apps' sessions on the same Stripe account are ignored", async () => {
     const { dash, stripe, identity, deliver, merchantId } = await setUp();
     await dash("/setup/identity", { body: UK_PASSPORT });
+    stripe.update("vs_test_1", { last_error: { code: "abandoned", reason: null } });
     await dash("/setup/identity", { body: UK_PASSPORT });
     stripe.update("vs_test_1", {
       status: "verified",
@@ -98,5 +99,49 @@ describe("document checks", () => {
     );
     expect(await deliver("identity.verification_session.verified", "vs_test_2")).toBe("ignored");
     expect((await identity()).status).toBe("pending");
+  });
+});
+
+describe("paying for as few checks as possible", () => {
+  test("verifying again while a check is open sends the merchant back to it", async () => {
+    const { dash, stripe } = await setUp();
+    await dash("/setup/identity", { body: UK_PASSPORT });
+    const again = await (await dash("/setup/identity", { body: UK_PASSPORT })).json();
+    expect(again.details.identity.verification_url).toBe("https://verify.stripe.test/vs_test_1");
+    expect(stripe.created).toHaveLength(1);
+  });
+
+  test("a fixed typo in the name passes on the check already done", async () => {
+    const { dash, stripe } = await setUp();
+    await dash("/setup/identity", { body: { ...UK_PASSPORT, last_name: "Lovelance" } });
+    stripe.update("vs_test_1", {
+      status: "verified",
+      url: null,
+      verified_outputs: documentOutputs("Ada", "Lovelace", "1990-12-10"),
+    });
+    const fixed = await (await dash("/setup/identity", { body: UK_PASSPORT })).json();
+    expect(fixed.details.identity.status).toBe("verified");
+    expect(stripe.created).toHaveLength(1);
+  });
+
+  test("three new checks a day, then the merchant waits", async () => {
+    const { dash, deps, merchantId, stripe } = await setUp();
+    for (const n of [1, 2, 3]) {
+      expect((await dash("/setup/identity", { body: UK_PASSPORT })).status).toBe(200);
+      stripe.update(`vs_test_${n}`, { last_error: { code: "abandoned", reason: null } });
+    }
+    const fourth = await dash("/setup/identity", { body: UK_PASSPORT });
+    expect(fourth.status).toBe(429);
+    expect((await fourth.json()).error).toMatchObject({
+      code: "too_many_identity_checks",
+      message: expect.stringContaining("24 hours"),
+    });
+    expect(stripe.created).toHaveLength(3);
+    // A day later the oldest check no longer counts.
+    const record = await deps.onboarding.get(merchantId);
+    if (!record) throw new Error("no onboarding record");
+    const dayAgo = record.identityAttempts.map((t) => t - 86_400);
+    await deps.onboarding.save({ ...record, identityAttempts: dayAgo });
+    expect((await dash("/setup/identity", { body: UK_PASSPORT })).status).toBe(200);
   });
 });
