@@ -22,8 +22,11 @@ import {
   getSesDomain,
   type ProviderDomainRecord,
   type ProviderDomainSnapshot,
+  restartDkimVerification,
+  restartMailFromVerification,
   verifyCustomDomain,
 } from "@/lib/mail/ses-domain.provider";
+import { dnsRecordStatus } from "@/lib/mail/ses-domain-snapshot";
 import { prisma } from "@/lib/prisma";
 import type { createMailDomainSchema } from "@/lib/schemas/mail-resource.schemas";
 import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
@@ -95,13 +98,16 @@ export async function createMailDomain(userId: string, input: DomainInput) {
   };
 }
 
+/** What a domain needs before it can send: DKIM, the MAIL FROM MX and SPF. */
+const REQUIRED_PURPOSES = /^(dkim-\d+|mx|spf)$/;
+
 export async function verifyMailDomain(userId: string, domainId: string) {
   let domain = await ownedMailDomain(userId, domainId);
   let snapshot = domain.providerDomainId
     ? await getSesDomain(domain.providerDomainId)
     : await addCustomDomain(domain.domain, userId);
 
-  await persistSnapshot(domain.id, snapshot);
+  let records = await persistSnapshot(domain.id, snapshot);
   domain = await ownedMailDomain(userId, domainId);
   const managedZone = await findManagedZone(userId, domain.domain);
   let automaticDnsConfigured = false;
@@ -111,17 +117,59 @@ export async function verifyMailDomain(userId: string, domainId: string) {
   }
 
   if (snapshot.status !== "verified") {
-    snapshot = await verifyCustomDomain(snapshot.id);
-    await persistSnapshot(domain.id, snapshot);
+    snapshot = await restartStalledChecks(
+      await verifyCustomDomain(snapshot.id),
+    );
+    records = await persistSnapshot(domain.id, snapshot);
   }
 
   const status = mailDomainStatus(snapshot.status);
+  const required = records.filter(({ purpose }) =>
+    REQUIRED_PURPOSES.test(purpose),
+  );
+  const dkim = required.filter(({ purpose }) => purpose.startsWith("dkim"));
   return {
     automaticDnsConfigured,
     dnsMode: managedZone ? ("automatic" as const) : ("manual" as const),
     status,
     verified: status === "verified",
+    /** Required records public DNS doesn't have yet. */
+    missingRecords: required.filter((record) => record.status === "missing")
+      .length,
+    /** Every DKIM record is in DNS, yet SES still reports DKIM as failed. */
+    stalled:
+      snapshot.dkimStatus === "failed" &&
+      dkim.length > 0 &&
+      dkim.every((record) => record.status === "found"),
   };
+}
+
+/**
+ * SES looks for the records for 72 hours, then marks them failed and stops
+ * looking, even if they are added later. When public DNS has them now, ask
+ * SES to check again.
+ */
+async function restartStalledChecks(snapshot: ProviderDomainSnapshot) {
+  const inDns = async (matches: (purpose: string) => boolean) => {
+    const records = snapshot.records.filter(({ purpose }) => matches(purpose));
+    const found = await Promise.all(records.map(recordMatches));
+    return records.length > 0 && found.every(Boolean);
+  };
+  const dkim =
+    snapshot.dkimStatus === "failed" &&
+    (await inDns((purpose) => purpose.startsWith("dkim")));
+  const mailFrom =
+    snapshot.mailFromStatus === "failed" &&
+    (await inDns((purpose) => purpose === "mx"));
+  // A restart is best effort: if SES refuses it, the refresh still reports
+  // what it found, and `stalled` tells the user to add the domain again.
+  const restarts = [
+    dkim && restartDkimVerification(snapshot.id),
+    mailFrom && restartMailFromVerification(snapshot.id),
+  ].filter((restart) => restart !== false);
+  if (!restarts.length) return snapshot;
+  await Promise.allSettled(restarts);
+  return verifyCustomDomain(snapshot.id);
 }
 
 export async function mailDomainDnsMode(
@@ -259,6 +307,7 @@ async function persistSnapshot(
       dnsRecords: { deleteMany: {}, create: records },
     },
   });
+  return records;
 }
 
 async function storedRecords(
@@ -269,12 +318,7 @@ async function storedRecords(
     records.map(async (record) => ({
       ...record,
       managedByMultivrs: managed.has(recordIdentity(record)),
-      status:
-        record.purpose === "dmarc" || record.purpose === "bimi"
-          ? (await recordMatches(record))
-            ? "verified"
-            : "pending"
-          : providerRecordStatus(record.status),
+      status: dnsRecordStatus(record, await recordMatches(record)),
     })),
   );
 }
@@ -460,14 +504,6 @@ function recordIdentity(record: {
     normalizeMailDnsValue(record.value),
     record.priority,
   ]);
-}
-
-function providerRecordStatus(status: string) {
-  return status === "verified"
-    ? "verified"
-    : status === "failed" || status === "temporary_failure"
-      ? "failed"
-      : "pending";
 }
 
 function mailDomainStatus(status: ProviderDomainSnapshot["status"]) {
