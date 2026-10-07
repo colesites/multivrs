@@ -16,6 +16,7 @@ import {
   type ProviderDomainSnapshot,
   sesDomainSnapshot,
 } from "@/lib/mail/ses-domain-snapshot";
+import { logError } from "@/lib/services/logger.service";
 import { ensureSesTenant } from "@/lib/services/ses-tenant.service";
 
 export type {
@@ -115,8 +116,9 @@ async function configureMailFrom(domainName: string): Promise<void> {
       BehaviorOnMxFailure: "USE_DEFAULT_VALUE",
     });
     await sesClient.send(command);
-  } catch {
+  } catch (error) {
     // Non-fatal: SES will fall back to default amazonses.com MAIL FROM
+    logError("ses.mail_from.configure_failed", error, { domain: domainName });
   }
 }
 
