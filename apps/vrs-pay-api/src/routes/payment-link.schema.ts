@@ -3,9 +3,10 @@ import { z } from "zod";
 import { HTTP_URL } from "./metadata.schema";
 
 /**
- * `POST /v1/payment_links` — sells one of your products' prices (`price`;
- * monthly and yearly ones start a subscription), or a quick fixed amount
- * (`amount`, `currency`, `description`).
+ * `POST /v1/payment_links` — sells one of your products' prices (`price`,
+ * plus `currency` to pick one of its currency options; recurring ones
+ * start a subscription), or a quick fixed amount (`amount`, `currency`,
+ * `description`).
  */
 export const CreatePaymentLinkSchema = z
   .strictObject({
@@ -17,7 +18,7 @@ export const CreatePaymentLinkSchema = z
   })
   .superRefine((input, ctx) => {
     const adHoc = [input.amount, input.currency, input.description];
-    if (input.price && adHoc.some((v) => v !== undefined)) {
+    if (input.price && (input.amount !== undefined || input.description !== undefined)) {
       ctx.addIssue({
         code: "custom",
         message: "Send a price or an amount, not both",

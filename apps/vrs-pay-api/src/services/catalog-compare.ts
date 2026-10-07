@@ -1,6 +1,13 @@
 import { isCurrencyCode, newId } from "@vrs-pay/core";
 import type { BillingConfig } from "../routes/billing-config.schema";
-import type { CatalogChanges, Plan, Price, PriceSlot } from "./catalog.types";
+import {
+  type CatalogChanges,
+  NO_PRICE_DETAILS,
+  type Plan,
+  type Price,
+  type PriceDetails,
+  type PriceSlot,
+} from "./catalog.types";
 
 /** The periods a billing config can price; anything else is made in the dashboard or API. */
 const CONFIG_INTERVALS = ["month", "year", "one_time"] as const;
@@ -13,6 +20,7 @@ export function catalogChanges(parts: Partial<CatalogChanges> = {}): CatalogChan
     upsertPlans: [],
     deactivatePriceIds: [],
     activatePriceIds: [],
+    updatePrices: [],
     createPrices: [],
     ...parts,
   };
@@ -51,8 +59,15 @@ export function slotsOf(prices: BillingConfig["plans"][string]["prices"]): Price
   );
 }
 
-export function newPrice(planId: string, slot: PriceSlot, livemode: boolean, now: number): Price {
+export function newPrice(
+  planId: string,
+  slot: PriceSlot,
+  livemode: boolean,
+  now: number,
+  details: PriceDetails = NO_PRICE_DETAILS,
+): Price {
   return {
+    ...details,
     id: newId("price"),
     object: "price",
     livemode,

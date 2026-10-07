@@ -17,6 +17,8 @@ model Subscription {
   status             SubscriptionStatus @default(incomplete)
   /// Seats for org plans; 1 otherwise.
   quantity           Int                @default(1)
+  /// What it charges in: the price's currency or one of its currency options.
+  currency           String             @db.Char(3)
   currentPeriodStart DateTime?          @map("current_period_start")
   currentPeriodEnd   DateTime?          @map("current_period_end")
   trialEnd           DateTime?          @map("trial_end")

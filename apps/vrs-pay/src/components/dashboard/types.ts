@@ -133,6 +133,8 @@ export interface Subscription {
   price: string;
   status: "incomplete" | "trialing" | "active" | "past_due" | "canceled";
   quantity: number;
+  /** What it charges in: the price's currency or one of its options. */
+  currency: string;
   current_period_end: number | null;
   cancel_at_period_end: boolean;
   pending_price: string | null;
@@ -163,6 +165,12 @@ export interface Price {
   interval_count: number;
   currency: string;
   amount: number;
+  /** Other currencies it sells in: lowercase code → amount. */
+  currency_options: Record<string, { amount: number }>;
+  /** Your own label for it; customers never see it. */
+  nickname: string | null;
+  /** A stable name to fetch it by, unique in the account. */
+  lookup_key: string | null;
   active: boolean;
 }
 

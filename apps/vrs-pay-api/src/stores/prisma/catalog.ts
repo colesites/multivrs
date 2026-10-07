@@ -6,7 +6,7 @@ import type {
   Price as PriceRow,
 } from "../../generated/prisma/client";
 import type { Feature, Plan, Price } from "../../services/catalog.types";
-import { toFeatureValues, toPlanExtras } from "../../services/feature-values";
+import { toCurrencyOptions, toFeatureValues, toPlanExtras } from "../../services/feature-values";
 import type { CatalogStore } from "../catalog.store";
 
 function featureFromRow(row: FeatureRow): Feature {
@@ -32,6 +32,9 @@ function priceFromRow(row: PriceRow): Price {
     interval_count: row.intervalCount,
     currency: toCurrency(row.currency).toLowerCase(),
     amount: toMinor(row.amount),
+    currency_options: toCurrencyOptions(row.currencyOptions),
+    nickname: row.nickname,
+    lookup_key: row.lookupKey,
     active: row.active,
     created: toUnix(row.createdAt),
   };
@@ -110,6 +113,12 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
           where: { id: { in: changes.activatePriceIds }, merchantId },
           data: { active: true },
         });
+        for (const { id, nickname, lookup_key } of changes.updatePrices) {
+          await tx.price.updateMany({
+            where: { id, merchantId },
+            data: { nickname, lookupKey: lookup_key },
+          });
+        }
         // A price takes its plan's source; the plan may be new in this same change set.
         const sources = new Map(changes.upsertPlans.map((p) => [p.id, p.source]));
         const unknown = changes.createPrices.map((p) => p.plan).filter((id) => !sources.has(id));
@@ -130,6 +139,11 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
             intervalCount: p.interval_count,
             currency: p.currency.toUpperCase(),
             amount: BigInt(p.amount),
+            currencyOptions: Object.fromEntries(
+              Object.entries(p.currency_options).map(([code, { amount }]) => [code, { amount }]),
+            ),
+            nickname: p.nickname,
+            lookupKey: p.lookup_key,
             source: sources.get(p.plan) ?? "config",
             createdAt: new Date(p.created * 1000),
           })),

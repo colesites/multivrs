@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "../badge";
 import { useAction, useDashboard } from "../context";
-import { billingLabel, formatDate, formatPrice } from "../format";
+import { billingLabel, formatDate } from "../format";
 import type { PaymentLink, Product, ProductPrice } from "../types";
 import {
   Button,
@@ -12,6 +12,8 @@ import {
   TableCell,
   TableRow,
 } from "../ui";
+import { PriceLabelsForm } from "./price-labels-form";
+import { PriceSummary } from "./price-summary";
 import { AddPriceForm, ProductDetailsForm } from "./product-edit";
 import { ProductPageForm, TrialFeaturesForm } from "./product-extras";
 import { MetadataForm } from "./product-metadata";
@@ -83,8 +85,8 @@ export function ProductDetail({
       <Table head={["Price", "Billing", "Status", "Created", ""]}>
         {product.prices.map((price) => (
           <TableRow key={price.id}>
-            <TableCell className="px-4 whitespace-nowrap font-mono text-ink">
-              {formatPrice(price)}
+            <TableCell className="px-4 whitespace-nowrap">
+              <PriceSummary price={price} />
             </TableCell>
             <TableCell className="px-4 whitespace-nowrap text-ink-soft">
               {billingLabel(price)}
@@ -127,6 +129,7 @@ export function ProductDetail({
       {editable && (
         <>
           <AddPriceForm productId={product.id} onAdded={onChanged} />
+          <PriceLabelsForm product={product} onSaved={onChanged} />
           <ProductDetailsForm product={product} onSaved={onChanged} />
           <TrialFeaturesForm product={product} onSaved={onChanged} />
           <ProductPageForm product={product} onSaved={onChanged} />

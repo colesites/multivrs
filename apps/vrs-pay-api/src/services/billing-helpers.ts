@@ -2,6 +2,7 @@ import {
   type ApiKeyMode,
   CurrencyCodeSchema,
   calculatePlatformFee,
+  invalidRequest,
   type Money,
   money,
   resourceMissing,
@@ -62,9 +63,23 @@ export async function findRecurringPrice(
   throw resourceMissing("price", priceId);
 }
 
-/** What one period costs: the price times the seats. */
-export function periodAmount(price: Price, quantity: number): Money {
-  return money(price.amount * quantity, CurrencyCodeSchema.parse(price.currency));
+/** The price's amount in `currency`: its own, or one of its currency options. */
+export function amountIn(price: Price, currency: string): number | undefined {
+  const code = currency.toLowerCase();
+  return code === price.currency ? price.amount : price.currency_options[code]?.amount;
+}
+
+/** What one period costs in `currency` (the price's own by default): the amount times the seats. */
+export function periodAmount(price: Price, quantity: number, currency = price.currency): Money {
+  const amount = amountIn(price, currency);
+  if (amount === undefined) {
+    throw invalidRequest(
+      "currency_unavailable",
+      `This price isn't sold in ${currency.toUpperCase()}.`,
+      "currency",
+    );
+  }
+  return money(amount * quantity, CurrencyCodeSchema.parse(currency));
 }
 
 export function platformFeeFor(merchant: MerchantProfile, amount: Money): Money {

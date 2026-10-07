@@ -1,7 +1,7 @@
 import { invalidRequest } from "@vrs-pay/core";
 import type { AppDeps, MerchantContext } from "../app.types";
 import type { UpdateSubscriptionInput } from "../routes/subscription.schema";
-import { findRecurringPrice } from "./billing-helpers";
+import { amountIn, findRecurringPrice } from "./billing-helpers";
 import { nowSeconds } from "./events";
 import { assertLive, loadSubscription, saveChange, scopeOf } from "./subscription.service";
 import type { Subscription } from "./subscription.types";
@@ -32,10 +32,11 @@ export async function changeSubscription(
   const current = await findRecurringPrice(deps.catalog, scope, s.price);
   const target = input.price ? await findRecurringPrice(deps.catalog, scope, input.price) : current;
   const samePeriod = target.interval === current.interval && target.count === current.count;
-  if (target.price.currency !== current.price.currency || !samePeriod) {
+  const targetAmount = amountIn(target.price, s.currency);
+  if (targetAmount === undefined || !samePeriod) {
     throw invalidRequest(
       "price_incompatible",
-      "Switch to a price with the same currency and billing period.",
+      "Switch to a price with the same billing period, sold in this subscription's currency.",
       "price",
     );
   }
@@ -55,8 +56,8 @@ export async function changeSubscription(
     );
   }
 
-  const oldAmount = current.price.amount * s.quantity;
-  const newAmount = target.price.amount * quantity;
+  const oldAmount = (amountIn(current.price, s.currency) ?? 0) * s.quantity;
+  const newAmount = targetAmount * quantity;
   const next: Subscription = {
     ...s,
     plan: target.plan.id,
@@ -81,7 +82,7 @@ export async function changeSubscription(
   return chargeUpgrade(deps, merchant, sub, next, {
     planName: target.plan.name,
     due,
-    currency: target.price.currency,
+    currency: s.currency,
     now,
   });
 }

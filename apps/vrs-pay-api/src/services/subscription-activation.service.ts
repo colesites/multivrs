@@ -112,7 +112,7 @@ export async function activateSubscription(
   const line = subscriptionLine(
     plan.name,
     next.subscription.quantity,
-    periodAmount(price, next.subscription.quantity),
+    periodAmount(price, next.subscription.quantity, next.subscription.currency),
     now,
     periodEnd,
   );

@@ -46,6 +46,29 @@ export function formatPrice(
     : `${money} every ${price.interval_count} ${price.interval}s`;
 }
 
+interface Priced {
+  amount: number;
+  currency: string;
+  currency_options: Record<string, { amount: number }>;
+}
+
+/** The price as sold in `currency`: its own amount, or one of its currency options. */
+export function inCurrency<T extends Priced>(price: T, currency: string): T {
+  const code = currency.toLowerCase();
+  const option = price.currency_options[code];
+  return code === price.currency || !option
+    ? price
+    : { ...price, amount: option.amount, currency: code };
+}
+
+/** The price in each currency it sells in, its own first. */
+export function allCurrencies<T extends Priced>(price: T): T[] {
+  return [
+    price,
+    ...Object.keys(price.currency_options).map((c) => inCurrency(price, c)),
+  ];
+}
+
 /** Unix seconds → "6 Oct 2026". */
 export function formatDate(seconds: number | null): string {
   if (seconds === null) return "—";

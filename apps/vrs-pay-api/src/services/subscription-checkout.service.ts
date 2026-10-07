@@ -47,7 +47,7 @@ export async function createSubscriptionCheckout(
     throw invalidRequest("quantity_invalid", "Only organization plans have seats.", "quantity");
   }
 
-  const amount = periodAmount(price, input.quantity);
+  const amount = periodAmount(price, input.quantity, input.currency ?? price.currency);
   const route = routeOnPlatform(deps, merchant.mode, amount.currency, "card");
   const providerCustomer = await providerCustomerFor(deps, route.provider, null, customer);
 
@@ -66,6 +66,7 @@ export async function createSubscriptionCheckout(
       price: price.id,
       status: "incomplete",
       quantity: input.quantity,
+      currency: amount.currency.toLowerCase(),
       current_period_start: null,
       current_period_end: null,
       trial_end: null,

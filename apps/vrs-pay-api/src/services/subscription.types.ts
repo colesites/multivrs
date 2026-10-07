@@ -15,6 +15,8 @@ export interface Subscription {
   status: SubscriptionStatus;
   /** Seats for org plans; 1 otherwise. */
   quantity: number;
+  /** What it charges in (lowercase): the price's currency or one of its options. */
+  currency: string;
   current_period_start: number | null;
   current_period_end: number | null;
   trial_end: number | null;

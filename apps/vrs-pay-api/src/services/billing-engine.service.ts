@@ -47,7 +47,7 @@ export async function renewSubscription(
     priceId,
   );
   const end = addInterval(start, interval, count);
-  const total = periodAmount(price, quantity);
+  const total = periodAmount(price, quantity, s.currency);
   const renewed: StoredSubscription = {
     ...sub,
     version: sub.version + 1,

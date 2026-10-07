@@ -5,6 +5,12 @@ const FeatureValuesSchema = z.record(z.string(), z.union([z.boolean(), z.int().m
 const ImagesSchema = z.array(z.string());
 const MarketingFeaturesSchema = z.array(z.object({ name: z.string() }));
 const MetadataSchema = z.record(z.string(), z.string());
+const CurrencyOptionsSchema = z.record(z.string(), z.object({ amount: z.number().int() }));
+
+/** Stored currency options: lowercase code → { amount }. */
+export function toCurrencyOptions(value: unknown) {
+  return CurrencyOptionsSchema.parse(value);
+}
 
 /** Stored plan features are a flat map of feature key → true or a limit. */
 export function toFeatureValues(value: unknown): Record<string, FeatureValue> {
@@ -12,7 +18,11 @@ export function toFeatureValues(value: unknown): Record<string, FeatureValue> {
 }
 
 /** Stored product extras: image URLs, marketing features and metadata. */
-export function toPlanExtras(row: { images: unknown; marketingFeatures: unknown; metadata: unknown }) {
+export function toPlanExtras(row: {
+  images: unknown;
+  marketingFeatures: unknown;
+  metadata: unknown;
+}) {
   return {
     images: ImagesSchema.parse(row.images),
     marketing_features: MarketingFeaturesSchema.parse(row.marketingFeatures),

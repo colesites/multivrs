@@ -1,6 +1,6 @@
 import { Badge } from "../badge";
 import { useAction, useApi } from "../context";
-import { formatDate, formatPrice, shortId } from "../format";
+import { formatDate, formatPrice, inCurrency, shortId } from "../format";
 import type { List, Product, Subscription } from "../types";
 import {
   Button,
@@ -99,7 +99,9 @@ export function SubscriptionsView() {
                   )}
                 </TableCell>
                 <TableCell className="px-4 font-mono text-ink-soft">
-                  {price ? formatPrice(price, s.quantity) : "—"}
+                  {price
+                    ? formatPrice(inCurrency(price, s.currency), s.quantity)
+                    : "—"}
                 </TableCell>
                 <TableCell className="px-4 text-mute">
                   {formatDate(s.current_period_end)}

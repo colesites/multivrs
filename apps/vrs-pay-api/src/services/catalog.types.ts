@@ -31,9 +31,31 @@ export interface Price {
   currency: string;
   /** Minor units. */
   amount: number;
+  /** Other currencies it sells in, like Stripe's: lowercase code → amount. */
+  currency_options: Record<string, CurrencyOption>;
+  /** Your own label for it ("Launch discount"); customers never see it. */
+  nickname: string | null;
+  /** A stable name for it, unique in the account, to fetch it by instead of its id. */
+  lookup_key: string | null;
   active: boolean;
   created: number;
 }
+
+export interface CurrencyOption {
+  /** Minor units. */
+  amount: number;
+}
+
+/** The parts of a price that can change after it's made. */
+export type PriceLabels = Pick<Price, "id" | "nickname" | "lookup_key">;
+
+/** What a price gets beyond its slot; config prices have none of it. */
+export type PriceDetails = Pick<Price, "currency_options" | "nickname" | "lookup_key">;
+export const NO_PRICE_DETAILS: PriceDetails = {
+  currency_options: {},
+  nickname: null,
+  lookup_key: null,
+};
 
 export interface Plan {
   id: string;
@@ -82,6 +104,8 @@ export interface CatalogChanges {
   deactivatePriceIds: string[];
   /** Archived prices put back on sale (dashboard products only). */
   activatePriceIds: string[];
+  /** New nicknames and lookup keys, applied before `createPrices` so a key can move. */
+  updatePrices: PriceLabels[];
   createPrices: Price[];
 }
 

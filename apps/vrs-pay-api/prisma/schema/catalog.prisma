@@ -81,6 +81,12 @@ model Price {
   intervalCount Int           @default(1) @map("interval_count")
   currency   String        @db.Char(3)
   amount     BigInt
+  /// Other currencies it sells in, as on Stripe: { "eur": { "amount": 2200 } }.
+  currencyOptions Json     @default("{}") @map("currency_options")
+  /// The merchant's own label; customers never see it.
+  nickname   String?
+  /// A stable name to fetch the price by, unique per merchant and mode.
+  lookupKey  String?       @map("lookup_key")
   active     Boolean       @default(true)
   /// Copied from the plan: config plans keep one active price per interval and
   /// currency (a partial unique index); dashboard products can have many.
@@ -91,6 +97,7 @@ model Price {
   plan          Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
   subscriptions Subscription[]
 
+  @@unique([merchantId, mode, lookupKey])
   @@index([planId])
   @@map("prices")
 }

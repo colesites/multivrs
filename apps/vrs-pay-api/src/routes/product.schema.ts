@@ -8,12 +8,37 @@ const MAX_PRICES = 10;
 const MAX_FEATURES = 50;
 const MAX_IMAGES = 8;
 const MAX_MARKETING_FEATURES = 15;
+const MAX_CURRENCY_OPTIONS = 20;
+
+const Amount = z.int().positive().max(Number.MAX_SAFE_INTEGER);
+const Nickname = z.string().trim().min(1).max(250);
+const LookupKey = z
+  .string()
+  .regex(/^[A-Za-z0-9_.:-]{1,200}$/, "Use letters, digits and _ . : - only");
+
+/** Other currencies a price sells in, like Stripe's: { "eur": { "amount": 2200 } }. */
+const CurrencyOptions = z
+  .record(z.string(), z.strictObject({ amount: Amount }))
+  .superRefine((options, ctx) => {
+    const codes = Object.keys(options);
+    if (codes.length > MAX_CURRENCY_OPTIONS) {
+      ctx.addIssue({ code: "custom", message: `At most ${MAX_CURRENCY_OPTIONS} currencies` });
+    }
+    for (const code of codes) {
+      if (!CurrencyCodeSchema.safeParse(code).success) {
+        ctx.addIssue({ code: "custom", message: `Unsupported currency ${code}`, path: [code] });
+      }
+    }
+  });
 const Name = z.string().trim().min(1).max(100);
 const Description = z.string().trim().max(500);
 
 const PriceFields = z.strictObject({
-  amount: z.int().positive().max(Number.MAX_SAFE_INTEGER),
+  amount: Amount,
   currency: CurrencyCodeSchema,
+  currency_options: CurrencyOptions.default({}),
+  nickname: Nickname.optional(),
+  lookup_key: LookupKey.optional(),
   interval: z.enum(["one_time", "day", "week", "month", "year"]).default("one_time"),
   /** Intervals per charge: `month` with 3 charges every 3 months. */
   interval_count: z.int().min(1).default(1),
@@ -82,13 +107,30 @@ export const UpdateProductSchema = z
   .refine((v) => Object.keys(v).length > 0, "Send at least one field to change");
 
 /** `POST /v1/prices` — prices never change, so a new amount is a new price. */
-export const CreatePriceSchema = PriceFields.extend({ product: z.string().min(1) }).superRefine(
-  checkPeriod,
-);
+export const CreatePriceSchema = PriceFields.extend({
+  product: z.string().min(1),
+  /** Take the lookup key from the price that has it, as on Stripe. */
+  transfer_lookup_key: z.boolean().default(false),
+}).superRefine(checkPeriod);
 
-/** `POST /v1/prices/:id` — archive or restore. */
-export const UpdatePriceSchema = z.strictObject({ active: z.boolean() });
+/**
+ * `POST /v1/prices/:id` — archive or restore, relabel, or change its lookup
+ * key. Amounts and currencies never change: make a new price instead.
+ */
+export const UpdatePriceSchema = z
+  .strictObject({
+    active: z.boolean().optional(),
+    nickname: Nickname.nullable().optional(),
+    lookup_key: LookupKey.nullable().optional(),
+    transfer_lookup_key: z.boolean().default(false),
+  })
+  .refine(
+    (v) => v.active !== undefined || v.nickname !== undefined || v.lookup_key !== undefined,
+    "Send active, nickname or lookup_key",
+  );
 
 export type CreateProductInput = z.infer<typeof CreateProductSchema>;
 export type UpdateProductInput = z.infer<typeof UpdateProductSchema>;
 export type CreatePriceInput = z.infer<typeof CreatePriceSchema>;
+export type UpdatePriceInput = z.infer<typeof UpdatePriceSchema>;
+export type PriceDataInput = z.infer<typeof PriceDataSchema>;

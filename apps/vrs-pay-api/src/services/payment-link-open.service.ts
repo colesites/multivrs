@@ -30,7 +30,12 @@ async function subscribe(
     type: sale.plan.payer,
     metadata,
   });
-  const input = { mode: "subscription" as const, price: sale.price, customer: customer.id };
+  const input = {
+    mode: "subscription" as const,
+    price: sale.price,
+    customer: customer.id,
+    currency: CurrencyCodeSchema.parse(sale.currency),
+  };
   return createSubscriptionCheckout(
     deps,
     merchant,
@@ -58,7 +63,7 @@ export async function openPaymentLink(deps: AppDeps, id: string): Promise<string
   canceled.searchParams.set("canceled", "1");
   const urls = { success_url: thanks, cancel_url: canceled.toString() };
   // Archiving the product or price stops its links too; renames show up at checkout.
-  const sale = link.price ? await priceForSale(deps, merchant, link.price) : null;
+  const sale = link.price ? await priceForSale(deps, merchant, link.price, link.currency) : null;
   if (sale && sale.interval !== "one_time") {
     return (await subscribe(deps, merchant, stored, sale, urls)).url;
   }

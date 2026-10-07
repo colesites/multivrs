@@ -5,6 +5,7 @@ import type { Plan, Price } from "./catalog.types";
 import { catalogChanges, newPrice } from "./catalog-compare";
 import { nowSeconds } from "./events";
 import { assertChargeable } from "./platform";
+import { claimLookupKey, priceDetails } from "./price-details";
 import type { Product, ProductPrice } from "./product.types";
 
 export const scopeOf = (merchant: MerchantContext) => ({
@@ -121,7 +122,13 @@ export async function createProduct(
   };
   for (const price of input.prices) assertChargeable(deps, price.currency);
   await assertFeatureTypes(deps, merchant, input.features);
-  const prices = input.prices.map((p) => newPrice(id, p, livemode, now));
+  const keys = input.prices.flatMap((p) => p.lookup_key ?? []);
+  if (new Set(keys).size !== keys.length) {
+    throw invalidRequest("lookup_key_taken", "Two prices can't share a lookup key.", "prices");
+  }
+  const existing = await loadPlans(deps, merchant);
+  for (const key of keys) claimLookupKey(existing, key, null, false);
+  const prices = input.prices.map((p) => newPrice(id, p, livemode, now, priceDetails(deps, p)));
   await deps.catalog.apply(
     scopeOf(merchant),
     catalogChanges({ upsertPlans: [plan], createPrices: prices }),

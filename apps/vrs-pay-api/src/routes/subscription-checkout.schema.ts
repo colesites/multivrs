@@ -1,3 +1,4 @@
+import { CurrencyCodeSchema } from "@vrs-pay/core";
 import { z } from "zod";
 import { HTTP_URL, MetadataSchema } from "./metadata.schema";
 
@@ -10,6 +11,8 @@ export const SubscriptionCheckoutSchema = z.strictObject({
   customer: z.string().regex(/^cus_[0-9A-Za-z]{24}$/, "Expected a customer id (cus_…)"),
   /** Seats, for org plans. */
   quantity: z.int().min(1).max(MAX_SEATS).default(1),
+  /** One of the price's currencies; its own currency by default. */
+  currency: CurrencyCodeSchema.optional(),
   success_url: HTTP_URL,
   cancel_url: HTTP_URL,
   metadata: MetadataSchema,
