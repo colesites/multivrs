@@ -22,6 +22,19 @@ function toVrsPayError(error: unknown): VrsPayError {
 /** Renders every error as `{ error: { type, code, message, param, request_id } }`. */
 export function errorHandler(error: Error, c: Context<AppEnv>): Response {
   const vrsError = toVrsPayError(error);
+  if (vrsError.status >= 500) {
+    // The response hides internals, so the server log is the only place they show.
+    // biome-ignore lint/suspicious/noConsole: unexpected errors must reach the server log.
+    console.error(
+      JSON.stringify({
+        event: "request_failed",
+        request_id: c.get("requestId") ?? null,
+        method: c.req.method,
+        path: c.req.path,
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
+  }
   return Response.json(
     {
       error: {
