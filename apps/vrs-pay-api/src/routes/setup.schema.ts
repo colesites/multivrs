@@ -12,8 +12,45 @@ function isAdult(date: string): boolean {
   return adult <= new Date();
 }
 
+const optionalText = (max: number) => z.string().trim().max(max).optional();
+
+const AddressSchema = z.strictObject({
+  line1: text(200),
+  line2: optionalText(200),
+  city: text(100),
+  postal_code: optionalText(20),
+});
+const PhoneSchema = z
+  .string()
+  .trim()
+  .regex(/^\+?[0-9 ()-]{7,20}$/, "Enter a phone number with its country code");
+
+/** Registered companies and individuals (sole traders, freelancers) are asked different things. */
+const BusinessSchema = z.discriminatedUnion("type", [
+  z.strictObject({
+    type: z.literal("company"),
+    /** Legal name, as registered. */
+    name: text(200),
+    /** CAC RC/BN, Companies House number, EIN… */
+    registration_number: z
+      .string()
+      .trim()
+      .regex(/^[A-Za-z0-9][A-Za-z0-9 /-]{2,29}$/, "Check the registration number"),
+    address: AddressSchema,
+    phone: PhoneSchema,
+  }),
+  z.strictObject({
+    type: z.literal("individual"),
+    /** Trading name, if they use one. */
+    name: text(200).optional(),
+    address: AddressSchema,
+    phone: PhoneSchema,
+  }),
+]);
+
 /** `POST /dashboard/setup` — any of the simple steps, saved as you go. */
 export const SetupUpdateSchema = z.strictObject({
+  business: BusinessSchema.optional(),
   product_description: text(500).optional(),
   website: z.url({ protocol: /^https?$/ }).optional(),
   support_email: z.email().optional(),
@@ -47,4 +84,5 @@ export const IdentitySchema = z.strictObject({
 });
 
 export type SetupUpdate = z.infer<typeof SetupUpdateSchema>;
+export type BusinessInput = z.infer<typeof BusinessSchema>;
 export type IdentityInput = z.infer<typeof IdentitySchema>;

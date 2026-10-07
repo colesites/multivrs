@@ -1,6 +1,8 @@
 import { createProviderRegistry } from "@vrs-pay/core";
 import { createApp } from "../../apps/vrs-pay-api/src/app";
 import type { DashboardAuth, DashboardUser } from "../../apps/vrs-pay-api/src/app.types";
+import type { IdentityVerifier } from "../../apps/vrs-pay-api/src/identity/identity.types";
+import { sandboxVerifier } from "../../apps/vrs-pay-api/src/identity/verifiers";
 import { createSealer } from "../../apps/vrs-pay-api/src/lib/sealer";
 import { harness } from "./harness";
 import { fakeStripeApi } from "./stripe-fakes";
@@ -38,8 +40,11 @@ interface DashInit {
 /**
  * The app with a fake login system, signed in as Ada unless `as` says
  * otherwise. `liveProviders: false` leaves live mode without credentials.
+ * ID checks use the sandbox unless `identity` says otherwise (null: none).
  */
-export async function dashboardHarness(options: { liveProviders?: boolean } = {}) {
+export async function dashboardHarness(
+  options: { liveProviders?: boolean; identity?: IdentityVerifier | null } = {},
+) {
   const stripe = fakeStripeApi();
   const h = await harness({ stripeApi: stripe.api });
   const key = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("base64");
@@ -48,7 +53,14 @@ export async function dashboardHarness(options: { liveProviders?: boolean } = {}
     options.liveProviders === false
       ? { providers: createProviderRegistry(), platformProviders: [] }
       : h.deps.modes.live;
-  const deps = { ...h.deps, modes: { ...h.deps.modes, live }, auth: fakeAuth([ADA]), sealer };
+  const identity = options.identity === null ? undefined : (options.identity ?? sandboxVerifier);
+  const deps = {
+    ...h.deps,
+    modes: { ...h.deps.modes, live },
+    auth: fakeAuth([ADA]),
+    sealer,
+    identity,
+  };
   const app = createApp(deps);
   const dash = (path: string, init: DashInit = {}) =>
     app.request(`/dashboard${path}`, {

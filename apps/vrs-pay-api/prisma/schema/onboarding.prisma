@@ -25,7 +25,10 @@ model MerchantOnboarding {
   merchantId         String             @id @map("merchant_id")
   status             VerificationStatus @default(not_started)
   businessType       BusinessType?      @map("business_type")
+  /// Legal name for companies; trading name (optional) for individuals.
   businessName       String?            @map("business_name")
+  /// Company registration number (CAC RC/BN, Companies House, EIN…); companies only.
+  registrationNumber String?            @map("registration_number")
   country            String?            @db.Char(2)
   website            String?
   productDescription String?            @map("product_description")
@@ -46,6 +49,8 @@ model MerchantOnboarding {
   identityStatus     IdentityStatus     @default(unverified) @map("identity_status")
   identityReason     String?            @map("identity_reason")
   identityCheckedAt  DateTime?          @map("identity_checked_at")
+  /// The provider's session while the merchant finishes a document check.
+  identitySessionId  String?            @map("identity_session_id")
   payoutCurrency     String?            @map("payout_currency") @db.Char(3)
   payoutAccountName  String?            @map("payout_account_name")
   payoutBankName     String?            @map("payout_bank_name")

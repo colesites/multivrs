@@ -4,6 +4,7 @@ import type { ProviderAccountOwner } from "../stores/provider-account.store";
 import { type EventOutcome, ownedSession, recordCheckoutPayment } from "./capture.service";
 import { fillMissingEmail } from "./customer.service";
 import { buildEvent } from "./events";
+import { syncIdentitySession } from "./identity.service";
 import { syncRefund } from "./refund-sync.service";
 import { activateSubscription } from "./subscription-activation.service";
 
@@ -61,6 +62,8 @@ async function handle(
       if (!owner) return "ignored";
       await deps.providerAccounts.updateStatus(provider, event.data);
       return "processed";
+    case "identity.updated":
+      return owner ? "ignored" : syncIdentitySession(deps, event.data);
     default:
       return "ignored";
   }

@@ -6,9 +6,10 @@ import { idTypesFor } from "../identity/id-types";
 import { readJson } from "../lib/read-json";
 import { overview } from "../services/analytics.service";
 import { merchantBalance } from "../services/balance.service";
+import { setupWithIdentity, verifyIdentity } from "../services/identity.service";
 import { chargeableCurrencies } from "../services/platform";
 import { accountSetup } from "../services/setup.service";
-import { updateSetup, verifyIdentity } from "../services/setup-update.service";
+import { updateSetup } from "../services/setup-update.service";
 import { IdentitySchema, SetupUpdateSchema } from "./setup.schema";
 
 const NewKeySchema = z.strictObject({ kind: z.enum(["secret", "publishable"]).default("secret") });
@@ -49,7 +50,7 @@ export function dashboardRoutes(deps: AppDeps): Hono<AppEnv> {
     })
     .get("/overview", async (c) => c.json(await overview(deps, c.get("merchant"))))
     .get("/balance", async (c) => c.json(await merchantBalance(deps, c.get("merchant"))))
-    .get("/setup", async (c) => c.json(await accountSetup(deps, c.get("merchant"))))
+    .get("/setup", async (c) => c.json(await setupWithIdentity(deps, c.get("merchant"))))
     .post("/setup", async (c) => {
       const input = SetupUpdateSchema.parse(await readJson(c));
       return c.json(await updateSetup(deps, c.get("merchant"), input));

@@ -1,9 +1,11 @@
 import type { AppDeps } from "../app.types";
 import { emptyOnboarding, type OnboardingRecord } from "./onboarding.types";
+import { setupDetails } from "./setup-details";
 
 export const STEP_IDS = [
   "product",
   "identity",
+  "business",
   "payout",
   "description",
   "website",
@@ -31,43 +33,30 @@ async function hasProduct(deps: AppDeps, merchant: Scope): Promise<boolean> {
   );
 }
 
-/** What the dashboard shows of the details: secrets reduced to their last 4 digits. */
-function details(r: OnboardingRecord) {
-  return {
-    product_description: r.productDescription,
-    website: r.website,
-    support_email: r.supportEmail,
-    payout: r.payoutDetails
-      ? {
-          currency: r.payoutCurrency,
-          account_name: r.payoutAccountName,
-          bank_name: r.payoutBankName,
-          last4: r.payoutLast4,
-        }
-      : null,
-    identity: {
-      country: r.country,
-      id_type: r.idType,
-      last4: r.idLast4,
-      first_name: r.firstName,
-      last_name: r.lastName,
-      date_of_birth: r.dateOfBirth,
-      status: r.identityStatus,
-      reason: r.identityReason,
-    },
-  };
+/** Registered companies need their legal name and number; everyone needs an address and phone. */
+function businessDone(r: OnboardingRecord): boolean {
+  const contact = Boolean(r.addressLine1 && r.city && r.phone);
+  if (r.businessType === "company")
+    return contact && Boolean(r.businessName && r.registrationNumber);
+  return r.businessType === "individual" && contact;
 }
 
 /**
  * The "finish setting up" checklist. When every step is done the account
  * is active (live payments and payouts) — no separate submission. Staff can
- * hold an account, which overrides everything.
+ * hold an account, which overrides everything. `verificationUrl` is the
+ * link to finish a document check, when one is waiting on the merchant.
  */
-export async function accountSetup(deps: AppDeps, merchant: Scope) {
+export async function accountSetup(
+  deps: AppDeps,
+  merchant: Scope,
+  verificationUrl: string | null = null,
+) {
   const record = await loadOnboarding(deps, merchant.id);
   const done: Record<StepId, boolean> = {
     product: await hasProduct(deps, merchant),
     identity: record.identityStatus === "verified",
+    business: businessDone(record),
     payout: record.payoutDetails !== null,
     description: Boolean(record.productDescription),
     website: Boolean(record.website),
@@ -85,6 +74,6 @@ export async function accountSetup(deps: AppDeps, merchant: Scope) {
     completed,
     total: steps.length,
     next: steps.find((s) => !s.done)?.id ?? null,
-    details: details(record),
+    details: setupDetails(record, verificationUrl),
   };
 }

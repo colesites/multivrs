@@ -18,6 +18,14 @@ function stripeMode(secretKey: string, webhookSecrets: Array<string | undefined>
   };
 }
 
+/** The platform's Stripe secret key for `mode`, by the same rules as stripeModes. */
+export function platformStripeKey(env: Env, mode: ApiKeyMode): string | undefined {
+  const explicit = env[`STRIPE_${mode.toUpperCase()}_SECRET_KEY`];
+  if (explicit) return explicit;
+  const shared = env.STRIPE_SECRET_KEY;
+  return shared && isLiveStripeKey(shared) === (mode === "live") ? shared : undefined;
+}
+
 /**
  * Stripe credentials for each mode. STRIPE_TEST_SECRET_KEY and
  * STRIPE_LIVE_SECRET_KEY (each with its STRIPE_*_WEBHOOK_SECRET) set one

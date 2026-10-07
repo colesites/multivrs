@@ -1,15 +1,12 @@
 import { invalidRequest } from "@vrs-pay/core";
 import type { AppDeps } from "../app.types";
-import { findIdType, normalizeIdNumber } from "../identity/id-types";
-import { manualVerifier, sandboxVerifier } from "../identity/verifiers";
-import type { IdentityInput, SetupUpdate } from "../routes/setup.schema";
-import { nowSeconds } from "./events";
+import type { BusinessInput, SetupUpdate } from "../routes/setup.schema";
 import type { OnboardingRecord } from "./onboarding.types";
 import { accountSetup, loadOnboarding } from "./setup.service";
 
 type Scope = { id: string; mode: "test" | "live" };
 
-async function seal(deps: AppDeps, value: string): Promise<string> {
+export async function seal(deps: AppDeps, value: string): Promise<string> {
   if (!deps.sealer)
     throw invalidRequest(
       "encryption_unavailable",
@@ -18,11 +15,31 @@ async function seal(deps: AppDeps, value: string): Promise<string> {
   return deps.sealer.seal(value);
 }
 
-/** Saves any of the simple steps (description, website, support email, payout bank). */
+/**
+ * Registered businesses give their legal name and registration number;
+ * individuals and sole traders can add a trading name. Both give an
+ * address and phone number. Switching type clears what no longer applies.
+ */
+function businessFields(business: BusinessInput) {
+  const { address } = business;
+  return {
+    businessType: business.type,
+    businessName: business.name || null,
+    registrationNumber: business.type === "company" ? business.registration_number : null,
+    addressLine1: address.line1,
+    addressLine2: address.line2 || null,
+    city: address.city,
+    postalCode: address.postal_code || null,
+    phone: business.phone,
+  };
+}
+
+/** Saves any of the simple steps (business, description, website, support email, payout bank). */
 export async function updateSetup(deps: AppDeps, merchant: Scope, input: SetupUpdate) {
   const current = await loadOnboarding(deps, merchant.id);
   const next: OnboardingRecord = {
     ...current,
+    ...(input.business ? businessFields(input.business) : {}),
     productDescription: input.product_description ?? current.productDescription,
     website: input.website ?? current.website,
     supportEmail: input.support_email ?? current.supportEmail,
@@ -40,49 +57,5 @@ export async function updateSetup(deps: AppDeps, merchant: Scope, input: SetupUp
     next.payoutBankName = bank_name;
   }
   await deps.onboarding.save(next);
-  return accountSetup(deps, merchant);
-}
-
-/**
- * Checks the merchant's official ID for their business location (BVN/NIN
- * in Nigeria, Ghana Card, SA ID, passport…) and records the result. The
- * number is stored encrypted.
- */
-export async function verifyIdentity(deps: AppDeps, merchant: Scope, input: IdentityInput) {
-  const idType = findIdType(input.country, input.id_type);
-  if (!idType)
-    throw invalidRequest("id_type_invalid", "Choose an ID accepted in your country.", "id_type");
-  const idNumber = normalizeIdNumber(input.id_number);
-  if (!idType.pattern.test(idNumber)) {
-    throw invalidRequest(
-      "id_number_invalid",
-      `That doesn't look like a valid ${idType.label} (${idType.hint}).`,
-      "id_number",
-    );
-  }
-  // Test mode never contacts an identity provider; live without one goes to our team.
-  const verifier = merchant.mode === "test" ? sandboxVerifier : (deps.identity ?? manualVerifier);
-  const result = await verifier.verify({
-    country: input.country,
-    idType: idType.id,
-    idNumber,
-    firstName: input.first_name,
-    lastName: input.last_name,
-    dateOfBirth: input.date_of_birth,
-  });
-  const current = await loadOnboarding(deps, merchant.id);
-  await deps.onboarding.save({
-    ...current,
-    country: input.country,
-    idType: idType.id,
-    idNumber: await seal(deps, idNumber),
-    idLast4: idNumber.slice(-4),
-    firstName: input.first_name,
-    lastName: input.last_name,
-    dateOfBirth: input.date_of_birth,
-    identityStatus: result.status,
-    identityReason: result.status === "verified" ? null : result.reason,
-    identityCheckedAt: nowSeconds(),
-  });
   return accountSetup(deps, merchant);
 }

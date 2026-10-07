@@ -4,12 +4,15 @@ export type AccountStatus = "setup" | "active" | "restricted";
 export type StepId =
   | "product"
   | "identity"
+  | "business"
   | "payout"
   | "description"
   | "website"
   | "support_email";
 
 export type Mode = "test" | "live";
+/** Registered business, or an individual / sole trader. */
+export type BusinessType = "company" | "individual";
 
 /** Which business and mode the dashboard is showing; sent with every request. */
 export interface Scope {
@@ -54,6 +57,18 @@ export interface AccountSetup {
   total: number;
   next: StepId | null;
   details: {
+    business: {
+      type: BusinessType | null;
+      name: string | null;
+      registration_number: string | null;
+      address: {
+        line1: string | null;
+        line2: string | null;
+        city: string | null;
+        postal_code: string | null;
+      };
+      phone: string | null;
+    };
     product_description: string | null;
     website: string | null;
     support_email: string | null;
@@ -72,6 +87,8 @@ export interface AccountSetup {
       date_of_birth: string | null;
       status: "unverified" | "pending" | "verified" | "failed";
       reason: string | null;
+      /** Where to finish a document and selfie check, while one is waiting. */
+      verification_url: string | null;
     };
   };
 }

@@ -16,7 +16,7 @@ describe("/dashboard", () => {
       user: { email: "ada@shop.test" },
       merchant: { name: "Ada Lovelace's business", platform_fee_bps: 500 },
       mode: "test",
-      setup: { status: "setup", completed: 0, total: 6, next: "product" },
+      setup: { status: "setup", completed: 0, total: 7, next: "product" },
     });
     expect((await (await dash("/me")).json()).merchant.id).toBe(me.merchant.id);
   });

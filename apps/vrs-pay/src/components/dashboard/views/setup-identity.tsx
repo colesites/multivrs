@@ -1,18 +1,33 @@
 import { type FormEvent, useState } from "react";
-import { useDashboard } from "../context";
 import { countryOptions } from "../countries";
 import type { AccountSetup } from "../types";
-import { Input, NativeSelect } from "../ui";
+import { Button, Input, NativeSelect } from "../ui";
 import { Field } from "./section-form";
 import { FormFooter, useSetupSave } from "./setup-forms";
 import { useIdTypes } from "./use-id-types";
 
-const STATUS_NOTE: Record<string, string> = {
-  verified: "Verified.",
-  pending: "We're checking your ID — usually within 1 business day.",
-};
+/** What to tell the merchant about their check, if anything. */
+function statusNote(identity: AccountSetup["details"]["identity"]) {
+  if (identity.status === "verified") return "Verified.";
+  if (identity.status === "unverified") return null;
+  return identity.reason;
+}
 
-/** Business location first; the official IDs we accept follow from it. */
+/** Sends the merchant to the provider's page when the check needs their ID scan and a selfie. */
+function continueCheck(
+  setup: AccountSetup,
+  onSaved: (s: AccountSetup) => void,
+) {
+  onSaved(setup);
+  const url = setup.details.identity.verification_url;
+  if (url) window.location.assign(url);
+}
+
+/**
+ * Business location first; the official IDs we accept follow from it.
+ * Registry IDs (BVN, NIN, Ghana Card…) are checked instantly; others take
+ * a scan of the ID and a selfie on Stripe's page. No one reviews by hand.
+ */
 export function IdentityForm({
   setup,
   onSaved,
@@ -20,14 +35,15 @@ export function IdentityForm({
   setup: AccountSetup;
   onSaved: (s: AccountSetup) => void;
 }) {
-  const { session } = useDashboard();
   const identity = setup.details.identity;
   const [country, setCountry] = useState(identity.country ?? "");
   const { idTypes, idType, setIdType } = useIdTypes(
     country,
     identity.id_type ?? "",
   );
-  const { save, pending, error } = useSetupSave(onSaved);
+  const { save, pending, error } = useSetupSave((s) =>
+    continueCheck(s, onSaved),
+  );
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,10 +60,8 @@ export function IdentityForm({
   }
 
   const hint = idTypes.find((t) => t.id === idType)?.hint;
-  const note =
-    identity.status === "failed"
-      ? identity.reason
-      : STATUS_NOTE[identity.status];
+  const note = statusNote(identity);
+  const url = identity.verification_url;
   return (
     <form onSubmit={submit} className="grid gap-4">
       {note && (
@@ -56,6 +70,15 @@ export function IdentityForm({
         >
           {note}
         </p>
+      )}
+      {url && (
+        <Button
+          type="button"
+          className="w-fit"
+          onClick={() => window.location.assign(url)}
+        >
+          Continue verification
+        </Button>
       )}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Business location">
@@ -119,12 +142,10 @@ export function IdentityForm({
           />
         </Field>
       </div>
-      {session.mode === "test" && (
-        <p className="text-xs text-mute">
-          Test mode: any correctly formatted number passes; 00000000000 always
-          fails.
-        </p>
-      )}
+      <p className="text-xs text-mute">
+        One real check covers test and live mode. Some IDs also need a quick
+        scan of the ID and a selfie.
+      </p>
       <FormFooter pending={pending} error={error} label="Verify" />
     </form>
   );

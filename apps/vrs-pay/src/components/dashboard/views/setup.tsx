@@ -4,6 +4,7 @@ import { Badge } from "../badge";
 import { useApi, useDashboard } from "../context";
 import type { AccountSetup, StepId } from "../types";
 import { Button, Card, ErrorNote, Loading, PageHeader } from "../ui";
+import { BusinessSection } from "./setup-business";
 import {
   AboutSection,
   IdentitySection,
@@ -14,6 +15,7 @@ import {
 const NEEDED: Record<StepId, string> = {
   product: "your first product",
   identity: "an ID check",
+  business: "your business details",
   payout: "a payout account",
   description: "what you sell",
   website: "your website",
@@ -108,6 +110,7 @@ export function SetupView() {
           <StatusCard setup={setup} />
           <ProductSection setup={setup} onCreated={productCreated} />
           <IdentitySection setup={setup} onSaved={saved} />
+          <BusinessSection setup={setup} onSaved={saved} />
           <PayoutSection setup={setup} onSaved={saved} />
           <AboutSection setup={setup} onSaved={saved} />
         </>

@@ -7,7 +7,10 @@ export interface OnboardingRecord {
   merchantId: string;
   status: VerificationStatus;
   businessType: BusinessType | null;
+  /** Legal name for companies; trading name (optional) for individuals. */
   businessName: string | null;
+  /** Company registration number (CAC RC/BN, Companies House, EIN…); companies only. */
+  registrationNumber: string | null;
   country: string | null;
   website: string | null;
   productDescription: string | null;
@@ -27,6 +30,8 @@ export interface OnboardingRecord {
   identityStatus: IdentityStatus;
   identityReason: string | null;
   identityCheckedAt: number | null;
+  /** The provider's session while the merchant finishes a document check (Stripe vs_…). */
+  identitySessionId: string | null;
   payoutCurrency: string | null;
   payoutAccountName: string | null;
   payoutBankName: string | null;
@@ -44,6 +49,7 @@ export function emptyOnboarding(merchantId: string): OnboardingRecord {
     status: "not_started",
     businessType: null,
     businessName: null,
+    registrationNumber: null,
     country: null,
     website: null,
     productDescription: null,
@@ -62,6 +68,7 @@ export function emptyOnboarding(merchantId: string): OnboardingRecord {
     identityStatus: "unverified",
     identityReason: null,
     identityCheckedAt: null,
+    identitySessionId: null,
     payoutCurrency: null,
     payoutAccountName: null,
     payoutBankName: null,
