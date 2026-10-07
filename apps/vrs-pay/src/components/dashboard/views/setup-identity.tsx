@@ -25,8 +25,8 @@ function continueCheck(
 
 /**
  * Business location first; the official IDs we accept follow from it.
- * Registry IDs (BVN, NIN, Ghana Card…) are checked instantly; others take
- * a scan of the ID and a selfie on Stripe's page. No one reviews by hand.
+ * A NIN is looked up at the registry instantly; other IDs take a scan of
+ * the ID and a selfie on Stripe's page. No one reviews by hand.
  */
 export function IdentityForm({
   setup,

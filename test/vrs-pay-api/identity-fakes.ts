@@ -53,12 +53,36 @@ export function documentOutputs(first: string, last: string, dob: string) {
   });
 }
 
-/** A Smile ID endpoint that answers every lookup with `body` and records the requests. */
-export function fakeSmileId(body: unknown, status = 200) {
-  const requests: Array<Record<string, unknown>> = [];
-  async function fetch(_url: string, init: RequestInit): Promise<Response> {
-    requests.push(JSON.parse(String(init.body)));
+/** A Didit endpoint that answers every lookup with `body` and records the form fields sent. */
+export function fakeDidit(body: unknown, status = 200) {
+  const requests: Array<{ url: string; apiKey: string | null; fields: Record<string, string> }> =
+    [];
+  async function fetch(url: string, init: RequestInit): Promise<Response> {
+    const form = init.body as FormData;
+    const fields = Object.fromEntries([...form.entries()].map(([k, v]) => [k, String(v)]));
+    requests.push({ url, apiKey: new Headers(init.headers).get("x-api-key"), fields });
     return new Response(JSON.stringify(body), { status });
   }
   return { fetch, requests };
+}
+
+/** A Didit database validation answer with one service result. */
+export function diditAnswer(
+  outcome: string,
+  record: Record<string, string> = {},
+  validation: Record<string, string> = {},
+) {
+  return {
+    request_id: "req_1",
+    status: outcome === "MATCH" ? "Approved" : "Declined",
+    issuing_state: "NGA",
+    validations: [
+      {
+        outcome_code: outcome,
+        service_id: "nga_national_id",
+        source_data: record,
+        validation,
+      },
+    ],
+  };
 }

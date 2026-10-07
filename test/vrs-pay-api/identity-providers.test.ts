@@ -1,47 +1,33 @@
 /**
- * vrs-pay-api — automatic ID checks: Smile ID registry lookups, Stripe
- * Identity document checks, name matching, and which provider runs when.
+ * vrs-pay-api — automatic ID checks: Didit NIN lookups, Stripe Identity
+ * document checks, name matching, and which provider runs when.
  */
 import { describe, expect, test } from "bun:test";
 import { isVrsPayError } from "@vrs-pay/core";
+import { createDiditVerifier } from "../../apps/vrs-pay-api/src/identity/didit";
 import {
   identityFromEnv,
   routeIdentity,
 } from "../../apps/vrs-pay-api/src/identity/identity-router";
 import { isoDate, namesMatch, nameTokens } from "../../apps/vrs-pay-api/src/identity/name-match";
-import {
-  createSmileIdVerifier,
-  smileIdSignature,
-} from "../../apps/vrs-pay-api/src/identity/smile-id";
 import { createDocumentVerifier } from "../../apps/vrs-pay-api/src/identity/stripe-identity";
 import { sandboxVerifier } from "../../apps/vrs-pay-api/src/identity/verifiers";
-import { documentOutputs, fakeIdentityApi, fakeSmileId } from "./identity-fakes";
+import { diditAnswer, documentOutputs, fakeDidit, fakeIdentityApi } from "./identity-fakes";
 
 const ADA = { firstName: "Ada", lastName: "Okafor", dateOfBirth: "1990-04-12" };
-const BVN_CHECK = {
+const NIN_CHECK = {
   ...ADA,
   merchantId: "mer_1",
   country: "NG",
-  idType: "bvn",
+  idType: "nin",
   idNumber: "22345678901",
 };
-const PASSPORT_CHECK = { ...BVN_CHECK, country: "GB", idType: "passport", idNumber: "123456789" };
-const VALIDATED = {
-  ResultCode: "1012",
-  ResultText: "ID Number Validated",
-  FullName: "OKAFOR ADA CHIOMA",
-  DOB: "1990-04-12",
-  Actions: { Verify_ID_Number: "Verified", Return_Personal_Info: "Returned" },
-};
+const BVN_CHECK = { ...NIN_CHECK, idType: "bvn" };
+const PASSPORT_CHECK = { ...NIN_CHECK, country: "GB", idType: "passport", idNumber: "123456789" };
 
-function smileId(body: unknown, status = 200) {
-  const fake = fakeSmileId(body, status);
-  const verifier = createSmileIdVerifier({
-    partnerId: "085",
-    apiKey: "smile-api-key",
-    server: "sandbox",
-    fetch: fake.fetch,
-  });
+function didit(body: unknown, status = 200) {
+  const fake = fakeDidit(body, status);
+  const verifier = createDiditVerifier({ apiKey: "didit-key", fetch: fake.fetch });
   return { ...fake, verifier };
 }
 
@@ -62,55 +48,72 @@ describe("name matching", () => {
   });
 });
 
-describe("Smile ID", () => {
-  test("signs requests the way Smile ID's SDKs do", () => {
-    expect(smileIdSignature("085", "smile-api-key", "2026-10-07T12:00:00.000Z")).toBe(
-      "yJLC5XTkRy4cjGIIOUBXKLphNCz6isSEHhkcms0ODg8=",
-    );
+describe("Didit NIN lookups", () => {
+  test("sends the NIN, name and birth date to Nigeria's National ID service", async () => {
+    const { requests, verifier } = didit(diditAnswer("MATCH"));
+    expect(await verifier.verify(NIN_CHECK)).toEqual({ status: "verified" });
+    expect(requests[0]).toEqual({
+      url: "https://verification.didit.me/v3/database-validation/",
+      apiKey: "didit-key",
+      fields: {
+        issuing_state: "NGA",
+        services: "nga_national_id",
+        national_id: "22345678901",
+        first_name: "Ada",
+        last_name: "Okafor",
+        date_of_birth: "1990-04-12",
+      },
+    });
   });
 
-  test("a BVN whose name and birth date match is verified on the spot", async () => {
-    const { verifier, requests } = smileId(VALIDATED);
-    expect(await verifier.verify(BVN_CHECK)).toEqual({ status: "verified" });
-    expect(requests[0]).toMatchObject({
-      partner_id: "085",
-      country: "NG",
-      id_type: "BVN",
-      id_number: "22345678901",
-      dob: "1990-04-12",
-      partner_params: { user_id: "mer_1", job_type: 5 },
-    });
-    expect(String(requests[0]?.signature)).toHaveLength(44);
+  test("a partial match passes when the record is still the merchant's", async () => {
+    const surnameFirst = { full_name: "OKAFOR ADA CHIOMA", date_of_birth: "1990-04-12" };
+    const { verifier } = didit(diditAnswer("PARTIAL_MATCH", surnameFirst));
+    expect(await verifier.verify(NIN_CHECK)).toEqual({ status: "verified" });
+    const otherDob = { ...surnameFirst, date_of_birth: "1991-01-01" };
+    expect(
+      await didit(diditAnswer("PARTIAL_MATCH", otherDob)).verifier.verify(NIN_CHECK),
+    ).toMatchObject({ status: "failed", reason: expect.stringContaining("date of birth") });
+    const someoneElse = { full_name: "BELLO MUSA", date_of_birth: "1990-04-12" };
+    expect(
+      await didit(diditAnswer("PARTIAL_MATCH", someoneElse)).verifier.verify(NIN_CHECK),
+    ).toMatchObject({ status: "failed", reason: expect.stringContaining("name") });
   });
 
-  test("unknown numbers, other people's IDs and wrong birth dates fail with a reason", async () => {
-    const notFound = smileId({ ResultCode: "1013", ResultText: "ID Number Not Found" });
-    expect(await notFound.verifier.verify(BVN_CHECK)).toMatchObject({ status: "failed" });
-    const someoneElse = smileId({ ...VALIDATED, FullName: "BELLO MUSA" });
-    expect(await someoneElse.verifier.verify(BVN_CHECK)).toMatchObject({
-      status: "failed",
-      reason: expect.stringContaining("name"),
-    });
-    const wrongDob = smileId({ ...VALIDATED, DOB: "1991-01-01" });
-    expect(await wrongDob.verifier.verify(BVN_CHECK)).toMatchObject({
-      status: "failed",
-      reason: expect.stringContaining("date of birth"),
-    });
-    const noDobOnRecord = smileId({ ...VALIDATED, DOB: "Not Available" });
-    expect(await noDobOnRecord.verifier.verify(BVN_CHECK)).toEqual({ status: "verified" });
+  test("unknown numbers and minors fail with a reason", async () => {
+    for (const [outcome, words] of [
+      ["NO_MATCH", "couldn't find"],
+      ["DOCUMENT_NOT_FOUND", "couldn't find"],
+      ["MINOR_BLOCKED", "at least 18"],
+    ] as const) {
+      expect(await didit(diditAnswer(outcome)).verifier.verify(NIN_CHECK)).toMatchObject({
+        status: "failed",
+        reason: expect.stringContaining(words),
+      });
+    }
   });
 
   test("registry outages and server errors ask the merchant to retry instead of deciding", async () => {
-    const down = smileId({ ResultCode: "1015", ResultText: "ID Authority Unavailable" });
-    expect(await errorCode(down.verifier.verify(BVN_CHECK))).toEqual([
-      503,
-      "identity_check_unavailable",
-    ]);
-    const broken = smileId({ code: "2203", error: "Invalid signature" }, 401);
-    expect(await errorCode(broken.verifier.verify(BVN_CHECK))).toEqual([
-      503,
-      "identity_check_unavailable",
-    ]);
+    const unavailable = [503, "identity_check_unavailable"];
+    expect(
+      await errorCode(didit(diditAnswer("REGISTRY_UNAVAILABLE")).verifier.verify(NIN_CHECK)),
+    ).toEqual(unavailable);
+    expect(await errorCode(didit(diditAnswer("INCONCLUSIVE")).verifier.verify(NIN_CHECK))).toEqual(
+      unavailable,
+    );
+    expect(await errorCode(didit({ detail: "bad key" }, 403).verifier.verify(NIN_CHECK))).toEqual(
+      unavailable,
+    );
+    expect(await errorCode(didit({ nothing: true }).verifier.verify(NIN_CHECK))).toEqual(
+      unavailable,
+    );
+  });
+
+  test("only NINs are looked up; BVN and other IDs aren't", () => {
+    const { verifier } = didit(diditAnswer("MATCH"));
+    expect(verifier.supports("NG", "nin")).toBe(true);
+    expect(verifier.supports("NG", "bvn")).toBe(false);
+    expect(verifier.supports("GH", "ghana_card")).toBe(false);
   });
 });
 
@@ -174,16 +177,17 @@ describe("Stripe Identity document checks", () => {
 });
 
 describe("which check runs", () => {
-  test("registry IDs go to Smile ID; the rest to a document check", async () => {
-    const smile = smileId(VALIDATED);
+  test("NINs go to Didit; BVN and everything else to a document check", async () => {
+    const lookups = didit(diditAnswer("MATCH"));
     const stripe = fakeIdentityApi();
     const documents = createDocumentVerifier({ api: stripe.api, returnUrl: "https://vrs.test" });
-    const both = routeIdentity({ smileId: smile.verifier, documents });
-    expect(await both?.verify(BVN_CHECK)).toEqual({ status: "verified" });
+    const both = routeIdentity({ registry: lookups.verifier, documents });
+    expect(await both?.verify(NIN_CHECK)).toEqual({ status: "verified" });
+    expect((await both?.verify(BVN_CHECK))?.status).toBe("pending");
     expect((await both?.verify(PASSPORT_CHECK))?.status).toBe("pending");
-    expect([smile.requests.length, stripe.created.length]).toEqual([1, 1]);
-    const smileOnly = routeIdentity({ smileId: smile.verifier });
-    expect(await errorCode(smileOnly?.verify(PASSPORT_CHECK) ?? Promise.resolve())).toEqual([
+    expect([lookups.requests.length, stripe.created.length]).toEqual([1, 2]);
+    const didItOnly = routeIdentity({ registry: lookups.verifier });
+    expect(await errorCode(didItOnly?.verify(PASSPORT_CHECK) ?? Promise.resolve())).toEqual([
       400,
       "id_type_unsupported",
     ]);
@@ -201,8 +205,8 @@ describe("which check runs", () => {
       { ...options, database: true },
     );
     expect(typeof live?.resume).toBe("function");
-    const sandbox = { SMILE_ID_PARTNER_ID: "085", SMILE_ID_API_KEY: "k", SMILE_ID_ENV: "sandbox" };
-    expect(() => identityFromEnv(sandbox, { ...options, database: true })).toThrow("sandbox");
-    expect(identityFromEnv(sandbox, { ...options, database: false })).not.toBe(sandboxVerifier);
+    const diditOnly = identityFromEnv({ DIDIT_API_KEY: "k" }, { ...options, database: true });
+    expect(diditOnly).toBeDefined();
+    expect(diditOnly?.resume).toBeUndefined();
   });
 });
