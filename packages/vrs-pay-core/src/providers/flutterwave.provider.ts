@@ -25,5 +25,11 @@ export function createFlutterwaveProvider(): PaymentProvider {
     async parseWebhook() {
       throw providerNotImplemented("flutterwave", "parseWebhook");
     },
+    async ensureCustomer() {
+      throw providerNotImplemented("flutterwave", "ensureCustomer");
+    },
+    async chargeSaved() {
+      throw providerNotImplemented("flutterwave", "chargeSaved");
+    },
   };
 }

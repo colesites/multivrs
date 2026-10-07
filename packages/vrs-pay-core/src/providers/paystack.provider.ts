@@ -27,5 +27,11 @@ export function createPaystackProvider(): PaymentProvider {
     async parseWebhook() {
       throw providerNotImplemented("paystack", "parseWebhook");
     },
+    async ensureCustomer() {
+      throw providerNotImplemented("paystack", "ensureCustomer");
+    },
+    async chargeSaved() {
+      throw providerNotImplemented("paystack", "chargeSaved");
+    },
   };
 }
