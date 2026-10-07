@@ -1,7 +1,7 @@
 import type { ApiKeyMode, ProviderId, ProviderRegistry } from "@vrs-pay/core";
 import type { IdentityVerifier } from "./identity/identity.types";
-import type { StoredCustomer } from "./services/customer.types";
 import type { Sealer } from "./lib/sealer";
+import type { StoredCustomer } from "./services/customer.types";
 import type { Stores } from "./stores/stores.types";
 
 /** A merchant as the API sees it. */

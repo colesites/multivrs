@@ -2,8 +2,8 @@ import { invalidRequest, resourceMissing } from "@vrs-pay/core";
 import type { AppDeps, MerchantContext } from "../app.types";
 import type { StoredCustomer } from "./customer.types";
 import { entitlementsFor } from "./entitlements.service";
-import type { Product } from "./product.types";
 import { listProducts } from "./product.service";
+import type { Product } from "./product.types";
 import { loadSubscription, scopeOf } from "./subscription.service";
 
 /** What a pricing table shows: no metadata, internal labels or archived prices. */
@@ -21,7 +21,17 @@ function publicProduct(product: Product) {
       usage_type: p.usage_type,
       lookup_key: p.lookup_key,
     }));
-  return { id, object: "product" as const, name, description, images, marketing_features, trial_days, features, prices };
+  return {
+    id,
+    object: "product" as const,
+    name,
+    description,
+    images,
+    marketing_features,
+    trial_days,
+    features,
+    prices,
+  };
 }
 
 /** `GET /client/v1/pricing`: active products and their active prices. */

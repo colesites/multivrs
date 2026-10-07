@@ -31,7 +31,9 @@ export function authenticateClient(
       ? await customers.findBySession(await sha256Hex(secret), new Date())
       : null;
     if (secret && (customer?.merchantId !== merchant.id || customer.mode !== merchant.mode)) {
-      throw authenticationError("This customer session has expired. Ask your server for a new one.");
+      throw authenticationError(
+        "This customer session has expired. Ask your server for a new one.",
+      );
     }
     c.set("customer", customer);
     await next();

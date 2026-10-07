@@ -3,13 +3,13 @@ import { cors } from "hono/cors";
 import type { AppDeps, AppEnv } from "../app.types";
 import { readJson } from "../lib/read-json";
 import { authenticateClient, CUSTOMER_SESSION_HEADER } from "../middleware/authenticate-client";
-import { clientCheckout } from "../services/client-checkout.service";
 import {
   customerOverview,
   ownSubscription,
   pricing,
   requireCustomer,
 } from "../services/client.service";
+import { clientCheckout } from "../services/client-checkout.service";
 import { entitlementsFor, grants } from "../services/entitlements.service";
 import { cancelSubscription, resumeSubscription, scopeOf } from "../services/subscription.service";
 import { changeSubscription } from "../services/subscription-change.service";
@@ -42,7 +42,9 @@ export function clientRoutes(deps: AppDeps): Hono<AppEnv> {
       const entitlements = await entitlementsFor(deps, scopeOf(merchant), customer(c).customer.id);
       const feature = c.req.query("feature");
       return c.json(
-        feature ? { ...entitlements, feature, granted: grants(entitlements, feature) } : entitlements,
+        feature
+          ? { ...entitlements, feature, granted: grants(entitlements, feature) }
+          : entitlements,
       );
     })
     .post("/checkout", async (c) => {
