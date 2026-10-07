@@ -13,6 +13,16 @@ export const createMailboxSchema = z.object({
   projectId: z.uuid().optional(),
 });
 
+/** What can change on a mailbox; the address is fixed (it's wired to DNS and routing). */
+export const updateMailboxSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120).optional(),
+    kind: z.enum(["personal", "shared", "sending", "no-reply"]).optional(),
+  })
+  .refine((value) => value.name !== undefined || value.kind !== undefined, {
+    message: "Change the name or the kind",
+  });
+
 export const createMailDomainSchema = z.object({
   account,
   domain: hostnameSchema,

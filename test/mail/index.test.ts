@@ -9,6 +9,7 @@ import {
   normalizeMailDnsValue,
   relativeMailDnsName,
 } from "../../apps/web/src/lib/mail/mail-domain-dns";
+import { sanitizeMailHtml } from "../../apps/web/src/lib/mail/sanitize-html";
 import {
   dnsRecordStatus,
   mapSesStatus,
@@ -212,5 +213,11 @@ describe("Multivrs Mail boundaries", () => {
     expect(dnsRecordStatus({ purpose: "mx", status: "verified" }, false)).toBe("verified");
     expect(dnsRecordStatus({ purpose: "spf", status: "pending" }, true)).toBe("verified");
     expect(dnsRecordStatus({ purpose: "dmarc", status: "pending" }, false)).toBe("missing");
+  });
+
+  test("links in received mail open in a new tab, never inside Multivrs", () => {
+    const html = sanitizeMailHtml('<a href="https://example.com">Open</a>') ?? "";
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('rel="noopener noreferrer"');
   });
 });

@@ -1,7 +1,10 @@
 import "server-only";
 import type { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import type { createMailboxSchema } from "@/lib/schemas/mail-resource.schemas";
+import type {
+  createMailboxSchema,
+  updateMailboxSchema,
+} from "@/lib/schemas/mail-resource.schemas";
 import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
 import {
   accessibleMailbox,
@@ -66,6 +69,37 @@ export async function createMailbox(actorId: string, input: MailboxInput) {
         ? { members: { create: { userId: actorId, role: "owner" } } }
         : {}),
     },
+  });
+}
+
+/**
+ * Renames a mailbox or changes its kind. Making it personal hides it from
+ * the rest of the team, so the person who does it becomes its member.
+ */
+export async function updateMailbox(
+  actorId: string,
+  mailboxId: string,
+  input: z.infer<typeof updateMailboxSchema>,
+) {
+  await accessibleMailbox(actorId, mailboxId, "manage");
+  return prisma.mailbox.update({
+    where: { id: mailboxId },
+    data: {
+      name: input.name,
+      kind: input.kind,
+      ...(input.kind === "personal"
+        ? {
+            members: {
+              upsert: {
+                where: { mailboxId_userId: { mailboxId, userId: actorId } },
+                create: { userId: actorId, role: "owner" },
+                update: {},
+              },
+            },
+          }
+        : {}),
+    },
+    select: { id: true, name: true, kind: true },
   });
 }
 

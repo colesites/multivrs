@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   CircleDashed,
   MoreHorizontal,
+  Pencil,
   RefreshCw,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -16,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MailboxEditDialog } from "@/features/mail/MailboxEditDialog";
 import type { MailResourceItem } from "@/features/mail/mail.types";
 import type { MailView } from "@/features/mail/mail-navigation";
 
@@ -29,6 +31,7 @@ export function MailResourceRow({
   const router = useRouter();
   const params = useParams() as { username?: string; scope?: string };
   const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const noun = view.slice(0, -1);
 
@@ -133,6 +136,12 @@ export function MailResourceRow({
               Check DNS now
             </DropdownMenuItem>
           )}
+          {view === "mailboxes" && (
+            <DropdownMenuItem onClick={() => setEditing(true)}>
+              <Pencil className="size-3.5" />
+              Edit
+            </DropdownMenuItem>
+          )}
           {(view === "mailboxes" || view === "domains") && (
             <DropdownMenuItem
               onClick={() => setConfirming(true)}
@@ -143,6 +152,18 @@ export function MailResourceRow({
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+      {view === "mailboxes" && (
+        <MailboxEditDialog
+          mailbox={{
+            id: item.id,
+            name: item.name,
+            address: item.address ?? item.detail,
+            kind: item.kind ?? "shared",
+          }}
+          onOpenChange={setEditing}
+          open={editing}
+        />
+      )}
       <ConfirmDialog
         busy={deleting}
         description={

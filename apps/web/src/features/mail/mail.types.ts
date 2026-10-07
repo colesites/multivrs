@@ -51,6 +51,9 @@ export interface MailResourceItem {
   detail: string;
   status: string;
   createdAt: string;
+  /** Mailboxes only: its address, and who sees it (personal, shared, sending, no-reply). */
+  address?: string;
+  kind?: string;
 }
 
 export interface MailDashboardData {
