@@ -16,7 +16,10 @@ import { organization, twoFactor, username } from "better-auth/plugins";
 import { emailOTP } from "better-auth/plugins/email-otp";
 import { sendOtpEmail } from "@/lib/email/auth-emails";
 import { sendOrganizationInvitation } from "@/lib/email/organization-emails";
-import { assertOrganizationSeat } from "@/lib/services/organization-seat.service";
+import {
+  assertOrganizationSeat,
+  isPaidRole,
+} from "@/lib/services/organization-seat.service";
 import { databaseHooks } from "./hooks";
 import { generateUniqueUsername } from "./oauth-username";
 import { organizationAccess, organizationRoles } from "./organization-access";
@@ -169,6 +172,24 @@ export const authConfig = {
               invitation.inviterId,
               invitation.organizationId,
               invitation.role,
+            );
+          } catch (error) {
+            throw new APIError("FORBIDDEN", {
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "The workspace developer-seat limit has been reached.",
+            });
+          }
+        },
+        // Promoting a viewer or billing member to a paid role takes a seat too.
+        beforeUpdateMemberRole: async ({ member, newRole, user }) => {
+          if (isPaidRole(member.role) || !isPaidRole(newRole)) return;
+          try {
+            await assertOrganizationSeat(
+              user.id,
+              member.organizationId,
+              newRole,
             );
           } catch (error) {
             throw new APIError("FORBIDDEN", {

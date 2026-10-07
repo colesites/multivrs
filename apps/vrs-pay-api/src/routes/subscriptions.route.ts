@@ -11,9 +11,14 @@ import {
   scopeOf,
 } from "../services/subscription.service";
 import { changeSubscription } from "../services/subscription-change.service";
-import { CancelSubscriptionSchema, UpdateSubscriptionSchema } from "./subscription.schema";
+import { reportUsage, usageSummary } from "../services/usage.service";
+import {
+  CancelSubscriptionSchema,
+  UpdateSubscriptionSchema,
+  UsageRecordSchema,
+} from "./subscription.schema";
 
-/** `/v1/subscriptions` — list, read, change, cancel, resume. */
+/** `/v1/subscriptions` — list, read, change, cancel, resume, and report usage. */
 export function subscriptionRoutes(deps: AppDeps): Hono<AppEnv> {
   return new Hono<AppEnv>()
     .get("/", async (c) => {
@@ -27,6 +32,13 @@ export function subscriptionRoutes(deps: AppDeps): Hono<AppEnv> {
       const input = UpdateSubscriptionSchema.parse(await readJson(c));
       return c.json(await changeSubscription(deps, c.get("merchant"), c.req.param("id"), input));
     })
+    .post("/:id/usage_records", async (c) => {
+      const input = UsageRecordSchema.parse(await readJson(c));
+      return c.json(await reportUsage(deps, c.get("merchant"), c.req.param("id"), input));
+    })
+    .get("/:id/usage", async (c) =>
+      c.json(await usageSummary(deps, c.get("merchant"), c.req.param("id"))),
+    )
     .post("/:id/cancel", async (c) => {
       const { at } = CancelSubscriptionSchema.parse(await readJson(c));
       return c.json(await cancelSubscription(deps, c.get("merchant"), c.req.param("id"), at));

@@ -7,6 +7,7 @@ import { describe, expect, test } from "bun:test";
 import { createApp } from "../../apps/vrs-pay-api/src/app";
 import { harness } from "./harness";
 import { fakeStripeApi } from "./stripe-fakes";
+import { signedStripeRequest, stripeEvent } from "./stripe-fixtures";
 
 const EBOOK = {
   name: "Design e-book",
@@ -125,7 +126,7 @@ describe("payment links for a product", () => {
       currency: "usd",
       description: "Design e-book",
     });
-    expect((await app.request(`/l/${link.id}`)).status).toBe(303);
+    expect((await app.request(`/l/${link.id}`, { method: "POST" })).status).toBe(303);
     const [created] = stripe.calls.sessions;
     expect(created?.params.line_items?.[0]?.price_data?.unit_amount).toBe(2500);
   });
@@ -134,7 +135,7 @@ describe("payment links for a product", () => {
     const { app, call, monthly, state, stripe } = await withProduct();
     const link = await (await call("/v1/payment_links", { body: { price: monthly.id } })).json();
     expect(link).toMatchObject({ interval: "month", amount: 900, description: "Design e-book" });
-    expect((await app.request(`/l/${link.id}`)).status).toBe(303);
+    expect((await app.request(`/l/${link.id}`, { method: "POST" })).status).toBe(303);
     const [session] = [...state.sessions.values()];
     expect(session?.session).toMatchObject({ mode: "subscription", payment_link: link.id });
     expect(stripe.calls.sessions[0]?.params.payment_intent_data).toMatchObject({
@@ -144,13 +145,28 @@ describe("payment links for a product", () => {
     expect(customers).toMatchObject([{ id: session?.session.customer, email: null }]);
   });
 
+  test("an abandoned subscription link checkout leaves no customer behind", async () => {
+    const { app, call, monthly, state } = await withProduct();
+    const link = await (await call("/v1/payment_links", { body: { price: monthly.id } })).json();
+    await app.request(`/l/${link.id}`, { method: "POST" });
+    const [session] = [...state.sessions.values()];
+    expect((await (await call("/v1/customers")).json()).data).toHaveLength(1);
+    const expired = stripeEvent("checkout.session.expired", {
+      id: session?.session.provider_reference,
+      object: "checkout.session",
+    });
+    await app.request("/webhooks/stripe", await signedStripeRequest(expired));
+    expect((await (await call("/v1/customers")).json()).data).toHaveLength(0);
+    expect(state.subscriptions.size).toBe(0);
+  });
+
   test("mixed bodies and archived products are refused", async () => {
     const { app, call, oneTime, product } = await withProduct();
     const mixed = await call("/v1/payment_links", { body: { price: oneTime.id, amount: 100 } });
     expect(mixed.status).toBe(400);
     const link = await (await call("/v1/payment_links", { body: { price: oneTime.id } })).json();
     await call(`/v1/products/${product.id}`, { body: { active: false } });
-    const res = await app.request(`/l/${link.id}`);
+    const res = await app.request(`/l/${link.id}`, { method: "POST" });
     expect([res.status, (await res.json()).error.code]).toEqual([400, "price_inactive"]);
   });
 });

@@ -19,6 +19,14 @@ export const FIXED_FEE_MINOR: Record<CurrencyCode, number> = {
   ZAR: 900,
 };
 
+/**
+ * The smallest amount worth charging, in minor units: twice the fixed fee
+ * (about US$1), so a charge always covers VRS Pay's fee and the provider's.
+ */
+export function minimumCharge(currency: CurrencyCode): number {
+  return FIXED_FEE_MINOR[currency] * 2;
+}
+
 /** Default rate for new merchants, in basis points (500 = 5%). */
 export const DEFAULT_FEE_BPS = 500;
 

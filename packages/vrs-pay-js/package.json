@@ -1,0 +1,24 @@
+{
+  "name": "@vrs-pay/js",
+  "version": "0.1.0",
+  "description": "VRS Pay in the browser: pricing, checkout, customer portal and access checks with a publishable key.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome check --fix .",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/biome-config": "*",
+    "@repo/typescript-config": "*",
+    "@types/bun": "^1.3.5",
+    "typescript": "5.9.2"
+  }
+}

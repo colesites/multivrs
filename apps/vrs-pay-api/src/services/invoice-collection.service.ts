@@ -69,7 +69,10 @@ export async function collectInvoice(
       metadata: { vrs_invoice_id: invoice.id },
     });
     const paid = paidInvoice(stored, payment.payment.id);
-    const revived = sub.subscription.status === "active" ? null : withStatus(sub, "active", now);
+    // Paying ends a trial or a past-due spell; a canceled subscription's final invoice stays canceled.
+    const { status } = sub.subscription;
+    const revived =
+      status === "past_due" || status === "trialing" ? withStatus(sub, "active", now) : null;
     const events: StoredEvent[] = [
       buildEvent(merchantId, mode, "payment.succeeded", payment.payment),
       buildEvent(merchantId, mode, "invoice.paid", paid.invoice),

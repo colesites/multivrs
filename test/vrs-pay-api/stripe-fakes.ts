@@ -9,15 +9,16 @@ export function partial<T>(value: Partial<T>): T {
   return value as T;
 }
 
-const CARD = partial<Stripe.PaymentMethod>({
-  id: "pm_card_visa",
-  card: partial<Stripe.PaymentMethod.Card>({
-    brand: "visa",
-    last4: "4242",
-    exp_month: 12,
-    exp_year: 2034,
-  }),
-});
+const cardFor = (options: FakeStripeOptions) =>
+  partial<Stripe.PaymentMethod>({
+    id: `pm_card_visa${options.prefix ?? ""}`,
+    card: partial<Stripe.PaymentMethod.Card>({
+      brand: "visa",
+      last4: "4242",
+      exp_month: 12,
+      exp_year: 2034,
+    }),
+  });
 
 export interface FakeStripeOptions {
   /** Stripe's own fee on the charge (minor units). */
@@ -29,6 +30,8 @@ export interface FakeStripeOptions {
   failWith?: Error;
   /** How off-session charges end (default: succeed). */
   charge?: "succeeded" | "declined" | "auth" | "network";
+  /** Added to every id, so fakes sharing a real database don't collide. */
+  prefix?: string;
 }
 
 function intentWithFees(id: string, options: FakeStripeOptions, amount?: number) {
@@ -50,7 +53,7 @@ function intentWithFees(id: string, options: FakeStripeOptions, amount?: number)
     amount,
     status: "succeeded",
     latest_charge: charge,
-    payment_method: CARD,
+    payment_method: cardFor(options),
     setup_future_usage: "off_session",
   });
 }
@@ -83,7 +86,7 @@ export function fakeStripeApi(options: FakeStripeOptions = {}) {
         async create(params, requestOptions) {
           if (options.failWith) throw options.failWith;
           calls.sessions.push({ params, options: requestOptions });
-          const id = `cs_test_${calls.sessions.length}`;
+          const id = `cs_test_${options.prefix ?? ""}${calls.sessions.length}`;
           return partial<Stripe.Checkout.Session>({
             id,
             url: `https://checkout.stripe.test/${id}`,
@@ -105,17 +108,24 @@ export function fakeStripeApi(options: FakeStripeOptions = {}) {
           );
         if (options.charge === "network")
           throw stripeError("StripeConnectionError", "socket hang up");
-        return intentWithFees(`pi_renewal_${calls.charges.length}`, options, params.amount);
+        const id = `pi_renewal_${options.prefix ?? ""}${calls.charges.length}`;
+        return intentWithFees(id, options, params.amount);
       },
     },
     setupIntents: {
       retrieve: async (id) =>
-        partial<Stripe.SetupIntent>({ id, status: "succeeded", payment_method: CARD }),
+        partial<Stripe.SetupIntent>({
+          id,
+          status: "succeeded",
+          payment_method: cardFor(options),
+        }),
     },
     customers: {
       async create() {
         calls.customers += 1;
-        return partial<Stripe.Customer>({ id: `cus_stripe_${calls.customers}` });
+        return partial<Stripe.Customer>({
+          id: `cus_stripe_${options.prefix ?? ""}${calls.customers}`,
+        });
       },
     },
     refunds: {
@@ -123,7 +133,7 @@ export function fakeStripeApi(options: FakeStripeOptions = {}) {
         if (options.failWith) throw options.failWith;
         calls.refunds.push({ params, options: requestOptions });
         return partial<Stripe.Refund>({
-          id: `re_stripe_${calls.refunds.length}`,
+          id: `re_stripe_${options.prefix ?? ""}${calls.refunds.length}`,
           status: options.refundStatus ?? "succeeded",
         });
       },

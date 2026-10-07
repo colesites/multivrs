@@ -1,4 +1,6 @@
 import type { AppDeps, MerchantContext } from "../app.types";
+import { amountIn } from "./billing-helpers";
+import { monthsPerPeriod } from "./billing-period";
 import type { Payment } from "./payment.types";
 
 const DAY = 86_400;
@@ -88,8 +90,11 @@ export async function overview(deps: AppDeps, merchant: MerchantContext) {
     if (s.status === "canceled" && (s.canceled_at ?? 0) >= since) counts.canceled_30d += 1;
     const price = prices.get(s.price);
     if (!price || (s.status !== "active" && s.status !== "past_due")) continue;
-    const monthly = Math.round((price.amount * s.quantity) / (price.interval === "year" ? 12 : 1));
-    mrr.set(price.currency, (mrr.get(price.currency) ?? 0) + monthly);
+    // Metered revenue depends on usage, so it isn't recurring revenue.
+    if (price.usage_type === "metered") continue;
+    const amount = amountIn(price, s.currency) ?? 0;
+    const monthly = Math.round((amount * s.quantity) / monthsPerPeriod(price));
+    mrr.set(s.currency, (mrr.get(s.currency) ?? 0) + monthly);
   }
 
   return {

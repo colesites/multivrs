@@ -13,6 +13,7 @@ model Merchant {
   payments         Payment[]
   refunds          Refund[]
   events           Event[]
+  usageRecords     UsageRecord[]
   webhookEndpoints WebhookEndpoint[]
   features         Feature[]
   plans            Plan[]

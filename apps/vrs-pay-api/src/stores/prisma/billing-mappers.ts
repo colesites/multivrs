@@ -21,6 +21,7 @@ export function subscriptionFromRow(row: SubscriptionRow): StoredSubscription {
     mode: row.mode,
     provider: row.provider,
     version: row.version,
+    usageFrom: unixOrNull(row.usageFrom),
     subscription: {
       id: row.id,
       object: "subscription",
@@ -30,6 +31,7 @@ export function subscriptionFromRow(row: SubscriptionRow): StoredSubscription {
       price: row.priceId,
       status: row.status,
       quantity: row.quantity,
+      currency: toCurrency(row.currency).toLowerCase(),
       current_period_start: unixOrNull(row.currentPeriodStart),
       current_period_end: unixOrNull(row.currentPeriodEnd),
       trial_end: unixOrNull(row.trialEnd),
@@ -48,6 +50,7 @@ export function subscriptionRow({
   mode,
   provider,
   version,
+  usageFrom,
   subscription: s,
 }: StoredSubscription) {
   return {
@@ -55,11 +58,13 @@ export function subscriptionRow({
     mode,
     provider,
     version,
+    usageFrom: dateOrNull(usageFrom ?? null),
     customerId: s.customer,
     planId: s.plan,
     priceId: s.price,
     status: s.status,
     quantity: s.quantity,
+    currency: s.currency.toUpperCase(),
     currentPeriodStart: dateOrNull(s.current_period_start),
     currentPeriodEnd: dateOrNull(s.current_period_end),
     trialEnd: dateOrNull(s.trial_end),

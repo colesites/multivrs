@@ -16,6 +16,11 @@ const IDENTITY = {
   date_of_birth: "1990-04-12",
 };
 const DETAILS = {
+  business: {
+    type: "individual",
+    address: { line1: "12 Admiralty Way", city: "Lagos" },
+    phone: "+234 803 123 4567",
+  },
   product_description: "Design e-books",
   website: "https://ada.dev",
   support_email: "help@ada.dev",

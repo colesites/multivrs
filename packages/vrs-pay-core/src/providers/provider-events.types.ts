@@ -56,6 +56,12 @@ export interface AccountUpdatedData {
   detailsSubmitted: boolean;
 }
 
+/** A merchant's ID check session moved on (document submitted, verified, failed). */
+export interface IdentityUpdatedData {
+  sessionReference: string;
+  merchantId: string;
+}
+
 /** A provider webhook normalized into the few things VRS Pay acts on. */
 export type ProviderWebhookEvent = ProviderEventBase &
   (
@@ -64,6 +70,7 @@ export type ProviderWebhookEvent = ProviderEventBase &
     | { type: "checkout.expired"; data: { sessionReference: string } }
     | { type: "refund.updated"; data: RefundUpdatedData }
     | { type: "account.updated"; data: AccountUpdatedData }
+    | { type: "identity.updated"; data: IdentityUpdatedData }
     | { type: "ignored"; data: { providerType: string } }
   );
 

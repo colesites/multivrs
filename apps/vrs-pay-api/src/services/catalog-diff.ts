@@ -1,6 +1,6 @@
 import { newId } from "@vrs-pay/core";
 import type { BillingConfig } from "../routes/billing-config.schema";
-import type { Catalog, CatalogChanges, Plan } from "./catalog.types";
+import { type Catalog, type CatalogChanges, NO_EXTRAS, type Plan } from "./catalog.types";
 import { catalogChanges, nameFromKey, newPrice, samePlan, slotsOf } from "./catalog-compare";
 
 export interface CatalogDiff {
@@ -61,6 +61,7 @@ export function diffCatalog(
       payer: spec.payer,
       trial_days: spec.trial_days,
       features: spec.features,
+      ...NO_EXTRAS,
       active: true,
       source: "config",
       prices: [],

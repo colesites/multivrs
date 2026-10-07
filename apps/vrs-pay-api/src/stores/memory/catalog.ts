@@ -11,6 +11,14 @@ function assertOneActivePerSlot(catalog: Catalog) {
   }
 }
 
+/** Mirrors the database's unique lookup keys per merchant and mode. */
+function assertUniqueLookupKeys(catalog: Catalog) {
+  const keys = catalog.plans.flatMap((p) => p.prices.flatMap((price) => price.lookup_key ?? []));
+  if (new Set(keys).size !== keys.length) {
+    throw new Error("Unique constraint failed: two prices share a lookup key");
+  }
+}
+
 /** In-memory catalogs keyed `${merchantId}:${mode}`. */
 export function createMemoryCatalogStore(catalogs = new Map<string, Catalog>()): CatalogStore {
   const keyOf = ({ merchantId, mode }: { merchantId: string; mode: string }) =>
@@ -32,13 +40,16 @@ export function createMemoryCatalogStore(catalogs = new Map<string, Catalog>()):
       }
       const deactivated = new Set(changes.deactivatePriceIds);
       const activated = new Set(changes.activatePriceIds);
+      const labels = new Map(changes.updatePrices.map((l) => [l.id, l]));
       for (const plan of catalog.plans) {
         plan.prices = plan.prices.map((p) =>
           deactivated.has(p.id) || activated.has(p.id) ? { ...p, active: activated.has(p.id) } : p,
         );
+        plan.prices = plan.prices.map((p) => ({ ...p, ...labels.get(p.id) }));
         plan.prices.push(...changes.createPrices.filter((p) => p.plan === plan.id));
       }
       assertOneActivePerSlot(catalog);
+      assertUniqueLookupKeys(catalog);
       catalogs.set(keyOf(scope), catalog);
     },
   };

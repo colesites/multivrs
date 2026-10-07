@@ -4,12 +4,15 @@ export type AccountStatus = "setup" | "active" | "restricted";
 export type StepId =
   | "product"
   | "identity"
+  | "business"
   | "payout"
   | "description"
   | "website"
   | "support_email";
 
 export type Mode = "test" | "live";
+/** Registered business, or an individual / sole trader. */
+export type BusinessType = "company" | "individual";
 
 /** Which business and mode the dashboard is showing; sent with every request. */
 export interface Scope {
@@ -54,6 +57,18 @@ export interface AccountSetup {
   total: number;
   next: StepId | null;
   details: {
+    business: {
+      type: BusinessType | null;
+      name: string | null;
+      registration_number: string | null;
+      address: {
+        line1: string | null;
+        line2: string | null;
+        city: string | null;
+        postal_code: string | null;
+      };
+      phone: string | null;
+    };
     product_description: string | null;
     website: string | null;
     support_email: string | null;
@@ -72,6 +87,8 @@ export interface AccountSetup {
       date_of_birth: string | null;
       status: "unverified" | "pending" | "verified" | "failed";
       reason: string | null;
+      /** Where to finish a document and selfie check, while one is waiting. */
+      verification_url: string | null;
     };
   };
 }
@@ -116,6 +133,8 @@ export interface Subscription {
   price: string;
   status: "incomplete" | "trialing" | "active" | "past_due" | "canceled";
   quantity: number;
+  /** What it charges in: the price's currency or one of its options. */
+  currency: string;
   current_period_end: number | null;
   cancel_at_period_end: boolean;
   pending_price: string | null;
@@ -137,11 +156,25 @@ export interface Invoice {
   created: number;
 }
 
+/** How often a price charges; `interval_count` multiplies it (month × 3). */
+export type PriceInterval = "one_time" | "day" | "week" | "month" | "year";
+
 export interface Price {
   id: string;
-  interval: "month" | "year" | "one_time";
+  interval: PriceInterval;
+  interval_count: number;
   currency: string;
+  /** Per unit of usage for metered prices. */
   amount: number;
+  /** `metered`: usage is reported and charged after each period. */
+  usage_type: "licensed" | "metered";
+  aggregate_usage: "sum" | "max" | "last" | null;
+  /** Other currencies it sells in: lowercase code → amount. */
+  currency_options: Record<string, { amount: number }>;
+  /** Your own label for it; customers never see it. */
+  nickname: string | null;
+  /** A stable name to fetch it by, unique in the account. */
+  lookup_key: string | null;
   active: boolean;
 }
 
@@ -155,6 +188,13 @@ export interface Product {
   name: string;
   description: string | null;
   active: boolean;
+  /** Free days before the first charge on new subscriptions. */
+  trial_days: number;
+  /** What subscribers get: feature key → true, or a limit. */
+  features: Record<string, boolean | number>;
+  images: string[];
+  marketing_features: Array<{ name: string }>;
+  metadata: Record<string, string>;
   /** `config` products come from vrs-pay.config.ts and are read-only here. */
   source: "config" | "dashboard";
   prices: ProductPrice[];
@@ -212,7 +252,8 @@ export interface PaymentLink {
   id: string;
   url: string;
   price: string | null;
-  interval: "one_time" | "month" | "year";
+  interval: PriceInterval;
+  interval_count: number;
   amount: number;
   currency: string;
   description: string;

@@ -44,6 +44,10 @@ model Plan {
   trialDays   Int           @default(0) @map("trial_days")
   /// Feature key → true (boolean) or a number (limit).
   features    Json          @default("{}")
+  /// Image URLs, marketing feature list ([{ name }]) and metadata, as on Stripe.
+  images            Json      @default("[]")
+  marketingFeatures Json      @default("[]") @map("marketing_features")
+  metadata          Json      @default("{}")
   active      Boolean       @default(true)
   /// Config syncs only touch config products, never ones made in the dashboard.
   source      ProductSource @default(config)
@@ -58,10 +62,24 @@ model Plan {
   @@map("plans")
 }
 
+/// licensed: a fixed amount up front each period; metered: reported usage, charged after it.
+enum UsageType {
+  licensed
+  metered
+}
+
+enum AggregateUsage {
+  sum
+  max
+  last
+}
+
 enum PriceInterval {
   month
   year
   one_time
+  day
+  week
 }
 
 /// Never edited: a new amount is a new price, so existing subscribers keep theirs.
@@ -70,9 +88,20 @@ model Price {
   merchantId String        @map("merchant_id")
   mode       Mode
   planId     String        @map("plan_id")
-  interval   PriceInterval
+  interval      PriceInterval
+  /// Intervals per charge: month × 3 is every 3 months. Always 1 for one_time.
+  intervalCount Int           @default(1) @map("interval_count")
   currency   String        @db.Char(3)
   amount     BigInt
+  usageType  UsageType     @default(licensed) @map("usage_type")
+  /// Metered prices only: how a period's usage records add up.
+  aggregateUsage AggregateUsage? @map("aggregate_usage")
+  /// Other currencies it sells in, as on Stripe: { "eur": { "amount": 2200 } }.
+  currencyOptions Json     @default("{}") @map("currency_options")
+  /// The merchant's own label; customers never see it.
+  nickname   String?
+  /// A stable name to fetch the price by, unique per merchant and mode.
+  lookupKey  String?       @map("lookup_key")
   active     Boolean       @default(true)
   /// Copied from the plan: config plans keep one active price per interval and
   /// currency (a partial unique index); dashboard products can have many.
@@ -83,6 +112,7 @@ model Price {
   plan          Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
   subscriptions Subscription[]
 
+  @@unique([merchantId, mode, lookupKey])
   @@index([planId])
   @@map("prices")
 }

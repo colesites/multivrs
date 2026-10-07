@@ -6,9 +6,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { WorkspaceMembers } from "@/features/dashboard/components/WorkspaceMembers";
+import {
+  INVITE_ROLES,
+  type InviteRole,
+  isInviteRole,
+} from "@/features/dashboard/constants/workspace-roles";
+import { useWorkspaceMembers } from "@/features/dashboard/hooks/useWorkspaceMembers";
 import { authClient } from "@/lib/auth-client";
-
-const ROLES = ["admin", "developer", "viewer", "billing"] as const;
 
 export function OrganizationManager() {
   const { data: organizations, refetch } = authClient.useListOrganizations();
@@ -16,9 +21,10 @@ export function OrganizationManager() {
   const [slug, setSlug] = useState("");
   const [activeId, setActiveId] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<(typeof ROLES)[number]>("developer");
+  const [role, setRole] = useState<InviteRole>("developer");
   const [loading, setLoading] = useState(false);
   const selectedId = activeId || organizations?.[0]?.id || "";
+  const workspace = useWorkspaceMembers(selectedId);
 
   function createWorkspace() {
     if (!name.trim() || !slug.trim() || loading) return;
@@ -51,6 +57,7 @@ export function OrganizationManager() {
         }
         setEmail("");
         toast.success("Invitation sent.");
+        void workspace.reload();
       })
       .catch(() => toast.error("Invitation failed."))
       .finally(() => setLoading(false));
@@ -127,13 +134,13 @@ export function OrganizationManager() {
             className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm capitalize"
             id="member-role"
             onChange={(event) => {
-              if (isOrganizationRole(event.target.value)) {
+              if (isInviteRole(event.target.value)) {
                 setRole(event.target.value);
               }
             }}
             value={role}
           >
-            {ROLES.map((item) => (
+            {INVITE_ROLES.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
@@ -145,10 +152,9 @@ export function OrganizationManager() {
           </Button>
         </div>
       </div>
+      <div className="border-t border-(--hairline) p-5">
+        <WorkspaceMembers organizationId={selectedId} workspace={workspace} />
+      </div>
     </section>
   );
-}
-
-function isOrganizationRole(value: string): value is (typeof ROLES)[number] {
-  return ROLES.some((role) => role === value);
 }

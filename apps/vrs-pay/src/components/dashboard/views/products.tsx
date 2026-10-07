@@ -45,7 +45,7 @@ export function ProductsView() {
       <PageHeader
         serif="Your"
         title="products"
-        description="Everything you sell. Each product has a name, a description and one or more prices, charged once, monthly or yearly."
+        description="Everything you sell. Each product has a name, a description and one or more prices, charged once or on a schedule."
         action={
           !creating && (
             <Button type="button" onClick={() => setCreating(true)}>

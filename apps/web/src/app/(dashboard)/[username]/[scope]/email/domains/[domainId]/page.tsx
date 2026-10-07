@@ -1,6 +1,7 @@
 import {
   CheckCircle2,
   ChevronLeft,
+  CircleAlert,
   CircleDashed,
   CloudCog,
   ExternalLink,
@@ -9,6 +10,7 @@ import {
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
+import { LocalTime } from "@/components/LocalTime";
 import { MailDomainVerifyButton } from "@/features/mail/MailDomainVerifyButton";
 import { getServerSession } from "@/lib/auth/session";
 import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
@@ -124,17 +126,14 @@ export default async function MailDomainDnsPage({
           {domain.verificationCheckedAt ? (
             <p className="font-geist-mono text-[10px] text-white/30">
               Last checked{" "}
-              {domain.verificationCheckedAt.toLocaleString("en-US", {
-                timeZone: "UTC",
-              })}{" "}
-              UTC
+              <LocalTime value={domain.verificationCheckedAt.toISOString()} />
             </p>
           ) : null}
         </div>
 
         <div className="overflow-x-auto rounded-xl border border-white/[0.08] bg-[#090a0d]">
           <div className="min-w-[1040px]">
-            <div className="grid grid-cols-[72px_minmax(220px,1fr)_minmax(300px,1.5fr)_80px_80px_110px] gap-4 border-b border-white/[0.08] bg-white/[0.025] px-4 py-3 font-geist-mono text-[10px] uppercase tracking-[0.13em] text-white/40">
+            <div className="grid grid-cols-[72px_minmax(220px,1fr)_minmax(300px,1.5fr)_80px_80px_150px] gap-4 border-b border-white/[0.08] bg-white/[0.025] px-4 py-3 font-geist-mono text-[10px] uppercase tracking-[0.13em] text-white/40">
               <span>Type</span>
               <span>Name</span>
               <span>Value</span>
@@ -145,7 +144,7 @@ export default async function MailDomainDnsPage({
             {domain.dnsRecords.map((record) => (
               <div
                 key={record.id}
-                className="grid grid-cols-[72px_minmax(220px,1fr)_minmax(300px,1.5fr)_80px_80px_110px] items-center gap-4 border-b border-white/[0.055] px-4 py-4 text-sm last:border-0"
+                className="grid grid-cols-[72px_minmax(220px,1fr)_minmax(300px,1.5fr)_80px_80px_150px] items-center gap-4 border-b border-white/[0.055] px-4 py-4 text-sm last:border-0"
               >
                 <span className="w-fit rounded-md border border-white/10 bg-white/5 px-2 py-1 font-geist-mono text-[11px] font-semibold text-white/70">
                   {record.type}
@@ -215,6 +214,19 @@ function RecordValue({ value }: { value: string }) {
   );
 }
 
+type RecordTone = "ok" | "wait" | "bad";
+
+const PENDING_RECORD = { label: "Pending", tone: "wait" as RecordTone };
+
+/** Labels for stored record statuses; "pending" and "failed" come from older checks. */
+const RECORD_STATUS: Record<string, { label: string; tone: RecordTone }> = {
+  verified: { label: "Verified", tone: "ok" },
+  found: { label: "Found, AWS checking", tone: "wait" },
+  missing: { label: "Not found", tone: "bad" },
+  pending: PENDING_RECORD,
+  failed: { label: "Failed", tone: "bad" },
+};
+
 function RecordStatus({
   automatic,
   status,
@@ -222,17 +234,17 @@ function RecordStatus({
   automatic: boolean;
   status: string;
 }) {
-  const verified = status === "verified";
+  const { label, tone } = RECORD_STATUS[status] ?? PENDING_RECORD;
   return (
     <span className="flex items-center gap-1.5 text-xs text-white/45">
-      {verified ? (
+      {tone === "ok" ? (
         <CheckCircle2 className="size-3.5 text-emerald-400" />
+      ) : tone === "bad" ? (
+        <CircleAlert className="size-3.5 text-red-400" />
       ) : (
         <CircleDashed className="size-3.5 text-amber-400" />
       )}
-      <span className="capitalize">
-        {automatic && !verified ? "Managed" : status}
-      </span>
+      <span>{automatic && tone !== "ok" ? "Managed" : label}</span>
     </span>
   );
 }

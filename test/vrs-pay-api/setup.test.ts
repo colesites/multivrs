@@ -1,6 +1,7 @@
 /**
- * vrs-pay-api — the "finish setting up" checklist: six steps, ID checks by
- * country, encrypted details, automatic activation, staff holds, live gate.
+ * vrs-pay-api — the "finish setting up" checklist: seven steps, ID checks by
+ * country, business details, encrypted details, automatic activation,
+ * staff holds, live gate.
  */
 import { describe, expect, test } from "bun:test";
 import { isVrsPayError } from "@vrs-pay/core";
@@ -16,7 +17,15 @@ const NIGERIAN_ID = {
   last_name: "Okafor",
   date_of_birth: "1990-04-12",
 };
+const COMPANY = {
+  type: "company",
+  name: "Okafor Labs Ltd",
+  registration_number: "RC 1234567",
+  address: { line1: "12 Admiralty Way", line2: "Lekki Phase 1", city: "Lagos" },
+  phone: "+234 803 123 4567",
+};
 const DETAILS = {
+  business: COMPANY,
   product_description: "Developer tools sold as monthly subscriptions",
   website: "https://ada.dev",
   support_email: "help@ada.dev",
@@ -41,13 +50,14 @@ async function setUp() {
 }
 
 describe("/dashboard/setup", () => {
-  test("six steps, none done; the first is creating a product", async () => {
+  test("seven steps, none done; the first is creating a product", async () => {
     const { steps } = await setUp();
     const view = await steps();
     expect(view).toMatchObject({ status: "setup", next: "product" });
     expect(view.steps.map((s) => s.id)).toEqual([
       "product",
       "identity",
+      "business",
       "payout",
       "description",
       "website",
@@ -128,8 +138,55 @@ describe("/dashboard/setup", () => {
     expect(await steps()).toMatchObject({ status: "active", next: null });
     expect((await (await dash("/me")).json()).setup).toMatchObject({
       status: "active",
-      completed: 6,
+      completed: 7,
     });
+  });
+
+  test("registered businesses give a legal name and number; individuals don't", async () => {
+    const { dash, steps } = await setUp();
+    const done = async () => (await steps()).steps.find((s) => s.id === "business")?.done;
+    const noNumber = await dash("/setup", {
+      body: { business: { ...COMPANY, registration_number: undefined } },
+    });
+    expect([noNumber.status, (await noNumber.json()).error.param]).toEqual([
+      400,
+      "business.registration_number",
+    ]);
+    const company = await (await dash("/setup", { body: { business: COMPANY } })).json();
+    expect(company.details.business).toEqual({
+      type: "company",
+      name: "Okafor Labs Ltd",
+      registration_number: "RC 1234567",
+      address: {
+        line1: "12 Admiralty Way",
+        line2: "Lekki Phase 1",
+        city: "Lagos",
+        postal_code: null,
+      },
+      phone: "+234 803 123 4567",
+    });
+    expect(await done()).toBe(true);
+
+    const { name: _, registration_number: __, ...contact } = COMPANY;
+    const individual = await (
+      await dash("/setup", { body: { business: { ...contact, type: "individual" } } })
+    ).json();
+    expect(individual.details.business).toMatchObject({
+      type: "individual",
+      name: null,
+      registration_number: null,
+    });
+    expect(await done()).toBe(true);
+    const sneaky = await dash("/setup", {
+      body: { business: { ...contact, type: "individual", registration_number: "RC 1" } },
+    });
+    expect(sneaky.status).toBe(400);
+  });
+
+  test("live servers without an ID provider refuse the check: nothing waits on a person", async () => {
+    const { dash } = await dashboardHarness({ identity: null });
+    const res = await dash("/setup/identity", { body: NIGERIAN_ID });
+    expect([res.status, (await res.json()).error.code]).toEqual([503, "identity_unavailable"]);
   });
 
   test("staff holds override everything; live payments need an active account", async () => {

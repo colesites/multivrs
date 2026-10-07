@@ -1,7 +1,7 @@
 import { invalidRequest } from "@vrs-pay/core";
 import type { AppDeps, MerchantContext } from "../app.types";
 import type { UpdateSubscriptionInput } from "../routes/subscription.schema";
-import { findRecurringPrice } from "./billing-helpers";
+import { amountIn, findRecurringPrice } from "./billing-helpers";
 import { nowSeconds } from "./events";
 import { assertLive, loadSubscription, saveChange, scopeOf } from "./subscription.service";
 import type { Subscription } from "./subscription.types";
@@ -31,10 +31,13 @@ export async function changeSubscription(
   const scope = scopeOf(merchant);
   const current = await findRecurringPrice(deps.catalog, scope, s.price);
   const target = input.price ? await findRecurringPrice(deps.catalog, scope, input.price) : current;
-  if (target.price.currency !== current.price.currency || target.interval !== current.interval) {
+  const samePeriod = target.interval === current.interval && target.count === current.count;
+  const sameUsage = target.price.usage_type === current.price.usage_type;
+  const targetAmount = amountIn(target.price, s.currency);
+  if (targetAmount === undefined || !samePeriod || !sameUsage) {
     throw invalidRequest(
       "price_incompatible",
-      "Switch to a price with the same currency and interval.",
+      "Switch to a price with the same billing period and usage type, sold in this subscription's currency.",
       "price",
     );
   }
@@ -54,8 +57,8 @@ export async function changeSubscription(
     );
   }
 
-  const oldAmount = current.price.amount * s.quantity;
-  const newAmount = target.price.amount * quantity;
+  const oldAmount = (amountIn(current.price, s.currency) ?? 0) * s.quantity;
+  const newAmount = targetAmount * quantity;
   const next: Subscription = {
     ...s,
     plan: target.plan.id,
@@ -64,6 +67,10 @@ export async function changeSubscription(
     pending_price: null,
     pending_quantity: null,
   };
+  // Metered usage is billed when the period ends, at the price in force then: nothing to prorate.
+  if (target.price.usage_type === "metered") {
+    return saveChange(deps, sub, next, "subscription.updated");
+  }
   if (newAmount < oldAmount && s.status !== "trialing") {
     return saveChange(
       deps,
@@ -80,7 +87,7 @@ export async function changeSubscription(
   return chargeUpgrade(deps, merchant, sub, next, {
     planName: target.plan.name,
     due,
-    currency: target.price.currency,
+    currency: s.currency,
     now,
   });
 }

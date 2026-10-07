@@ -4,11 +4,12 @@ import { finish, print, scriptContext } from "./script-env";
 
 /**
  * Puts a merchant's account on hold (live payments stop) or releases it,
- * until there's an admin screen. Identity checks are recorded separately.
+ * until there's an admin screen. ID checks are automatic; --approve-identity
+ * is a staff override for the rare case a provider can't decide.
  *
  *   bun run merchant:hold --merchant mer_… --reason "Chargebacks under review"
  *   bun run merchant:hold --merchant mer_… --release
- *   bun run merchant:hold --merchant mer_… --approve-identity   (live IDs queued for manual checks)
+ *   bun run merchant:hold --merchant mer_… --approve-identity
  */
 const { values } = parseArgs({
   options: {
@@ -31,7 +32,12 @@ if (actions !== 1)
 const { db } = scriptContext(process.env);
 await finish(db, async () => {
   const data = values["approve-identity"]
-    ? { identityStatus: "verified" as const, identityReason: null, identityCheckedAt: new Date() }
+    ? {
+        identityStatus: "verified" as const,
+        identityReason: null,
+        identitySessionId: null,
+        identityCheckedAt: new Date(),
+      }
     : values.release
       ? { status: "verified" as const, rejectionReason: null, reviewedAt: new Date() }
       : {

@@ -1,6 +1,7 @@
 import type { ApiKeyMode, ProviderId, ProviderRegistry } from "@vrs-pay/core";
 import type { IdentityVerifier } from "./identity/identity.types";
 import type { Sealer } from "./lib/sealer";
+import type { StoredCustomer } from "./services/customer.types";
 import type { Stores } from "./stores/stores.types";
 
 /** A merchant as the API sees it. */
@@ -65,5 +66,7 @@ export interface AppEnv {
     requestId: string;
     merchant: MerchantContext;
     user: DashboardUser;
+    /** The signed-in customer on /client, from a customer session secret. */
+    customer: StoredCustomer | null;
   };
 }

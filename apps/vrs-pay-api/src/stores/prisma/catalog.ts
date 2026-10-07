@@ -6,7 +6,7 @@ import type {
   Price as PriceRow,
 } from "../../generated/prisma/client";
 import type { Feature, Plan, Price } from "../../services/catalog.types";
-import { toFeatureValues } from "../../services/feature-values";
+import { toCurrencyOptions, toFeatureValues, toPlanExtras } from "../../services/feature-values";
 import type { CatalogStore } from "../catalog.store";
 
 function featureFromRow(row: FeatureRow): Feature {
@@ -29,8 +29,14 @@ function priceFromRow(row: PriceRow): Price {
     livemode: row.mode === "live",
     plan: row.planId,
     interval: row.interval,
+    interval_count: row.intervalCount,
     currency: toCurrency(row.currency).toLowerCase(),
     amount: toMinor(row.amount),
+    usage_type: row.usageType,
+    aggregate_usage: row.aggregateUsage,
+    currency_options: toCurrencyOptions(row.currencyOptions),
+    nickname: row.nickname,
+    lookup_key: row.lookupKey,
     active: row.active,
     created: toUnix(row.createdAt),
   };
@@ -47,6 +53,7 @@ function planFromRow(row: PlanRow & { prices: PriceRow[] }): Plan {
     payer: row.payer,
     trial_days: row.trialDays,
     features: toFeatureValues(row.features),
+    ...toPlanExtras(row),
     active: row.active,
     source: row.source,
     prices: row.prices.map(priceFromRow),
@@ -69,9 +76,12 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
     },
     async apply({ merchantId, mode }, changes) {
       await db.$transaction(async (tx) => {
-        await tx.feature.deleteMany({
-          where: { id: { in: changes.deleteFeatureIds }, merchantId },
-        });
+        // Each step only runs when it has something to write: fewer round trips per save.
+        if (changes.deleteFeatureIds.length > 0) {
+          await tx.feature.deleteMany({
+            where: { id: { in: changes.deleteFeatureIds }, merchantId },
+          });
+        }
         for (const f of changes.upsertFeatures) {
           const data = { key: f.key, name: f.name, type: f.type };
           await tx.feature.upsert({
@@ -88,6 +98,9 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
             payer: p.payer,
             trialDays: p.trial_days,
             features: p.features,
+            images: p.images,
+            marketingFeatures: p.marketing_features.map(({ name }) => ({ name })),
+            metadata: p.metadata,
             active: p.active,
             source: p.source,
           };
@@ -97,14 +110,24 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
             update: data,
           });
         }
-        await tx.price.updateMany({
-          where: { id: { in: changes.deactivatePriceIds }, merchantId },
-          data: { active: false },
-        });
-        await tx.price.updateMany({
-          where: { id: { in: changes.activatePriceIds }, merchantId },
-          data: { active: true },
-        });
+        if (changes.deactivatePriceIds.length > 0) {
+          await tx.price.updateMany({
+            where: { id: { in: changes.deactivatePriceIds }, merchantId },
+            data: { active: false },
+          });
+        }
+        if (changes.activatePriceIds.length > 0) {
+          await tx.price.updateMany({
+            where: { id: { in: changes.activatePriceIds }, merchantId },
+            data: { active: true },
+          });
+        }
+        for (const { id, nickname, lookup_key } of changes.updatePrices) {
+          await tx.price.updateMany({
+            where: { id, merchantId },
+            data: { nickname, lookupKey: lookup_key },
+          });
+        }
         // A price takes its plan's source; the plan may be new in this same change set.
         const sources = new Map(changes.upsertPlans.map((p) => [p.id, p.source]));
         const unknown = changes.createPrices.map((p) => p.plan).filter((id) => !sources.has(id));
@@ -115,6 +138,7 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
           });
           for (const row of rows) sources.set(row.id, row.source);
         }
+        if (changes.createPrices.length === 0) return;
         await tx.price.createMany({
           data: changes.createPrices.map((p) => ({
             id: p.id,
@@ -122,8 +146,16 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
             mode,
             planId: p.plan,
             interval: p.interval,
+            intervalCount: p.interval_count,
             currency: p.currency.toUpperCase(),
             amount: BigInt(p.amount),
+            usageType: p.usage_type,
+            aggregateUsage: p.aggregate_usage,
+            currencyOptions: Object.fromEntries(
+              Object.entries(p.currency_options).map(([code, { amount }]) => [code, { amount }]),
+            ),
+            nickname: p.nickname,
+            lookupKey: p.lookup_key,
             source: sources.get(p.plan) ?? "config",
             createdAt: new Date(p.created * 1000),
           })),

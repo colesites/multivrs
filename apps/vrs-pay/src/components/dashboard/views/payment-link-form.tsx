@@ -1,16 +1,24 @@
 import { type FormEvent, useState } from "react";
 import { useAction, useApi, useDashboard } from "../context";
-import { formatPrice } from "../format";
+import { allCurrencies, formatPrice } from "../format";
 import type { List, Product } from "../types";
 import { Button, Card, ErrorNote, Input, NativeSelect } from "../ui";
 import { Field, value } from "./section-form";
 
-/** Every price on sale, labelled with its product. Monthly and yearly ones sell a subscription. */
+/**
+ * Every price on sale in each of its currencies, labelled with its
+ * product. Recurring ones sell a subscription. Values are "price:currency".
+ */
 function pricesForSale(products: Product[]) {
   return products.flatMap((product) =>
     product.prices
       .filter((p) => p.active)
-      .map((p) => ({ id: p.id, label: `${product.name} · ${formatPrice(p)}` })),
+      .flatMap((p) =>
+        allCurrencies(p).map((sold) => ({
+          id: `${p.id}:${sold.currency}`,
+          label: `${product.name} · ${formatPrice(sold)}`,
+        })),
+      ),
   );
 }
 
@@ -26,9 +34,11 @@ export function PaymentLinkForm({ onCreated }: { onCreated: () => void }) {
     event.preventDefault();
     const form = event.currentTarget;
     const fields = new FormData(form);
+    const [price, currency] = (value(fields, "price") ?? "").split(":");
     const result = await run("/v1/payment_links", {
       body: {
-        price: value(fields, "price"),
+        price: price || undefined,
+        currency: currency || undefined,
         after_payment_url: value(fields, "after_payment_url"),
       },
     });

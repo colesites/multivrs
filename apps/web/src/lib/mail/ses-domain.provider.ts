@@ -7,41 +7,22 @@ import {
   CreateTenantResourceAssociationCommand,
   DeleteEmailIdentityCommand,
   GetEmailIdentityCommand,
-  type GetEmailIdentityCommandOutput,
+  PutEmailIdentityDkimAttributesCommand,
   PutEmailIdentityMailFromAttributesCommand,
 } from "@aws-sdk/client-sesv2";
 import { sesClient } from "@/lib/email/client";
 import {
-  absoluteMailDnsName,
-  normalizeMailDnsValue,
-} from "@/lib/mail/mail-domain-dns";
+  MAIL_FROM_SUBDOMAIN,
+  type ProviderDomainSnapshot,
+  sesDomainSnapshot,
+} from "@/lib/mail/ses-domain-snapshot";
 import { ensureSesTenant } from "@/lib/services/ses-tenant.service";
 
-export interface ProviderDomainRecord {
-  name: string;
-  priority: number | null;
-  purpose: string;
-  status: string;
-  ttl: string;
-  type: string;
-  value: string;
-}
-
-export type DomainVerificationStatus = "pending" | "verified" | "failed";
-
-export interface ProviderDomainSnapshot {
-  id: string;
-  name: string;
-  records: ProviderDomainRecord[];
-  region: string;
-  status: DomainVerificationStatus;
-}
-
-/**
- * Subdomain prefix for Custom MAIL FROM in AWS SES.
- * Must match the MAIL FROM domain configured in the SES Console.
- */
-const MAIL_FROM_SUBDOMAIN = "bounces";
+export type {
+  DomainVerificationStatus,
+  ProviderDomainRecord,
+  ProviderDomainSnapshot,
+} from "@/lib/mail/ses-domain-snapshot";
 
 function sesRegion(): string {
   return process.env.AWS_REGION || "us-east-1";
@@ -149,7 +130,7 @@ export async function verifyCustomDomain(
     EmailIdentity: domainName,
   });
   const response = await sesClient.send(command);
-  return snapshotFromGet(domainName, response);
+  return sesDomainSnapshot(domainName, sesRegion(), response);
 }
 
 /**
@@ -182,113 +163,38 @@ export async function deleteCustomDomain(domainName: string): Promise<void> {
   }
 }
 
-function mapDkimStatus(status?: string): DomainVerificationStatus {
-  switch (status) {
-    case "SUCCESS":
-      return "verified";
-    case "FAILED":
-    case "TEMPORARY_FAILURE":
-      return "failed";
-    default:
-      return "pending";
+/**
+ * SES stops looking for the DKIM records 72 hours after the domain is added
+ * and marks DKIM as failed, even if the records appear later. AWS's advice
+ * is to turn DKIM signing off and on again to start a fresh check. Read the
+ * identity again afterwards: if SES issued new tokens, the stored records
+ * follow them.
+ */
+export async function restartDkimVerification(
+  domainName: string,
+): Promise<void> {
+  for (const SigningEnabled of [false, true]) {
+    await sesClient.send(
+      new PutEmailIdentityDkimAttributesCommand({
+        EmailIdentity: domainName,
+        SigningEnabled,
+      }),
+    );
   }
 }
 
-function buildDkimRecords(
-  domain: string,
-  tokens: string[] = [],
-  status: DomainVerificationStatus,
-): ProviderDomainRecord[] {
-  return tokens.map((token, index) => ({
-    name: `${token}._domainkey.${domain}`,
-    priority: null,
-    purpose: `dkim-${index + 1}`,
-    status,
-    ttl: "Auto",
-    type: "CNAME",
-    value: `${token}.dkim.amazonses.com`,
-  }));
+/** Setting the MAIL FROM domain again makes SES look for its MX record again. */
+export async function restartMailFromVerification(
+  domainName: string,
+): Promise<void> {
+  await configureMailFrom(domainName);
 }
 
 function snapshotFromCreate(
   domain: string,
   res: CreateEmailIdentityCommandOutput,
 ): ProviderDomainSnapshot {
-  const dkimStatus = mapDkimStatus(res.DkimAttributes?.Status);
-  const dkimRecords = buildDkimRecords(
-    domain,
-    res.DkimAttributes?.Tokens,
-    dkimStatus,
-  );
-
-  return formatFullDomainSnapshot(domain, dkimRecords, dkimStatus);
-}
-
-function snapshotFromGet(
-  domain: string,
-  res: GetEmailIdentityCommandOutput,
-): ProviderDomainSnapshot {
-  const dkimStatus = mapDkimStatus(res.DkimAttributes?.Status);
-  const dkimRecords = buildDkimRecords(
-    domain,
-    res.DkimAttributes?.Tokens,
-    dkimStatus,
-  );
-
-  return formatFullDomainSnapshot(domain, dkimRecords, dkimStatus);
-}
-
-function formatFullDomainSnapshot(
-  domain: string,
-  dkimRecords: ProviderDomainRecord[],
-  overallStatus: DomainVerificationStatus,
-): ProviderDomainSnapshot {
-  const region = sesRegion();
-  const records: ProviderDomainRecord[] = [
-    ...dkimRecords,
-    {
-      name: absoluteMailDnsName(domain, MAIL_FROM_SUBDOMAIN),
-      priority: 10,
-      purpose: "mx",
-      status: overallStatus,
-      ttl: "Auto",
-      type: "MX",
-      value: normalizeMailDnsValue(`feedback-smtp.${region}.amazonses.com`),
-    },
-    {
-      name: absoluteMailDnsName(domain, MAIL_FROM_SUBDOMAIN),
-      priority: null,
-      purpose: "spf",
-      status: overallStatus,
-      ttl: "Auto",
-      type: "TXT",
-      value: "v=spf1 include:amazonses.com ~all",
-    },
-    {
-      name: `_dmarc.${domain}`,
-      priority: null,
-      purpose: "dmarc",
-      status: "pending",
-      ttl: "Auto",
-      type: "TXT",
-      value: "v=DMARC1; p=none;",
-    },
-    {
-      name: `default._bimi.${domain}`,
-      priority: null,
-      purpose: "bimi",
-      status: "pending",
-      ttl: "Auto",
-      type: "TXT",
-      value: `v=BIMI1; l=https://${domain}/logo.svg;`,
-    },
-  ];
-
-  return {
-    id: domain,
-    name: domain,
-    records,
-    region,
-    status: overallStatus,
-  };
+  return sesDomainSnapshot(domain, sesRegion(), {
+    DkimAttributes: res.DkimAttributes,
+  });
 }

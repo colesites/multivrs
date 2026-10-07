@@ -3,7 +3,7 @@ import type { AppDeps, MerchantContext } from "../app.types";
 import type { CreateCheckoutSessionInput } from "../routes/checkout-session.schema";
 import type { CheckoutSession } from "./checkout-session.types";
 import { assertCanCharge } from "./live-gate";
-import { feeFor, providersFor, routeOnPlatform } from "./platform";
+import { assertMinimumAmount, feeFor, providersFor, routeOnPlatform } from "./platform";
 
 /**
  * Creates a hosted checkout on the platform's provider account: route to
@@ -19,6 +19,7 @@ export async function createCheckoutSession(
 ): Promise<CheckoutSession> {
   await assertCanCharge(deps, merchant);
   const amount = money(input.amount, input.currency);
+  assertMinimumAmount(amount);
   const route = routeOnPlatform(deps, merchant.mode, input.currency, input.payment_method);
   const id = newId("checkoutSession");
   const platformFee = feeFor(merchant, amount);

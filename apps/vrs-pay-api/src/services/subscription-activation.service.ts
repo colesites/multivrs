@@ -64,15 +64,16 @@ export async function activateSubscription(
     ? await deps.billing.findSubscription(session.subscription)
     : null;
   if (current?.subscription.status !== "incomplete") return "duplicate";
-  const { plan, price, interval } = await findRecurringPrice(
+  const { plan, price, interval, count } = await findRecurringPrice(
     deps.catalog,
     { merchantId, mode },
     current.subscription.price,
   );
   const method = await methodRecord(deps, current.subscription.customer, current.provider, saved);
   const now = nowSeconds();
-  const trial = data === null;
-  const periodEnd = trial ? addDays(now, plan.trial_days) : addInterval(now, interval);
+  // No payment means a trial, or a metered price that bills its usage later.
+  const trial = data === null && plan.trial_days > 0;
+  const periodEnd = trial ? addDays(now, plan.trial_days) : addInterval(now, interval, count);
   const next: StoredSubscription = {
     ...current,
     version: current.version + 1,
@@ -112,7 +113,7 @@ export async function activateSubscription(
   const line = subscriptionLine(
     plan.name,
     next.subscription.quantity,
-    periodAmount(price, next.subscription.quantity),
+    periodAmount(price, next.subscription.quantity, next.subscription.currency),
     now,
     periodEnd,
   );

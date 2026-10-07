@@ -10,8 +10,10 @@ export interface PaymentLink {
   url: string;
   /** The product price it sells, or null for a quick fixed-amount link. */
   price: string | null;
-  /** `one_time` takes a payment; `month`/`year` starts a subscription. */
+  /** `one_time` takes a payment; a recurring interval starts a subscription. */
   interval: PriceInterval;
+  /** Intervals per charge, as on the price (1 for one-time). */
+  interval_count: number;
   /** Per payment, or per period for a subscription. */
   amount: number;
   currency: string;

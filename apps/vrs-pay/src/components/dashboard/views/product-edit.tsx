@@ -2,11 +2,12 @@ import { type FormEvent, type ReactNode, useState } from "react";
 import { useAction } from "../context";
 import type { Product } from "../types";
 import { Button, Card, ErrorNote, Input, Textarea } from "../ui";
+import { usePriceExtras } from "./price-extras-fields";
 import { PriceFields, readPrice } from "./price-fields";
 import { Field } from "./section-form";
 
 /** A titled card with a form and one button; `submit` returns an error message, if any. */
-function EditCard({
+export function EditCard({
   title,
   description,
   button,
@@ -57,6 +58,7 @@ export function AddPriceForm({
   onAdded: () => void;
 }) {
   const { run } = useAction();
+  const extras = usePriceExtras();
   return (
     <EditCard
       title="Add a price"
@@ -66,14 +68,18 @@ export function AddPriceForm({
       submit={async (fields) => {
         const price = readPrice(fields);
         if (!price) return "Enter a price above zero.";
+        const more = extras.read(fields);
+        if (typeof more === "string") return more;
         const result = await run("/v1/prices", {
-          body: { product: productId, ...price },
+          body: { product: productId, ...price, ...more },
         });
-        if (!result.error) onAdded();
-        return result.error;
+        if (result.error) return result.error;
+        extras.reset();
+        onAdded();
       }}
     >
       <PriceFields />
+      {extras.fields}
     </EditCard>
   );
 }

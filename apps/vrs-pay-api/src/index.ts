@@ -1,7 +1,7 @@
 import { createApp } from "./app";
 import { DEFAULT_PORT } from "./constants";
 import { createDependencies } from "./deps/dependencies";
-import { startBillingWorker } from "./services/billing-engine.service";
+import { startBillingWorker } from "./services/billing-cycle";
 import { startDeliveryWorker } from "./services/webhook-delivery.service";
 
 // `bun --hot` re-runs this file on every save without restarting the process.

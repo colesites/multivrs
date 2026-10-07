@@ -4,8 +4,10 @@ import type { IdentityVerifier } from "./identity.types";
 export const SANDBOX_FAILING_NUMBER = "00000000000";
 
 /**
- * Test mode: any well-formed number passes (except the sandbox failing
- * one). Nothing is sent anywhere.
+ * Local development without a database: any well-formed number passes
+ * (except the sandbox failing one). Nothing is sent anywhere. Servers with
+ * a database use real providers only, because one ID check covers both
+ * test and live mode.
  */
 export const sandboxVerifier: IdentityVerifier = {
   async verify({ idNumber }) {
@@ -13,12 +15,5 @@ export const sandboxVerifier: IdentityVerifier = {
       return { status: "failed", reason: "The name and date of birth don't match this ID." };
     }
     return { status: "verified" };
-  },
-};
-
-/** Live mode without an identity provider configured: queue it for our team. */
-export const manualVerifier: IdentityVerifier = {
-  async verify() {
-    return { status: "pending", reason: "We're checking your ID — usually within 1 business day." };
   },
 };

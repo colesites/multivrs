@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "../badge";
 import { useAction, useDashboard } from "../context";
-import { formatDate, formatPrice } from "../format";
+import { billingLabel, formatDate } from "../format";
 import type { PaymentLink, Product, ProductPrice } from "../types";
 import {
   Button,
@@ -12,13 +12,13 @@ import {
   TableCell,
   TableRow,
 } from "../ui";
+import { CopyToLiveButton } from "./copy-to-live";
+import { PriceLabelsForm } from "./price-labels-form";
+import { PriceSummary } from "./price-summary";
 import { AddPriceForm, ProductDetailsForm } from "./product-edit";
-
-const BILLING: Record<string, string> = {
-  one_time: "One-time",
-  month: "Monthly",
-  year: "Yearly",
-};
+import { ProductPageForm, TrialFeaturesForm } from "./product-extras";
+import { MetadataForm } from "./product-metadata";
+import { configSummary } from "./product-summary";
 
 /** One product: its prices (add, archive, sell with a link) and its details. */
 export function ProductDetail({
@@ -60,16 +60,19 @@ export function ProductDetail({
         description={product.description ?? undefined}
         action={
           editable && (
-            <Button
-              type="button"
-              disabled={pending}
-              onClick={() =>
-                setActive(`/v1/products/${product.id}`, !product.active)
-              }
-              variant="outline"
-            >
-              {product.active ? "Archive product" : "Restore product"}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <CopyToLiveButton product={product} />
+              <Button
+                type="button"
+                disabled={pending}
+                onClick={() =>
+                  setActive(`/v1/products/${product.id}`, !product.active)
+                }
+                variant="outline"
+              >
+                {product.active ? "Archive product" : "Restore product"}
+              </Button>
+            </div>
           )
         }
       />
@@ -80,16 +83,17 @@ export function ProductDetail({
         <Card className="text-sm text-ink-soft">
           This product comes from your vrs-pay.config.ts. Change it there and
           sync.
+          <p className="mt-2 text-mute">{configSummary(product)}</p>
         </Card>
       )}
       <Table head={["Price", "Billing", "Status", "Created", ""]}>
         {product.prices.map((price) => (
           <TableRow key={price.id}>
-            <TableCell className="px-4 whitespace-nowrap font-mono text-ink">
-              {formatPrice(price)}
+            <TableCell className="px-4 whitespace-nowrap">
+              <PriceSummary price={price} />
             </TableCell>
             <TableCell className="px-4 whitespace-nowrap text-ink-soft">
-              {BILLING[price.interval]}
+              {billingLabel(price)}
             </TableCell>
             <TableCell className="px-4">
               <Badge status={price.active ? "active" : "archived"} />
@@ -129,7 +133,11 @@ export function ProductDetail({
       {editable && (
         <>
           <AddPriceForm productId={product.id} onAdded={onChanged} />
+          <PriceLabelsForm product={product} onSaved={onChanged} />
           <ProductDetailsForm product={product} onSaved={onChanged} />
+          <TrialFeaturesForm product={product} onSaved={onChanged} />
+          <ProductPageForm product={product} onSaved={onChanged} />
+          <MetadataForm product={product} onSaved={onChanged} />
         </>
       )}
     </div>

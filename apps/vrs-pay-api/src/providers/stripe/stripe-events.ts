@@ -5,6 +5,7 @@ import {
   type ProviderWebhookEvent,
 } from "@vrs-pay/core";
 import type Stripe from "stripe";
+import { IDENTITY_MERCHANT_METADATA_KEY } from "../../identity/stripe-identity";
 import type { StripeApi } from "./stripe-api.types";
 import { checkoutCompleted, type EventBase, idOf, ignored } from "./stripe-checkout-events";
 
@@ -73,6 +74,19 @@ export async function toProviderEvent(
           payoutsEnabled: account.payouts_enabled ?? false,
           detailsSubmitted: account.details_submitted ?? false,
         },
+      };
+    }
+    case "identity.verification_session.processing":
+    case "identity.verification_session.verified":
+    case "identity.verification_session.requires_input":
+    case "identity.verification_session.canceled": {
+      const session = event.data.object;
+      const merchantId = session.metadata?.[IDENTITY_MERCHANT_METADATA_KEY];
+      if (!merchantId) return ignored(base, event.type);
+      return {
+        ...base,
+        type: "identity.updated",
+        data: { sessionReference: session.id, merchantId },
       };
     }
     default:

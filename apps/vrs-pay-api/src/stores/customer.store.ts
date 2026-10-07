@@ -22,6 +22,8 @@ export interface CustomerStore {
   ): Promise<StoredCustomer | null>;
   /** Newest first. */
   list(merchantId: string, mode: ApiKeyMode, limit: number): Promise<StoredCustomer[]>;
+  /** Deletes a customer with its subscriptions, invoices and saved cards. False if not found. */
+  remove(merchantId: string, mode: ApiKeyMode, id: string): Promise<boolean>;
   createSession(session: StoredCustomerSession): Promise<void>;
   /** The customer behind an unexpired session secret (by hash). */
   findBySession(secretHash: string, now: Date): Promise<StoredCustomer | null>;

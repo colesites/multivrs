@@ -7,6 +7,7 @@ import { authenticate } from "./middleware/authenticate";
 import { dashboardSession, MERCHANT_HEADER, MODE_HEADER } from "./middleware/dashboard-session";
 import { idempotency } from "./middleware/idempotency";
 import { requestContext } from "./middleware/request-context";
+import { clientRoutes } from "./routes/client.route";
 import { dashboardRoutes } from "./routes/dashboard.route";
 import { healthRoutes } from "./routes/health.route";
 import { organizationRoutes } from "./routes/organizations.route";
@@ -56,6 +57,7 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
     .route("/", healthRoutes())
     .route("/webhooks", providerWebhookRoutes(deps))
     .route("/l", paymentLinkRedirect(deps))
+    .route("/client/v1", clientRoutes(deps))
     .route("/v1", v1);
   return (deps.auth ? withDashboard(app, deps, deps.auth) : app)
     .notFound((c) =>

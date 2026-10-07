@@ -10,6 +10,11 @@ import {
   relativeMailDnsName,
 } from "../../apps/web/src/lib/mail/mail-domain-dns";
 import {
+  dnsRecordStatus,
+  mapSesStatus,
+  sesDomainSnapshot,
+} from "../../apps/web/src/lib/mail/ses-domain-snapshot";
+import {
   composeMailSchema,
   inboundMailSchema,
 } from "../../apps/web/src/lib/schemas/mail-message.schemas";
@@ -173,5 +178,39 @@ describe("Multivrs Mail boundaries", () => {
         status: "verified",
       }),
     ).toBe(false);
+  });
+
+  test("reads DKIM and MAIL FROM statuses from SES separately", () => {
+    const snapshot = sesDomainSnapshot("example.com", "us-east-1", {
+      DkimAttributes: { Status: "FAILED", Tokens: ["abc", "def", "ghi"] },
+      MailFromAttributes: { MailFromDomainStatus: "SUCCESS" },
+    });
+    expect(snapshot).toMatchObject({
+      status: "failed",
+      dkimStatus: "failed",
+      mailFromStatus: "verified",
+    });
+    const byPurpose = Object.fromEntries(snapshot.records.map((r) => [r.purpose, r]));
+    expect(byPurpose["dkim-1"]).toMatchObject({
+      name: "abc._domainkey.example.com",
+      value: "abc.dkim.amazonses.com",
+      status: "failed",
+    });
+    expect(byPurpose.mx).toMatchObject({
+      name: "bounces.example.com",
+      value: "feedback-smtp.us-east-1.amazonses.com",
+      status: "verified",
+    });
+    // SES retries after a temporary failure, so it isn't shown as failed.
+    expect(mapSesStatus("TEMPORARY_FAILURE")).toBe("pending");
+    expect(mapSesStatus(undefined)).toBe("pending");
+  });
+
+  test("a record in public DNS shows as found until SES confirms it", () => {
+    expect(dnsRecordStatus({ purpose: "dkim-1", status: "failed" }, true)).toBe("found");
+    expect(dnsRecordStatus({ purpose: "dkim-1", status: "pending" }, false)).toBe("missing");
+    expect(dnsRecordStatus({ purpose: "mx", status: "verified" }, false)).toBe("verified");
+    expect(dnsRecordStatus({ purpose: "spf", status: "pending" }, true)).toBe("verified");
+    expect(dnsRecordStatus({ purpose: "dmarc", status: "pending" }, false)).toBe("missing");
   });
 });

@@ -1,7 +1,8 @@
 import type { ApiKeyMode, ProviderId } from "@vrs-pay/core";
 
 export type SubscriptionStatus = "incomplete" | "trialing" | "active" | "past_due" | "canceled";
-export type BillingInterval = "month" | "year";
+/** How often a recurring price charges; `interval_count` multiplies it. */
+export type BillingInterval = "day" | "week" | "month" | "year";
 
 /** The public shape of a subscription. */
 export interface Subscription {
@@ -14,6 +15,8 @@ export interface Subscription {
   status: SubscriptionStatus;
   /** Seats for org plans; 1 otherwise. */
   quantity: number;
+  /** What it charges in (lowercase): the price's currency or one of its options. */
+  currency: string;
   current_period_start: number | null;
   current_period_end: number | null;
   trial_end: number | null;
@@ -32,6 +35,11 @@ export interface StoredSubscription {
   provider: ProviderId;
   /** Optimistic lock: a write only applies to the version it read. */
   version: number;
+  /**
+   * Metered only: unbilled usage starts here, not at the period start,
+   * when an earlier period's usage was below the minimum charge.
+   */
+  usageFrom?: number | null;
   subscription: Subscription;
 }
 

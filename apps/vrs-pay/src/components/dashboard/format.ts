@@ -15,14 +15,65 @@ export function formatMoney(amount: number, currency: string): string {
   }
 }
 
-/** "$25.00" for a one-time price, "$9.00 / month" for a recurring one. */
-export function formatPrice(price: {
+interface Period {
+  interval: string;
+  interval_count: number;
+}
+
+const SINGLE: Record<string, string> = {
+  day: "Daily",
+  week: "Weekly",
+  month: "Monthly",
+  year: "Yearly",
+};
+
+/** "One-time", "Monthly", "Every 3 months", "Monthly · usage-based". */
+export function billingLabel(price: Period & { usage_type?: string }): string {
+  const { interval, interval_count: count } = price;
+  if (interval === "one_time") return "One-time";
+  const period =
+    count !== 1
+      ? `Every ${count} ${interval}s`
+      : (SINGLE[interval] ?? interval);
+  return price.usage_type === "metered" ? `${period} · usage-based` : period;
+}
+
+/** "$25.00", "$9.00 / month", "$27.00 every 3 months", "$0.10 per unit / month". */
+export function formatPrice(
+  price: Period & { amount: number; currency: string; usage_type?: string },
+  quantity = 1,
+): string {
+  const money =
+    price.usage_type === "metered"
+      ? `${formatMoney(price.amount, price.currency)} per unit`
+      : formatMoney(price.amount * quantity, price.currency);
+  if (price.interval === "one_time") return money;
+  return price.interval_count === 1
+    ? `${money} / ${price.interval}`
+    : `${money} every ${price.interval_count} ${price.interval}s`;
+}
+
+interface Priced {
   amount: number;
   currency: string;
-  interval: string;
-}): string {
-  const money = formatMoney(price.amount, price.currency);
-  return price.interval === "one_time" ? money : `${money} / ${price.interval}`;
+  currency_options: Record<string, { amount: number }>;
+}
+
+/** The price as sold in `currency`: its own amount, or one of its currency options. */
+export function inCurrency<T extends Priced>(price: T, currency: string): T {
+  const code = currency.toLowerCase();
+  const option = price.currency_options[code];
+  return code === price.currency || !option
+    ? price
+    : { ...price, amount: option.amount, currency: code };
+}
+
+/** The price in each currency it sells in, its own first. */
+export function allCurrencies<T extends Priced>(price: T): T[] {
+  return [
+    price,
+    ...Object.keys(price.currency_options).map((c) => inCurrency(price, c)),
+  ];
 }
 
 /** Unix seconds → "6 Oct 2026". */

@@ -12,6 +12,7 @@ import type { PaymentStore } from "./payment.store";
 import type { PaymentLinkStore } from "./payment-link.store";
 import type { ProviderAccountStore, ProviderEventStore } from "./provider-account.store";
 import type { RefundStore } from "./refund.store";
+import type { UsageStore } from "./usage.store";
 import type { DeliveryStore, WebhookEndpointStore } from "./webhook.store";
 
 /** Every store the app uses; memory and Postgres implementations both satisfy it. */
@@ -33,4 +34,5 @@ export interface Stores {
   paymentLinks: PaymentLinkStore;
   onboarding: OnboardingStore;
   ledger: LedgerStore;
+  usage: UsageStore;
 }

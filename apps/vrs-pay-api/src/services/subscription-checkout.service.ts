@@ -2,6 +2,7 @@ import { invalidRequest, money, newId, resourceMissing } from "@vrs-pay/core";
 import type { AppDeps, MerchantContext } from "../app.types";
 import type { SubscriptionCheckoutInput } from "../routes/subscription-checkout.schema";
 import { findRecurringPrice, periodAmount } from "./billing-helpers";
+import { periodLabel } from "./billing-period";
 import type { CheckoutSession } from "./checkout-session.types";
 import { nowSeconds } from "./events";
 import { assertCanCharge } from "./live-gate";
@@ -25,7 +26,11 @@ export async function createSubscriptionCheckout(
 ): Promise<CheckoutSession> {
   await assertCanCharge(deps, merchant);
   const scope = { merchantId: merchant.id, mode: merchant.mode };
-  const { plan, price, interval } = await findRecurringPrice(deps.catalog, scope, input.price);
+  const { plan, price, interval, count } = await findRecurringPrice(
+    deps.catalog,
+    scope,
+    input.price,
+  );
   if (!plan.active || !price.active) {
     throw invalidRequest("price_inactive", "This price is no longer for sale.", "price");
   }
@@ -42,7 +47,7 @@ export async function createSubscriptionCheckout(
     throw invalidRequest("quantity_invalid", "Only organization plans have seats.", "quantity");
   }
 
-  const amount = periodAmount(price, input.quantity);
+  const amount = periodAmount(price, input.quantity, input.currency ?? price.currency);
   const route = routeOnPlatform(deps, merchant.mode, amount.currency, "card");
   const providerCustomer = await providerCustomerFor(deps, route.provider, null, customer);
 
@@ -61,6 +66,7 @@ export async function createSubscriptionCheckout(
       price: price.id,
       status: "incomplete",
       quantity: input.quantity,
+      currency: amount.currency.toLowerCase(),
       current_period_start: null,
       current_period_end: null,
       trial_end: null,
@@ -74,10 +80,11 @@ export async function createSubscriptionCheckout(
   };
   await deps.billing.commit({ subscriptions: [{ record: subscription, expectedVersion: null }] });
 
-  const trial = plan.trial_days > 0;
+  // Trials and metered prices charge nothing now: the checkout only saves a card.
+  const upfront = plan.trial_days === 0 && price.usage_type === "licensed";
   const id = newId("checkoutSession");
-  const description = `${plan.name} · ${interval === "month" ? "monthly" : "yearly"}`;
-  const platformFee = trial ? money(0, amount.currency) : feeFor(merchant, amount);
+  const description = `${plan.name} · ${periodLabel(interval, count)}`;
+  const platformFee = upfront ? feeFor(merchant, amount) : money(0, amount.currency);
   const metadata = { ...input.metadata, [SUBSCRIPTION_METADATA_KEY]: subscription.subscription.id };
   const checkout = await providersFor(deps, merchant.mode)[route.provider].createCheckout({
     merchantAccountId: null,
@@ -91,7 +98,7 @@ export async function createSubscriptionCheckout(
     cancelUrl: input.cancel_url,
     metadata,
     idempotencyKey: idempotencyKey ?? id,
-    mode: trial ? "setup" : "payment",
+    mode: upfront ? "payment" : "setup",
     providerCustomer,
     saveMethod: true,
   });
@@ -105,7 +112,7 @@ export async function createSubscriptionCheckout(
     customer: customer.id,
     subscription: subscription.subscription.id,
     payment_link: paymentLink,
-    amount: trial ? 0 : amount.amount,
+    amount: upfront ? amount.amount : 0,
     currency: amount.currency.toLowerCase(),
     payment_method: "card",
     description,

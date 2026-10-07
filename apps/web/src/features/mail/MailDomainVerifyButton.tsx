@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 const verificationResponseSchema = z.object({
   status: z.string(),
   verified: z.boolean(),
+  missingRecords: z.number().default(0),
+  stalled: z.boolean().default(false),
 });
 
 const errorResponseSchema = z.object({
@@ -46,11 +48,19 @@ export function MailDomainVerifyButton({
       .then((result) => {
         if (result.verified) {
           toast.success("Sending domain verified");
-        } else if (result.status === "failed") {
-          toast.error("Some DNS records are incorrect or missing");
+        } else if (result.missingRecords > 0) {
+          toast.error(
+            result.missingRecords === 1
+              ? "1 required DNS record isn't live yet. Check the row marked Not found."
+              : `${result.missingRecords} required DNS records aren't live yet. Check the rows marked Not found.`,
+          );
+        } else if (result.stalled) {
+          toast.error(
+            "Your records are correct, but AWS stopped checking this domain. Remove it and add it again to get fresh records.",
+          );
         } else {
           toast.info(
-            "Verification is in progress. Check again in a few minutes.",
+            "All records found. AWS is confirming them, which usually takes a few minutes.",
           );
         }
         router.refresh();

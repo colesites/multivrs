@@ -2,6 +2,7 @@ import {
   type ApiKeyMode,
   CurrencyCodeSchema,
   calculatePlatformFee,
+  invalidRequest,
   type Money,
   money,
   resourceMissing,
@@ -13,8 +14,14 @@ import type { BillingInterval } from "./subscription.types";
 
 const DAY_SECONDS = 86_400;
 
-/** The same calendar day next month/year (clamped, e.g. 31 Jan → 28 Feb), in Unix seconds. */
+/**
+ * `count` intervals later, in Unix seconds. Days and weeks are exact;
+ * months and years land on the same calendar day (clamped, e.g. 31 Jan →
+ * 28 Feb).
+ */
 export function addInterval(seconds: number, interval: BillingInterval, count = 1): number {
+  if (interval === "day") return addDays(seconds, count);
+  if (interval === "week") return addDays(seconds, count * 7);
   const date = new Date(seconds * 1000);
   const day = date.getUTCDate();
   const target = new Date(date);
@@ -36,6 +43,8 @@ export interface PricedPlan {
   plan: Plan;
   price: Price;
   interval: BillingInterval;
+  /** Intervals per period: 3 with `month` is every 3 months. */
+  count: number;
 }
 
 /** A recurring price and its plan from the merchant's catalog. */
@@ -47,14 +56,30 @@ export async function findRecurringPrice(
   const { plans } = await catalog.load(scope);
   for (const plan of plans) {
     const price = plan.prices.find((p) => p.id === priceId);
-    if (price && price.interval !== "one_time") return { plan, price, interval: price.interval };
+    if (price && price.interval !== "one_time") {
+      return { plan, price, interval: price.interval, count: price.interval_count };
+    }
   }
   throw resourceMissing("price", priceId);
 }
 
-/** What one period costs: the price times the seats. */
-export function periodAmount(price: Price, quantity: number): Money {
-  return money(price.amount * quantity, CurrencyCodeSchema.parse(price.currency));
+/** The price's amount in `currency`: its own, or one of its currency options. */
+export function amountIn(price: Price, currency: string): number | undefined {
+  const code = currency.toLowerCase();
+  return code === price.currency ? price.amount : price.currency_options[code]?.amount;
+}
+
+/** What one period costs in `currency` (the price's own by default): the amount times the seats. */
+export function periodAmount(price: Price, quantity: number, currency = price.currency): Money {
+  const amount = amountIn(price, currency);
+  if (amount === undefined) {
+    throw invalidRequest(
+      "currency_unavailable",
+      `This price isn't sold in ${currency.toUpperCase()}.`,
+      "currency",
+    );
+  }
+  return money(amount * quantity, CurrencyCodeSchema.parse(currency));
 }
 
 export function platformFeeFor(merchant: MerchantProfile, amount: Money): Money {
