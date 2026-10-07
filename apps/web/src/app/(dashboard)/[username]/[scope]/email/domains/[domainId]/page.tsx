@@ -41,6 +41,15 @@ export default async function MailDomainDnsPage({
   const dnsMode = await mailDomainDnsMode(domain.userId, domain.domain);
   const automatic = dnsMode === "automatic";
   const isVerified = isAuthenticatedSendingDomain(domain);
+  // Domains checked before the receiving MX existed have no row for it yet.
+  const inbound = domain.dnsRecords.find(
+    (record) => record.purpose === RECEIVING_PURPOSE,
+  );
+  const receiving = !inbound
+    ? "Press Refresh now to check"
+    : inbound.status === "verified"
+      ? "On"
+      : "Off, add the MX record below";
 
   return (
     <div className="w-full max-w-6xl space-y-8 px-5 py-8 lg:px-8">
@@ -55,7 +64,7 @@ export default async function MailDomainDnsPage({
       <header className="flex flex-col gap-5 border-b border-white/[0.08] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
-            Sending domain
+            Mail domain
           </p>
           <h1 className="mt-2 text-2xl font-semibold text-white">
             {domain.domain}
@@ -71,6 +80,9 @@ export default async function MailDomainDnsPage({
                     : "pending"
               }
             />
+            <span className="text-white/45">
+              Receiving: <span className="text-white/70">{receiving}</span>
+            </span>
             <span className="text-white/45">
               Region:{" "}
               <span className="text-white/70">{regionName(domain.region)}</span>

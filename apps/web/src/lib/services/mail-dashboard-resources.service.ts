@@ -1,5 +1,6 @@
 import "server-only";
 import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
+import { RECEIVING_PURPOSE } from "@/lib/mail/ses-domain-snapshot";
 import { prisma } from "@/lib/prisma";
 import { resource } from "@/lib/services/mail-dashboard-mappers";
 
@@ -20,6 +21,12 @@ export async function mailDashboardResources(
   ] = await Promise.all([
     prisma.mailDomain.findMany({
       where: { userId, ...scope },
+      include: {
+        dnsRecords: {
+          where: { purpose: RECEIVING_PURPOSE },
+          select: { status: true },
+        },
+      },
       orderBy: { createdAt: "desc" },
     }),
     prisma.mailContact.findMany({
@@ -62,10 +69,14 @@ export async function mailDashboardResources(
           : item.status === "failed"
             ? "failed"
             : "pending";
+        // Every domain sends; it receives once its own MX points at SES.
+        const receives = item.dnsRecords.some(
+          (record) => record.status === "verified",
+        );
         return resource(
           item.id,
           item.domain,
-          item.kind,
+          receives ? "Sends and receives" : "Sends only",
           status,
           item.createdAt,
         );
