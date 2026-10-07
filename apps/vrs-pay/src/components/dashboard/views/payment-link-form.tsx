@@ -5,7 +5,7 @@ import type { List, Product } from "../types";
 import { Button, Card, ErrorNote, Input, NativeSelect } from "../ui";
 import { Field, value } from "./section-form";
 
-/** Every price on sale, labelled with its product. Monthly and yearly ones sell a subscription. */
+/** Every price on sale, labelled with its product. Recurring ones sell a subscription. */
 function pricesForSale(products: Product[]) {
   return products.flatMap((product) =>
     product.prices

@@ -13,8 +13,14 @@ import type { BillingInterval } from "./subscription.types";
 
 const DAY_SECONDS = 86_400;
 
-/** The same calendar day next month/year (clamped, e.g. 31 Jan → 28 Feb), in Unix seconds. */
+/**
+ * `count` intervals later, in Unix seconds. Days and weeks are exact;
+ * months and years land on the same calendar day (clamped, e.g. 31 Jan →
+ * 28 Feb).
+ */
 export function addInterval(seconds: number, interval: BillingInterval, count = 1): number {
+  if (interval === "day") return addDays(seconds, count);
+  if (interval === "week") return addDays(seconds, count * 7);
   const date = new Date(seconds * 1000);
   const day = date.getUTCDate();
   const target = new Date(date);
@@ -36,6 +42,8 @@ export interface PricedPlan {
   plan: Plan;
   price: Price;
   interval: BillingInterval;
+  /** Intervals per period: 3 with `month` is every 3 months. */
+  count: number;
 }
 
 /** A recurring price and its plan from the merchant's catalog. */
@@ -47,7 +55,9 @@ export async function findRecurringPrice(
   const { plans } = await catalog.load(scope);
   for (const plan of plans) {
     const price = plan.prices.find((p) => p.id === priceId);
-    if (price && price.interval !== "one_time") return { plan, price, interval: price.interval };
+    if (price && price.interval !== "one_time") {
+      return { plan, price, interval: price.interval, count: price.interval_count };
+    }
   }
   throw resourceMissing("price", priceId);
 }

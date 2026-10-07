@@ -1,8 +1,9 @@
 import { isCurrencyCode, newId } from "@vrs-pay/core";
 import type { BillingConfig } from "../routes/billing-config.schema";
-import type { CatalogChanges, Plan, Price, PriceInterval, PriceSlot } from "./catalog.types";
+import type { CatalogChanges, Plan, Price, PriceSlot } from "./catalog.types";
 
-const INTERVALS: readonly PriceInterval[] = ["month", "year", "one_time"];
+/** The periods a billing config can price; anything else is made in the dashboard or API. */
+const CONFIG_INTERVALS = ["month", "year", "one_time"] as const;
 
 /** A change set with only the given parts. */
 export function catalogChanges(parts: Partial<CatalogChanges> = {}): CatalogChanges {
@@ -41,9 +42,11 @@ export function samePlan(a: Plan, b: Plan): boolean {
 }
 
 export function slotsOf(prices: BillingConfig["plans"][string]["prices"]): PriceSlot[] {
-  return INTERVALS.flatMap((interval) =>
+  return CONFIG_INTERVALS.flatMap((interval) =>
     Object.entries(prices[interval] ?? {}).flatMap(([currency, amount]): PriceSlot[] =>
-      amount === undefined || !isCurrencyCode(currency) ? [] : [{ interval, currency, amount }],
+      amount === undefined || !isCurrencyCode(currency)
+        ? []
+        : [{ interval, interval_count: 1, currency, amount }],
     ),
   );
 }
@@ -55,6 +58,7 @@ export function newPrice(planId: string, slot: PriceSlot, livemode: boolean, now
     livemode,
     plan: planId,
     interval: slot.interval,
+    interval_count: slot.interval === "one_time" ? 1 : slot.interval_count,
     currency: slot.currency.toLowerCase(),
     amount: slot.amount,
     active: true,

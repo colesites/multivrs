@@ -1,8 +1,9 @@
 import type { ApiKeyMode, CurrencyCode } from "@vrs-pay/core";
+import type { BillingInterval } from "./subscription.types";
 
 export type FeatureType = "boolean" | "limit";
 export type PlanPayer = "user" | "org";
-export type PriceInterval = "month" | "year" | "one_time";
+export type PriceInterval = BillingInterval | "one_time";
 /** Plans come from the config sync; products are made in the dashboard or API. */
 export type ProductSource = "config" | "dashboard";
 /** true for a boolean feature, a number for a limit. */
@@ -24,6 +25,8 @@ export interface Price {
   livemode: boolean;
   plan: string;
   interval: PriceInterval;
+  /** Intervals per charge: `month` × 3 is every 3 months. Always 1 for one_time. */
+  interval_count: number;
   /** Lowercase ISO code. */
   currency: string;
   /** Minor units. */
@@ -74,6 +77,7 @@ export interface CatalogScope {
 
 export interface PriceSlot {
   interval: PriceInterval;
+  interval_count: number;
   currency: CurrencyCode;
   amount: number;
 }

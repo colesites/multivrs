@@ -21,6 +21,7 @@ export async function priceForSale(deps: AppDeps, merchant: MerchantContext, pri
     plan,
     price: price.id,
     interval: price.interval,
+    interval_count: price.interval_count,
     amount: price.amount,
     currency: price.currency,
     description: plan.name,
@@ -34,8 +35,8 @@ export async function createPaymentLink(
 ) {
   const sale = input.price
     ? await priceForSale(deps, merchant, input.price)
-    : { ...input, price: null, interval: "one_time" as const };
-  const { price, interval, amount, currency, description } = sale;
+    : { ...input, price: null, interval: "one_time" as const, interval_count: 1 };
+  const { price, interval, interval_count, amount, currency, description } = sale;
   if (amount === undefined || currency === undefined || description === undefined) {
     throw invalidRequest(
       "parameter_missing",
@@ -51,6 +52,7 @@ export async function createPaymentLink(
       livemode: merchant.mode === "live",
       price,
       interval,
+      interval_count,
       amount,
       currency: currency.toLowerCase(),
       description,

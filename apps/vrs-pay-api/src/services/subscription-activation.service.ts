@@ -64,7 +64,7 @@ export async function activateSubscription(
     ? await deps.billing.findSubscription(session.subscription)
     : null;
   if (current?.subscription.status !== "incomplete") return "duplicate";
-  const { plan, price, interval } = await findRecurringPrice(
+  const { plan, price, interval, count } = await findRecurringPrice(
     deps.catalog,
     { merchantId, mode },
     current.subscription.price,
@@ -72,7 +72,7 @@ export async function activateSubscription(
   const method = await methodRecord(deps, current.subscription.customer, current.provider, saved);
   const now = nowSeconds();
   const trial = data === null;
-  const periodEnd = trial ? addDays(now, plan.trial_days) : addInterval(now, interval);
+  const periodEnd = trial ? addDays(now, plan.trial_days) : addInterval(now, interval, count);
   const next: StoredSubscription = {
     ...current,
     version: current.version + 1,

@@ -1,4 +1,5 @@
 import type { AppDeps, MerchantContext } from "../app.types";
+import { monthsPerPeriod } from "./billing-period";
 import type { Payment } from "./payment.types";
 
 const DAY = 86_400;
@@ -88,7 +89,7 @@ export async function overview(deps: AppDeps, merchant: MerchantContext) {
     if (s.status === "canceled" && (s.canceled_at ?? 0) >= since) counts.canceled_30d += 1;
     const price = prices.get(s.price);
     if (!price || (s.status !== "active" && s.status !== "past_due")) continue;
-    const monthly = Math.round((price.amount * s.quantity) / (price.interval === "year" ? 12 : 1));
+    const monthly = Math.round((price.amount * s.quantity) / monthsPerPeriod(price));
     mrr.set(price.currency, (mrr.get(price.currency) ?? 0) + monthly);
   }
 

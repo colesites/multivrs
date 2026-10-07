@@ -5,8 +5,9 @@ model PaymentLink {
   mode         Mode
   /// The product price it sells. Amount and currency are copied from it.
   priceId      String?       @map("price_id")
-  /// one_time links take a payment; month/year links start a subscription.
-  interval     PriceInterval @default(one_time)
+  /// one_time links take a payment; recurring ones start a subscription.
+  interval      PriceInterval @default(one_time)
+  intervalCount Int           @default(1) @map("interval_count")
   amount       BigInt
   currency     String        @db.Char(3)
   description  String

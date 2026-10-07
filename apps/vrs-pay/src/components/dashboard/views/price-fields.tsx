@@ -3,13 +3,8 @@ import { useState } from "react";
 import { useDashboard } from "../context";
 import { toMinor } from "../format";
 import { Button, Input, NativeSelect } from "../ui";
+import { BillingPeriodField, readBillingPeriod } from "./billing-period-field";
 import { Field } from "./section-form";
-
-const BILLING = [
-  { id: "one_time", label: "One-time" },
-  { id: "month", label: "Monthly" },
-  { id: "year", label: "Yearly" },
-];
 
 /** Amount, currency and billing period for one price; `prefix` keeps several apart in one form. */
 export function PriceFields({
@@ -21,7 +16,7 @@ export function PriceFields({
 }) {
   const { session } = useDashboard();
   return (
-    <div className="grid items-end gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+    <div className="grid items-start gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
       <Field label="Price">
         <Input
           name={`${prefix}amount`}
@@ -37,15 +32,7 @@ export function PriceFields({
           ))}
         </NativeSelect>
       </Field>
-      <Field label="Billing">
-        <NativeSelect name={`${prefix}interval`} defaultValue="one_time">
-          {BILLING.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.label}
-            </option>
-          ))}
-        </NativeSelect>
-      </Field>
+      <BillingPeriodField prefix={prefix} />
       {onRemove ? (
         <Button
           type="button"
@@ -53,6 +40,7 @@ export function PriceFields({
           size="icon"
           onClick={onRemove}
           aria-label="Remove price"
+          className="sm:mt-[26px]"
         >
           <X className="size-4" />
         </Button>
@@ -68,15 +56,11 @@ export function readPrice(fields: FormData, prefix = "") {
   const currency = String(fields.get(`${prefix}currency`) ?? "USD");
   const amount = toMinor(String(fields.get(`${prefix}amount`) ?? ""), currency);
   if (amount === null) return null;
-  return {
-    amount,
-    currency,
-    interval: String(fields.get(`${prefix}interval`) ?? "one_time"),
-  };
+  return { amount, currency, ...readBillingPeriod(fields, prefix) };
 }
 
 /**
- * As many prices as you like: other currencies, monthly and yearly, or
+ * As many prices as you like: other currencies, billing periods, or
  * several amounts. `read` returns them all, or null if one isn't valid.
  */
 export function usePriceRows() {

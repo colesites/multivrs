@@ -41,12 +41,12 @@ export async function renewSubscription(
   }
   const priceId = s.pending_price ?? s.price;
   const quantity = s.pending_quantity ?? s.quantity;
-  const { plan, price, interval } = await findRecurringPrice(
+  const { plan, price, interval, count } = await findRecurringPrice(
     deps.catalog,
     { merchantId, mode },
     priceId,
   );
-  const end = addInterval(start, interval);
+  const end = addInterval(start, interval, count);
   const total = periodAmount(price, quantity);
   const renewed: StoredSubscription = {
     ...sub,

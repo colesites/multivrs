@@ -31,10 +31,11 @@ export async function changeSubscription(
   const scope = scopeOf(merchant);
   const current = await findRecurringPrice(deps.catalog, scope, s.price);
   const target = input.price ? await findRecurringPrice(deps.catalog, scope, input.price) : current;
-  if (target.price.currency !== current.price.currency || target.interval !== current.interval) {
+  const samePeriod = target.interval === current.interval && target.count === current.count;
+  if (target.price.currency !== current.price.currency || !samePeriod) {
     throw invalidRequest(
       "price_incompatible",
-      "Switch to a price with the same currency and interval.",
+      "Switch to a price with the same currency and billing period.",
       "price",
     );
   }

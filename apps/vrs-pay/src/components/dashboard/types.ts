@@ -154,9 +154,13 @@ export interface Invoice {
   created: number;
 }
 
+/** How often a price charges; `interval_count` multiplies it (month × 3). */
+export type PriceInterval = "one_time" | "day" | "week" | "month" | "year";
+
 export interface Price {
   id: string;
-  interval: "month" | "year" | "one_time";
+  interval: PriceInterval;
+  interval_count: number;
   currency: string;
   amount: number;
   active: boolean;
@@ -229,7 +233,8 @@ export interface PaymentLink {
   id: string;
   url: string;
   price: string | null;
-  interval: "one_time" | "month" | "year";
+  interval: PriceInterval;
+  interval_count: number;
   amount: number;
   currency: string;
   description: string;

@@ -2,6 +2,7 @@ import { invalidRequest, money, newId, resourceMissing } from "@vrs-pay/core";
 import type { AppDeps, MerchantContext } from "../app.types";
 import type { SubscriptionCheckoutInput } from "../routes/subscription-checkout.schema";
 import { findRecurringPrice, periodAmount } from "./billing-helpers";
+import { periodLabel } from "./billing-period";
 import type { CheckoutSession } from "./checkout-session.types";
 import { nowSeconds } from "./events";
 import { assertCanCharge } from "./live-gate";
@@ -25,7 +26,11 @@ export async function createSubscriptionCheckout(
 ): Promise<CheckoutSession> {
   await assertCanCharge(deps, merchant);
   const scope = { merchantId: merchant.id, mode: merchant.mode };
-  const { plan, price, interval } = await findRecurringPrice(deps.catalog, scope, input.price);
+  const { plan, price, interval, count } = await findRecurringPrice(
+    deps.catalog,
+    scope,
+    input.price,
+  );
   if (!plan.active || !price.active) {
     throw invalidRequest("price_inactive", "This price is no longer for sale.", "price");
   }
@@ -76,7 +81,7 @@ export async function createSubscriptionCheckout(
 
   const trial = plan.trial_days > 0;
   const id = newId("checkoutSession");
-  const description = `${plan.name} · ${interval === "month" ? "monthly" : "yearly"}`;
+  const description = `${plan.name} · ${periodLabel(interval, count)}`;
   const platformFee = trial ? money(0, amount.currency) : feeFor(merchant, amount);
   const metadata = { ...input.metadata, [SUBSCRIPTION_METADATA_KEY]: subscription.subscription.id };
   const checkout = await providersFor(deps, merchant.mode)[route.provider].createCheckout({

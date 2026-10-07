@@ -15,14 +15,35 @@ export function formatMoney(amount: number, currency: string): string {
   }
 }
 
-/** "$25.00" for a one-time price, "$9.00 / month" for a recurring one. */
-export function formatPrice(price: {
-  amount: number;
-  currency: string;
+interface Period {
   interval: string;
-}): string {
-  const money = formatMoney(price.amount, price.currency);
-  return price.interval === "one_time" ? money : `${money} / ${price.interval}`;
+  interval_count: number;
+}
+
+/** "One-time", "Monthly", "Every 3 months". */
+export function billingLabel({
+  interval,
+  interval_count: count,
+}: Period): string {
+  if (interval === "one_time") return "One-time";
+  if (count !== 1) return `Every ${count} ${interval}s`;
+  return (
+    { day: "Daily", week: "Weekly", month: "Monthly", year: "Yearly" }[
+      interval
+    ] ?? interval
+  );
+}
+
+/** "$25.00", "$9.00 / month", "$27.00 every 3 months". */
+export function formatPrice(
+  price: Period & { amount: number; currency: string },
+  quantity = 1,
+): string {
+  const money = formatMoney(price.amount * quantity, price.currency);
+  if (price.interval === "one_time") return money;
+  return price.interval_count === 1
+    ? `${money} / ${price.interval}`
+    : `${money} every ${price.interval_count} ${price.interval}s`;
 }
 
 /** Unix seconds → "6 Oct 2026". */

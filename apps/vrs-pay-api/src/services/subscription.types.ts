@@ -1,7 +1,8 @@
 import type { ApiKeyMode, ProviderId } from "@vrs-pay/core";
 
 export type SubscriptionStatus = "incomplete" | "trialing" | "active" | "past_due" | "canceled";
-export type BillingInterval = "month" | "year";
+/** How often a recurring price charges; `interval_count` multiplies it. */
+export type BillingInterval = "day" | "week" | "month" | "year";
 
 /** The public shape of a subscription. */
 export interface Subscription {

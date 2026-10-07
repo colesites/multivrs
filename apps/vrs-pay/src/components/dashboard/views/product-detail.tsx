@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "../badge";
 import { useAction, useDashboard } from "../context";
-import { formatDate, formatPrice } from "../format";
+import { billingLabel, formatDate, formatPrice } from "../format";
 import type { PaymentLink, Product, ProductPrice } from "../types";
 import {
   Button,
@@ -13,12 +13,6 @@ import {
   TableRow,
 } from "../ui";
 import { AddPriceForm, ProductDetailsForm } from "./product-edit";
-
-const BILLING: Record<string, string> = {
-  one_time: "One-time",
-  month: "Monthly",
-  year: "Yearly",
-};
 
 /** One product: its prices (add, archive, sell with a link) and its details. */
 export function ProductDetail({
@@ -89,7 +83,7 @@ export function ProductDetail({
               {formatPrice(price)}
             </TableCell>
             <TableCell className="px-4 whitespace-nowrap text-ink-soft">
-              {BILLING[price.interval]}
+              {billingLabel(price)}
             </TableCell>
             <TableCell className="px-4">
               <Badge status={price.active ? "active" : "archived"} />
