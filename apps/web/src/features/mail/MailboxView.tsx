@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { MailReader } from "@/features/mail/MailReader";
 import { MailThreadList } from "@/features/mail/MailThreadList";
 import type {
@@ -58,6 +59,7 @@ export function MailboxView({
     return matches;
   }, []);
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+  const [confirmEmpty, setConfirmEmpty] = useState(false);
   const selected = threads.find((thread) => thread.id === selectedId);
   const action = async (
     messageId: string,
@@ -94,12 +96,7 @@ export function MailboxView({
   };
 
   async function emptyTrash() {
-    if (
-      !confirm(
-        "Permanently delete every message in Trash? This cannot be undone.",
-      )
-    )
-      return;
+    setConfirmEmpty(false);
     const suffix = projectId
       ? `?projectId=${encodeURIComponent(projectId)}`
       : "";
@@ -118,7 +115,9 @@ export function MailboxView({
       <MailThreadList
         className={selectedId ? "hidden md:flex" : "flex"}
         onEmptyTrash={
-          view === "trash" && threads.length ? emptyTrash : undefined
+          view === "trash" && threads.length
+            ? () => setConfirmEmpty(true)
+            : undefined
         }
         onRefresh={() => router.refresh()}
         onSelect={openThread}
@@ -137,6 +136,14 @@ export function MailboxView({
         onForward={onForward}
         onReply={onReply}
         thread={selected}
+      />
+      <ConfirmDialog
+        confirmLabel="Empty Trash"
+        description="Every message in Trash is permanently deleted. This can't be undone."
+        onConfirm={() => void emptyTrash()}
+        onOpenChange={setConfirmEmpty}
+        open={confirmEmpty}
+        title="Empty Trash?"
       />
     </div>
   );

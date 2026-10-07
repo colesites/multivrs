@@ -264,11 +264,8 @@ export async function refreshMailDomainFromProvider(providerDomainId: string) {
 
 export async function deleteMailDomain(userId: string, domainId: string) {
   const domain = await ownedMailDomain(userId, domainId);
-  if (domain.providerDomainId) {
-    await deleteCustomDomain(domain.providerDomainId);
-  } else if (domain.domain) {
-    await deleteCustomDomain(domain.domain);
-  }
+  // Each account's SES tenant is named after its user id (see ensureSesTenant).
+  await deleteCustomDomain(domain.providerDomainId ?? domain.domain, userId);
 
   const managedZone = await findManagedZone(userId, domain.domain);
   const managedRecords = domain.dnsRecords.filter(
