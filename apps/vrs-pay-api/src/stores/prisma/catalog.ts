@@ -74,9 +74,12 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
     },
     async apply({ merchantId, mode }, changes) {
       await db.$transaction(async (tx) => {
-        await tx.feature.deleteMany({
-          where: { id: { in: changes.deleteFeatureIds }, merchantId },
-        });
+        // Each step only runs when it has something to write: fewer round trips per save.
+        if (changes.deleteFeatureIds.length > 0) {
+          await tx.feature.deleteMany({
+            where: { id: { in: changes.deleteFeatureIds }, merchantId },
+          });
+        }
         for (const f of changes.upsertFeatures) {
           const data = { key: f.key, name: f.name, type: f.type };
           await tx.feature.upsert({
@@ -105,14 +108,18 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
             update: data,
           });
         }
-        await tx.price.updateMany({
-          where: { id: { in: changes.deactivatePriceIds }, merchantId },
-          data: { active: false },
-        });
-        await tx.price.updateMany({
-          where: { id: { in: changes.activatePriceIds }, merchantId },
-          data: { active: true },
-        });
+        if (changes.deactivatePriceIds.length > 0) {
+          await tx.price.updateMany({
+            where: { id: { in: changes.deactivatePriceIds }, merchantId },
+            data: { active: false },
+          });
+        }
+        if (changes.activatePriceIds.length > 0) {
+          await tx.price.updateMany({
+            where: { id: { in: changes.activatePriceIds }, merchantId },
+            data: { active: true },
+          });
+        }
         for (const { id, nickname, lookup_key } of changes.updatePrices) {
           await tx.price.updateMany({
             where: { id, merchantId },
@@ -129,6 +136,7 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
           });
           for (const row of rows) sources.set(row.id, row.source);
         }
+        if (changes.createPrices.length === 0) return;
         await tx.price.createMany({
           data: changes.createPrices.map((p) => ({
             id: p.id,

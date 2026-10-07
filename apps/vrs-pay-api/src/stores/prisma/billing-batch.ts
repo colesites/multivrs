@@ -10,9 +10,40 @@ export class Conflict extends Error {}
 export const isUniqueViolation = (error: unknown) =>
   error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 
+/**
+ * Saves cards first, since subscriptions point at them. A card the
+ * provider already gave us keeps its stored id; the returned map sends
+ * new ids to it.
+ */
+async function writePaymentMethods(tx: Tx, batch: BillingBatch): Promise<Map<string, string>> {
+  const stored = new Map<string, string>();
+  for (const method of batch.paymentMethods ?? []) {
+    const { id, provider, providerRef, ...card } = method;
+    const row = await tx.paymentMethod.upsert({
+      where: { provider_providerRef: { provider, providerRef } },
+      create: { id, provider, providerRef, ...card },
+      update: {
+        brand: card.brand,
+        last4: card.last4,
+        expMonth: card.expMonth,
+        expYear: card.expYear,
+      },
+      select: { id: true },
+    });
+    if (row.id !== id) stored.set(id, row.id);
+  }
+  return stored;
+}
+
 export async function writeBatch(tx: Tx, batch: BillingBatch): Promise<void> {
+  const methodIds = await writePaymentMethods(tx, batch);
   for (const { record, expectedVersion } of batch.subscriptions ?? []) {
-    const data = subscriptionRow(record);
+    const row = subscriptionRow(record);
+    const data = {
+      ...row,
+      paymentMethodId:
+        row.paymentMethodId && (methodIds.get(row.paymentMethodId) ?? row.paymentMethodId),
+    };
     if (expectedVersion === null) {
       const { subscription } = record;
       await tx.subscription.create({
@@ -47,19 +78,6 @@ export async function writeBatch(tx: Tx, batch: BillingBatch): Promise<void> {
       skipDuplicates: true,
     });
     if (count !== payments.length) throw new Conflict();
-  }
-  for (const method of batch.paymentMethods ?? []) {
-    const { id, provider, providerRef, ...card } = method;
-    await tx.paymentMethod.upsert({
-      where: { provider_providerRef: { provider, providerRef } },
-      create: { id, provider, providerRef, ...card },
-      update: {
-        brand: card.brand,
-        last4: card.last4,
-        expMonth: card.expMonth,
-        expYear: card.expYear,
-      },
-    });
   }
   if (batch.providerCustomers?.length) {
     await tx.providerCustomer.createMany({
