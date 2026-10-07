@@ -1024,7 +1024,8 @@ model MailMessage {
   labels      MailMessageLabel[]
   events      MailEvent[]
 
-  @@unique([userId, messageId])
+  /// Per mailbox: one email sent to two of an account's mailboxes is stored in each.
+  @@unique([mailboxId, messageId])
   @@index([userId, mailboxId, folder, createdAt])
   @@index([threadId, createdAt])
   @@index([providerMessageId])

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mailComposePayload } from "../../apps/web/src/features/mail/mail-compose.client";
 import { isMailView } from "../../apps/web/src/features/mail/mail-navigation";
 import { resourcePayload } from "../../apps/web/src/features/mail/mail-resource-form";
+import { inboundRecipients } from "../../apps/web/src/lib/mail/inbound-recipients";
 import {
   absoluteMailDnsName,
   isAuthenticatedSendingDomain,
@@ -226,5 +227,32 @@ describe("Multivrs Mail boundaries", () => {
     const html = sanitizeMailHtml('<a href="https://example.com">Open</a>') ?? "";
     expect(html).toContain('target="_blank"');
     expect(html).toContain('rel="noopener noreferrer"');
+  });
+
+  test("routes received mail by the envelope, so CC and BCC reach their mailboxes", () => {
+    const headers = ["someone@gmail.com", "Team <Team@Acme.com>"];
+    // CC: the To line names someone else first.
+    expect(
+      inboundRecipients(
+        { receipt: { recipients: ["Team@acme.com"] }, mail: { destination: headers } },
+        headers,
+      ),
+    ).toEqual(["team@acme.com"]);
+    // BCC: the address is on the envelope only.
+    expect(
+      inboundRecipients(
+        { receipt: { recipients: ["hidden@acme.com"] }, mail: { destination: ["someone@gmail.com"] } },
+        ["someone@gmail.com"],
+      ),
+    ).toEqual(["hidden@acme.com"]);
+    // Two mailboxes, listed once each.
+    expect(
+      inboundRecipients(
+        { receipt: { recipients: ["a@acme.com", "b@acme.com", "A@acme.com"] }, mail: {} },
+        [],
+      ),
+    ).toEqual(["a@acme.com", "b@acme.com"]);
+    // No envelope at all: fall back to the headers.
+    expect(inboundRecipients({ mail: {} }, headers)).toEqual(["someone@gmail.com", "team@acme.com"]);
   });
 });
