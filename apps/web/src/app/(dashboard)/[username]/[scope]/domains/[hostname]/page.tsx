@@ -16,7 +16,7 @@ export default async function DomainPage({
   const { username, scope, hostname } = await params;
   let data: Awaited<ReturnType<typeof loadDomainPage>>;
   try {
-    data = await loadDomainPage(session.user.id, hostname);
+    data = await loadDomainPage(session.user.id, username, hostname);
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
@@ -31,11 +31,15 @@ export default async function DomainPage({
   );
 }
 
-async function loadDomainPage(userId: string, hostname: string) {
+async function loadDomainPage(
+  userId: string,
+  username: string,
+  hostname: string,
+) {
   const [domain, overview, projects] = await Promise.all([
     getDomainDetail(userId, hostname),
     getDomainDns(userId, hostname),
-    domainProjectOptions(userId),
+    domainProjectOptions(userId, username),
   ]);
   return { domain, overview, projects };
 }
