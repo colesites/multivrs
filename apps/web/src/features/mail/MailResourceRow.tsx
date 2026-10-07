@@ -42,8 +42,11 @@ export function MailResourceRow({
 
   async function deleteItem(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!confirm(`Are you sure you want to delete this ${view.slice(0, -1)}?`))
-      return;
+    const question =
+      view === "domains"
+        ? `Remove ${item.name}? You can add it again to get new DKIM records, then replace the old ones at your DNS provider.`
+        : `Are you sure you want to delete this ${view.slice(0, -1)}?`;
+    if (!confirm(question)) return;
     const response = await fetch(`/api/mail/${view}/${item.id}`, {
       method: "DELETE",
     });
@@ -109,33 +112,33 @@ export function MailResourceRow({
         )}
         {item.status}
       </span>
-      {view === "domains" && item.status !== "verified" ? (
-        <button aria-label="Verify DNS" onClick={verify} type="button">
-          <RefreshCw className="size-3.5 text-black/40 dark:text-white/40" />
-        </button>
-      ) : (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              aria-label="More actions"
-              type="button"
-              onClick={(e) => e.stopPropagation()}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            aria-label="More actions"
+            type="button"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <MoreHorizontal className="size-4 text-black/30 dark:text-white/30 hover:text-black/70 dark:hover:text-white/70 transition-colors" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+          {view === "domains" && item.status !== "verified" && (
+            <DropdownMenuItem onClick={verify}>
+              <RefreshCw className="size-3.5" />
+              Check DNS now
+            </DropdownMenuItem>
+          )}
+          {(view === "mailboxes" || view === "domains") && (
+            <DropdownMenuItem
+              onClick={deleteItem}
+              className="text-red-400 focus:text-red-400 focus:bg-red-400/10"
             >
-              <MoreHorizontal className="size-4 text-black/30 dark:text-white/30 hover:text-black/70 dark:hover:text-white/70 transition-colors" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-            {(view === "mailboxes" || view === "domains") && (
-              <DropdownMenuItem
-                onClick={deleteItem}
-                className="text-red-400 focus:text-red-400 focus:bg-red-400/10"
-              >
-                Delete
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+              Delete
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
