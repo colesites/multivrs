@@ -1,0 +1,221 @@
+/** The API shapes the dashboard reads (see apps/vrs-pay-api). */
+
+export type AccountStatus = "setup" | "active" | "restricted";
+export type StepId =
+  | "product"
+  | "identity"
+  | "payout"
+  | "description"
+  | "website"
+  | "support_email";
+
+export type Mode = "test" | "live";
+
+/** Which business and mode the dashboard is showing; sent with every request. */
+export interface Scope {
+  merchant: string | null;
+  mode: Mode;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export interface DashboardSession {
+  user: { id: string; email: string; name: string; image: string | null };
+  merchant: {
+    id: string;
+    name: string;
+    email: string;
+    platform_fee_bps: number;
+    /** Fixed part of our fee per currency, minor units. */
+    fixed_fees: Record<string, number>;
+  };
+  mode: Mode;
+  /** Live mode opens once every setup step is done. */
+  live_unlocked: boolean;
+  /** Currencies VRS Pay can charge in today; prices must use one. */
+  currencies: string[];
+  setup: {
+    status: AccountStatus;
+    completed: number;
+    total: number;
+    next: StepId | null;
+  };
+}
+
+export interface AccountSetup {
+  status: AccountStatus;
+  hold_reason: string | null;
+  steps: Array<{ id: StepId; done: boolean }>;
+  completed: number;
+  total: number;
+  next: StepId | null;
+  details: {
+    product_description: string | null;
+    website: string | null;
+    support_email: string | null;
+    payout: {
+      currency: string;
+      account_name: string;
+      bank_name: string;
+      last4: string;
+    } | null;
+    identity: {
+      country: string | null;
+      id_type: string | null;
+      last4: string | null;
+      first_name: string | null;
+      last_name: string | null;
+      date_of_birth: string | null;
+      status: "unverified" | "pending" | "verified" | "failed";
+      reason: string | null;
+    };
+  };
+}
+
+export interface Balance {
+  hold_days: number;
+  data: Array<{ currency: string; available: number; pending: number }>;
+}
+
+export interface List<T> {
+  object: "list";
+  data: T[];
+}
+
+export interface Payment {
+  id: string;
+  status: "succeeded" | "partially_refunded" | "refunded";
+  amount: number;
+  amount_refunded: number;
+  currency: string;
+  platform_fee: number;
+  provider_fee: number;
+  provider: string;
+  checkout_session: string | null;
+  customer_email: string | null;
+  created: number;
+}
+
+export interface Customer {
+  id: string;
+  external_id: string;
+  type: "user" | "org";
+  email: string | null;
+  name: string | null;
+  created: number;
+}
+
+export interface Subscription {
+  id: string;
+  customer: string;
+  plan: string;
+  price: string;
+  status: "incomplete" | "trialing" | "active" | "past_due" | "canceled";
+  quantity: number;
+  current_period_end: number | null;
+  cancel_at_period_end: boolean;
+  pending_price: string | null;
+  created: number;
+}
+
+export interface Invoice {
+  id: string;
+  customer: string;
+  subscription: string | null;
+  status: "draft" | "open" | "paid" | "void" | "uncollectible";
+  billing_reason: string;
+  currency: string;
+  total: number;
+  attempt_count: number;
+  next_attempt_at: number | null;
+  period_start: number;
+  period_end: number;
+  created: number;
+}
+
+export interface Price {
+  id: string;
+  interval: "month" | "year" | "one_time";
+  currency: string;
+  amount: number;
+  active: boolean;
+}
+
+export interface ProductPrice extends Price {
+  product: string;
+  created: number;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  active: boolean;
+  /** `config` products come from vrs-pay.config.ts and are read-only here. */
+  source: "config" | "dashboard";
+  prices: ProductPrice[];
+  created: number;
+}
+
+export interface Overview {
+  currency: string;
+  totals: Array<{
+    currency: string;
+    gross: number;
+    refunded: number;
+    net: number;
+    platform_fees: number;
+    payments: number;
+  }>;
+  daily: Array<{ date: string; amount: number }>;
+  mrr: Array<{ currency: string; amount: number }>;
+  subscriptions: {
+    active: number;
+    trialing: number;
+    past_due: number;
+    canceled_30d: number;
+  };
+  customers: { total: number; new_30d: number };
+  recent_payments: Payment[];
+}
+
+export interface ApiKey {
+  id: string;
+  kind: "secret" | "publishable";
+  display_prefix: string;
+  created: number;
+  revoked: boolean;
+  secret?: string;
+}
+
+export interface WebhookEndpoint {
+  id: string;
+  url: string;
+  enabled_events: string[];
+  status: "enabled" | "disabled";
+  created: number;
+  secret?: string;
+}
+
+export interface VrsEvent {
+  id: string;
+  type: string;
+  created: number;
+  data: { object: { id?: string } };
+}
+
+export interface PaymentLink {
+  id: string;
+  url: string;
+  price: string | null;
+  interval: "one_time" | "month" | "year";
+  amount: number;
+  currency: string;
+  description: string;
+  active: boolean;
+  created: number;
+}
