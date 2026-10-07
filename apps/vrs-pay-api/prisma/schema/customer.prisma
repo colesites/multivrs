@@ -1,0 +1,75 @@
+enum CustomerType {
+  user
+  org
+}
+
+/// A merchant's user or organization, keyed by the merchant's own id for it.
+model Customer {
+  id         String       @id
+  merchantId String       @map("merchant_id")
+  mode       Mode
+  externalId String       @map("external_id")
+  type       CustomerType @default(user)
+  email      String?
+  name       String?
+  metadata   Json         @default("{}")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  merchant          Merchant           @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  sessions          CustomerSession[]
+  providerCustomers ProviderCustomer[]
+  paymentMethods    PaymentMethod[]
+  subscriptions     Subscription[]
+  invoices          Invoice[]
+
+  @@unique([merchantId, mode, externalId])
+  @@map("customers")
+}
+
+/// Short-lived, browser-safe access for one customer. Only the hash is kept.
+model CustomerSession {
+  id         String   @id
+  customerId String   @map("customer_id")
+  secretHash String   @unique @map("secret_hash")
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("customer_sessions")
+}
+
+/// The customer's record at a provider (e.g. a Stripe customer on the connected account).
+model ProviderCustomer {
+  customerId  String   @map("customer_id")
+  provider    Provider
+  externalRef String   @map("external_ref")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@id([customerId, provider])
+  @@map("provider_customers")
+}
+
+/// A saved card or authorization the engine can charge off-session.
+model PaymentMethod {
+  id          String    @id
+  customerId  String    @map("customer_id")
+  provider    Provider
+  providerRef String    @map("provider_ref")
+  brand       String?
+  last4       String?
+  expMonth    Int?      @map("exp_month")
+  expYear     Int?      @map("exp_year")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  detachedAt  DateTime? @map("detached_at")
+
+  customer      Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  @@unique([provider, providerRef])
+  @@map("payment_methods")
+}

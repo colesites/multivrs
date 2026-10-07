@@ -1,5 +1,4 @@
 import {
-  createMemoryIdempotencyStore,
   createProviderRegistry,
   generateApiKey,
   type PaymentProvider,
@@ -8,15 +7,18 @@ import {
   type ProviderId,
 } from "@vrs-pay/core";
 import { createApp } from "../../apps/vrs-pay-api/src/app";
-import type { MerchantProfile } from "../../apps/vrs-pay-api/src/app.types";
-import { createMemoryApiKeyStore } from "../../apps/vrs-pay-api/src/stores/api-key.store";
-import { createMemoryCheckoutSessionStore } from "../../apps/vrs-pay-api/src/stores/checkout-session.store";
+import type { AppDeps, MerchantProfile } from "../../apps/vrs-pay-api/src/app.types";
+import { createStripeProvider } from "../../apps/vrs-pay-api/src/providers/stripe/stripe.provider";
+import type { StripeApi } from "../../apps/vrs-pay-api/src/providers/stripe/stripe-api.types";
+import { createMemoryStores } from "../../apps/vrs-pay-api/src/stores/memory";
+import { WEBHOOK_SECRET } from "./stripe-fakes";
 
 export const MERCHANT: MerchantProfile = {
   id: "mer_test",
+  name: "Acme Ltd",
   enabledProviders: ["stripe", "paystack", "flutterwave"],
   providerAccounts: { stripe: "acct_1", paystack: "ACCT_1", flutterwave: "RS_1" },
-  platformFeeBps: 150,
+  platformFeeBps: 500,
 };
 
 /** A provider that succeeds and records every checkout it was asked for. */
@@ -39,28 +41,49 @@ export function fakeProvider(id: ProviderId) {
     async parseWebhook() {
       throw new Error("not used in these tests");
     },
+    async ensureCustomer() {
+      throw new Error("not used in these tests");
+    },
+    async chargeSaved() {
+      throw new Error("not used in these tests");
+    },
   };
   return { provider, calls };
 }
 
-/** The real app, in-memory stores, fake Stripe + Paystack, and two merchants' keys. */
-export async function harness(options: { realAdapters?: boolean } = {}) {
+/**
+ * The real app on in-memory stores, with two merchants' keys. Stripe is a
+ * recording fake, or the real adapter over a fake Stripe API (`stripeApi`).
+ */
+export async function harness(options: { realAdapters?: boolean; stripeApi?: StripeApi } = {}) {
   const stripe = fakeProvider("stripe");
   const paystack = fakeProvider("paystack");
+  const stripeProvider = options.stripeApi
+    ? createStripeProvider({ api: options.stripeApi, webhookSecrets: [WEBHOOK_SECRET] })
+    : stripe.provider;
   const providers = options.realAdapters
     ? createProviderRegistry()
-    : createProviderRegistry({ stripe: stripe.provider, paystack: paystack.provider });
-  const apiKeys = createMemoryApiKeyStore();
+    : createProviderRegistry({ stripe: stripeProvider, paystack: paystack.provider });
+  const stores = createMemoryStores();
   const key = await generateApiKey("secret", "test");
   const otherKey = await generateApiKey("secret", "test");
-  await apiKeys.add({ hash: key.hash, merchant: MERCHANT });
-  await apiKeys.add({ hash: otherKey.hash, merchant: { ...MERCHANT, id: "mer_other" } });
-  const app = createApp({
-    apiKeys,
-    idempotency: createMemoryIdempotencyStore(),
-    checkoutSessions: createMemoryCheckoutSessionStore(),
-    providers,
+  await stores.apiKeys.add({ hash: key.hash, merchant: MERCHANT });
+  await stores.apiKeys.add({ hash: otherKey.hash, merchant: { ...MERCHANT, id: "mer_other" } });
+  stores.state.accounts.set("stripe:acct_1", {
+    merchantId: MERCHANT.id,
+    mode: "test",
+    status: "active",
   });
+  stores.state.merchants.set(MERCHANT.id, MERCHANT);
+  const deps: AppDeps = {
+    ...stores,
+    modes: {
+      test: { providers, platformProviders: ["stripe", "paystack", "flutterwave"] },
+      live: { providers, platformProviders: ["stripe", "paystack", "flutterwave"] },
+    },
+    urls: { api: "https://api.vrs.test", site: "https://vrs.test" },
+  };
+  const app = createApp(deps);
 
   const call = (
     path: string,
@@ -81,7 +104,16 @@ export async function harness(options: { realAdapters?: boolean } = {}) {
             : JSON.stringify(init.body),
     });
 
-  return { app, call, key: key.plaintext, otherKey: otherKey.plaintext, stripe, paystack };
+  return {
+    app,
+    call,
+    deps,
+    state: stores.state,
+    key: key.plaintext,
+    otherKey: otherKey.plaintext,
+    stripe,
+    paystack,
+  };
 }
 
 export const GBP_SESSION = {

@@ -1,0 +1,63 @@
+enum VerificationStatus {
+  not_started
+  in_review
+  verified
+  rejected
+}
+
+/// Result of checking the merchant's official ID with the identity service.
+enum IdentityStatus {
+  unverified
+  pending
+  verified
+  failed
+}
+
+enum BusinessType {
+  individual
+  company
+}
+
+/// What a merchant tells us to go live and get paid. ID numbers and bank
+/// details are stored encrypted; only their last 4 digits are kept in the
+/// clear. `status` is only set by staff: `rejected` holds the account.
+model MerchantOnboarding {
+  merchantId         String             @id @map("merchant_id")
+  status             VerificationStatus @default(not_started)
+  businessType       BusinessType?      @map("business_type")
+  businessName       String?            @map("business_name")
+  country            String?            @db.Char(2)
+  website            String?
+  productDescription String?            @map("product_description")
+  firstName          String?            @map("first_name")
+  lastName           String?            @map("last_name")
+  dateOfBirth        String?            @map("date_of_birth")
+  addressLine1       String?            @map("address_line1")
+  addressLine2       String?            @map("address_line2")
+  city               String?
+  postalCode         String?            @map("postal_code")
+  phone              String?
+  supportEmail       String?            @map("support_email")
+  /// e.g. bvn, nin, ghana_card, national_id, passport.
+  idType             String?            @map("id_type")
+  /// AES-GCM ciphertext of the ID number.
+  idNumber           String?            @map("id_number")
+  idLast4            String?            @map("id_last4")
+  identityStatus     IdentityStatus     @default(unverified) @map("identity_status")
+  identityReason     String?            @map("identity_reason")
+  identityCheckedAt  DateTime?          @map("identity_checked_at")
+  payoutCurrency     String?            @map("payout_currency") @db.Char(3)
+  payoutAccountName  String?            @map("payout_account_name")
+  payoutBankName     String?            @map("payout_bank_name")
+  /// AES-GCM ciphertext of { accountNumber, bankCode }.
+  payoutDetails      String?            @map("payout_details")
+  payoutLast4        String?            @map("payout_last4")
+  submittedAt        DateTime?          @map("submitted_at")
+  reviewedAt         DateTime?          @map("reviewed_at")
+  rejectionReason    String?            @map("rejection_reason")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@map("merchant_onboarding")
+}

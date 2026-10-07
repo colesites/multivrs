@@ -1,0 +1,107 @@
+enum CheckoutMode {
+  payment
+  subscription
+}
+
+enum CheckoutSessionStatus {
+  open
+  complete
+  expired
+}
+
+model CheckoutSession {
+  id                String                @id
+  merchantId        String                @map("merchant_id")
+  mode              Mode
+  status            CheckoutSessionStatus @default(open)
+  checkoutMode      CheckoutMode          @default(payment) @map("checkout_mode")
+  customerId        String?               @map("customer_id")
+  paymentLinkId     String?               @map("payment_link_id")
+  subscriptionId    String?               @map("subscription_id")
+  amount            BigInt
+  currency          String                @db.Char(3)
+  paymentMethod     String                @map("payment_method")
+  description       String?
+  provider          Provider
+  providerReference String                @map("provider_reference")
+  url               String
+  platformFee       BigInt                @map("platform_fee")
+  successUrl        String                @map("success_url")
+  cancelUrl         String                @map("cancel_url")
+  customerEmail     String?               @map("customer_email")
+  metadata          Json                  @default("{}")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  payment  Payment?
+
+  @@unique([provider, providerReference])
+  @@index([merchantId, mode, createdAt(sort: Desc)])
+  @@map("checkout_sessions")
+}
+
+enum PaymentStatus {
+  succeeded
+  partially_refunded
+  refunded
+}
+
+model Payment {
+  id                String        @id
+  merchantId        String        @map("merchant_id")
+  mode              Mode
+  checkoutSessionId String?       @unique @map("checkout_session_id")
+  provider          Provider
+  /// The connected account / subaccount the charge was made on.
+  providerAccountId String        @map("provider_account_id")
+  /// e.g. Stripe's PaymentIntent id (pi_…).
+  providerReference String        @map("provider_reference")
+  status            PaymentStatus @default(succeeded)
+  amount            BigInt
+  amountRefunded    BigInt        @default(0) @map("amount_refunded")
+  currency          String        @db.Char(3)
+  platformFee       BigInt        @map("platform_fee")
+  providerFee       BigInt        @map("provider_fee")
+  customerEmail     String?       @map("customer_email")
+  metadata          Json          @default("{}")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  merchant        Merchant         @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  checkoutSession CheckoutSession? @relation(fields: [checkoutSessionId], references: [id])
+  refunds         Refund[]
+
+  @@unique([provider, providerReference])
+  @@index([merchantId, mode, createdAt(sort: Desc)])
+  @@map("payments")
+}
+
+enum RefundStatus {
+  pending
+  succeeded
+  failed
+}
+
+model Refund {
+  id                String       @id
+  merchantId        String       @map("merchant_id")
+  mode              Mode
+  paymentId         String       @map("payment_id")
+  provider          Provider
+  providerReference String?      @map("provider_reference")
+  status            RefundStatus @default(pending)
+  amount            BigInt
+  currency          String       @db.Char(3)
+  reason            String?
+  metadata          Json         @default("{}")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  payment  Payment  @relation(fields: [paymentId], references: [id])
+
+  @@unique([provider, providerReference])
+  @@index([paymentId])
+  @@map("refunds")
+}

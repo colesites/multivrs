@@ -7,7 +7,7 @@ const BEARER_PATTERN = /^Bearer\s+(\S+)$/i;
 
 /**
  * Resolves `Authorization: Bearer sk_…` to a merchant. The key's mode
- * (test/live) scopes everything the request can see.
+ * (test/live) scopes everything the request can see and charge.
  */
 export function authenticate(apiKeys: ApiKeyStore): MiddlewareHandler<AppEnv> {
   return async (c, next) => {

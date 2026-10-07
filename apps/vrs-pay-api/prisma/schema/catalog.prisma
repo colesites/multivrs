@@ -1,0 +1,88 @@
+// What merchants sell: features (entitlements), plans that grant them, and
+// immutable prices per interval and currency.
+
+enum FeatureType {
+  boolean
+  limit
+}
+
+model Feature {
+  id         String      @id
+  merchantId String      @map("merchant_id")
+  mode       Mode
+  key        String
+  name       String
+  type       FeatureType
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, mode, key])
+  @@map("features")
+}
+
+/// Where a product is managed: the merchant's config file (synced) or the dashboard/API.
+enum ProductSource {
+  config
+  dashboard
+}
+
+enum PlanPayer {
+  user
+  org
+}
+
+model Plan {
+  id          String        @id
+  merchantId  String        @map("merchant_id")
+  mode        Mode
+  key         String
+  name        String
+  description String?
+  payer       PlanPayer     @default(user)
+  trialDays   Int           @default(0) @map("trial_days")
+  /// Feature key → true (boolean) or a number (limit).
+  features    Json          @default("{}")
+  active      Boolean       @default(true)
+  /// Config syncs only touch config products, never ones made in the dashboard.
+  source      ProductSource @default(config)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  prices        Price[]
+  subscriptions Subscription[]
+
+  @@unique([merchantId, mode, key])
+  @@map("plans")
+}
+
+enum PriceInterval {
+  month
+  year
+  one_time
+}
+
+/// Never edited: a new amount is a new price, so existing subscribers keep theirs.
+model Price {
+  id         String        @id
+  merchantId String        @map("merchant_id")
+  mode       Mode
+  planId     String        @map("plan_id")
+  interval   PriceInterval
+  currency   String        @db.Char(3)
+  amount     BigInt
+  active     Boolean       @default(true)
+  /// Copied from the plan: config plans keep one active price per interval and
+  /// currency (a partial unique index); dashboard products can have many.
+  source     ProductSource @default(config)
+  createdAt  DateTime      @default(now()) @map("created_at")
+
+  merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  plan          Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  @@index([planId])
+  @@map("prices")
+}

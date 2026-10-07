@@ -1,0 +1,78 @@
+model Merchant {
+  id             String   @id
+  name           String
+  email          String
+  /// VRS Pay's fee rate in basis points (150 = 1.5%).
+  platformFeeBps Int      @default(500) @map("platform_fee_bps")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  apiKeys          ApiKey[]
+  providerAccounts ProviderAccount[]
+  checkoutSessions CheckoutSession[]
+  payments         Payment[]
+  refunds          Refund[]
+  events           Event[]
+  webhookEndpoints WebhookEndpoint[]
+  features         Feature[]
+  plans            Plan[]
+  prices           Price[]
+  customers        Customer[]
+  subscriptions    Subscription[]
+  invoices         Invoice[]
+  members          MerchantMember[]
+  paymentLinks     PaymentLink[]
+  onboarding       MerchantOnboarding?
+
+  @@map("merchants")
+}
+
+enum ApiKeyKind {
+  secret
+  publishable
+}
+
+model ApiKey {
+  id            String     @id
+  merchantId    String     @map("merchant_id")
+  mode          Mode
+  kind          ApiKeyKind
+  /// SHA-256 of the key. The plaintext is shown once and never stored.
+  hash          String     @unique
+  displayPrefix String     @map("display_prefix")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  revokedAt     DateTime?  @map("revoked_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+  @@map("api_keys")
+}
+
+enum ProviderAccountStatus {
+  pending
+  active
+  restricted
+}
+
+/// A merchant's account at a provider: a Stripe connected account
+/// (acct_…) or a Paystack/Flutterwave subaccount.
+model ProviderAccount {
+  id               String                @id @default(uuid()) @db.Uuid
+  merchantId       String                @map("merchant_id")
+  mode             Mode
+  provider         Provider
+  externalId       String                @map("external_id")
+  status           ProviderAccountStatus @default(pending)
+  chargesEnabled   Boolean               @default(false) @map("charges_enabled")
+  payoutsEnabled   Boolean               @default(false) @map("payouts_enabled")
+  detailsSubmitted Boolean               @default(false) @map("details_submitted")
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, mode, provider])
+  @@unique([provider, externalId])
+  @@map("provider_accounts")
+}

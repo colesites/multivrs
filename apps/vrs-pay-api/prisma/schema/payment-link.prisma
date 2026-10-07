@@ -1,0 +1,23 @@
+/// A shareable, no-code link to a hosted checkout for one of the merchant's products.
+model PaymentLink {
+  id           String        @id
+  merchantId   String        @map("merchant_id")
+  mode         Mode
+  /// The product price it sells. Amount and currency are copied from it.
+  priceId      String?       @map("price_id")
+  /// one_time links take a payment; month/year links start a subscription.
+  interval     PriceInterval @default(one_time)
+  amount       BigInt
+  currency     String        @db.Char(3)
+  description  String
+  /// Where the customer lands after paying (defaults to VRS Pay's thank-you page).
+  afterPayment String?       @map("after_payment_url")
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, mode, createdAt(sort: Desc)])
+  @@map("payment_links")
+}
