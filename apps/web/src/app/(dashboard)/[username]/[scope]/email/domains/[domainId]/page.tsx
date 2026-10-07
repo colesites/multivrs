@@ -15,6 +15,7 @@ import { MailDomainDeleteButton } from "@/features/mail/MailDomainDeleteButton";
 import { MailDomainVerifyButton } from "@/features/mail/MailDomainVerifyButton";
 import { getServerSession } from "@/lib/auth/session";
 import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
+import { RECEIVING_PURPOSE } from "@/lib/mail/ses-domain-snapshot";
 import { prisma } from "@/lib/prisma";
 import { ownedOrTeamWhere } from "@/lib/services/account-access";
 import { mailDomainDnsMode } from "@/lib/services/mail-domain.service";
@@ -130,7 +131,10 @@ export default async function MailDomainDnsPage({
             </h2>
             <p className="mt-1 text-sm text-white/50">
               SPF authorizes the sending network, DKIM signs each message, and
-              DMARC tells inboxes how to validate the visible sender.
+              DMARC tells inboxes how to validate the visible sender. The MX
+              record on the domain itself receives mail into Multivrs: add it
+              only if this domain's mail should arrive here, not at another
+              provider like Google Workspace.
             </p>
           </div>
           {domain.verificationCheckedAt ? (
@@ -165,6 +169,7 @@ export default async function MailDomainDnsPage({
                 <RecordMetadata value={record.priority?.toString() ?? "—"} />
                 <RecordStatus
                   automatic={automatic && record.managedByMultivrs}
+                  receiving={record.purpose === RECEIVING_PURPOSE}
                   status={record.status}
                 />
               </div>
@@ -239,12 +244,18 @@ const RECORD_STATUS: Record<string, { label: string; tone: RecordTone }> = {
 
 function RecordStatus({
   automatic,
+  receiving,
   status,
 }: {
   automatic: boolean;
+  receiving: boolean;
   status: string;
 }) {
-  const { label, tone } = RECORD_STATUS[status] ?? PENDING_RECORD;
+  // The receiving MX is optional, so a missing one isn't an error.
+  const { label, tone } =
+    receiving && status !== "verified"
+      ? { label: "Add to receive", tone: "wait" as RecordTone }
+      : (RECORD_STATUS[status] ?? PENDING_RECORD);
   return (
     <span className="flex items-center gap-1.5 text-xs text-white/45">
       {tone === "ok" ? (

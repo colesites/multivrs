@@ -202,6 +202,12 @@ describe("Multivrs Mail boundaries", () => {
       value: "feedback-smtp.us-east-1.amazonses.com",
       status: "verified",
     });
+    expect(byPurpose.inbound).toMatchObject({
+      name: "example.com",
+      type: "MX",
+      priority: 10,
+      value: "inbound-smtp.us-east-1.amazonaws.com",
+    });
     // SES retries after a temporary failure, so it isn't shown as failed.
     expect(mapSesStatus("TEMPORARY_FAILURE")).toBe("pending");
     expect(mapSesStatus(undefined)).toBe("pending");
@@ -213,6 +219,7 @@ describe("Multivrs Mail boundaries", () => {
     expect(dnsRecordStatus({ purpose: "mx", status: "verified" }, false)).toBe("verified");
     expect(dnsRecordStatus({ purpose: "spf", status: "pending" }, true)).toBe("verified");
     expect(dnsRecordStatus({ purpose: "dmarc", status: "pending" }, false)).toBe("missing");
+    expect(dnsRecordStatus({ purpose: "inbound", status: "pending" }, true)).toBe("verified");
   });
 
   test("links in received mail open in a new tab, never inside Multivrs", () => {

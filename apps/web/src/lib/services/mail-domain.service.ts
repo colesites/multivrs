@@ -30,7 +30,10 @@ import {
   restartMailFromVerification,
   verifyCustomDomain,
 } from "@/lib/mail/ses-domain.provider";
-import { dnsRecordStatus } from "@/lib/mail/ses-domain-snapshot";
+import {
+  dnsRecordStatus,
+  RECEIVING_PURPOSE,
+} from "@/lib/mail/ses-domain-snapshot";
 import { prisma } from "@/lib/prisma";
 import type { createMailDomainSchema } from "@/lib/schemas/mail-resource.schemas";
 import {
@@ -368,10 +371,14 @@ async function installManagedDns(
     overview = await getProviderDns(zone);
   }
 
-  const desired = records.map((record) => ({
-    input: toDnsInput(zone, record),
-    record,
-  }));
+  // The receiving MX would take over the domain's mail, which may live with
+  // another provider, so it's never added automatically.
+  const desired = records
+    .filter((record) => record.purpose !== RECEIVING_PURPOSE)
+    .map((record) => ({
+      input: toDnsInput(zone, record),
+      record,
+    }));
   const additions = desired.filter(({ input, record }) => {
     const recordsAtName = overview.records.filter(
       (existing) => existing.name === input.name,
