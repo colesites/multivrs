@@ -1,3 +1,4 @@
+import { inboundRecipients } from "@/lib/mail/inbound-recipients";
 import { prisma } from "@/lib/prisma";
 import {
   type SesEventPayload,
@@ -5,7 +6,10 @@ import {
   snsMessageSchema,
 } from "@/lib/schemas/mail-provider.schemas";
 import { logError, logInfo } from "@/lib/services/logger.service";
-import { receiveMail } from "@/lib/services/mail-message.service";
+import {
+  inboundMailboxAddresses,
+  receiveMail,
+} from "@/lib/services/mail-message.service";
 import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.service";
 import { readInboundEmailFromS3 } from "@/lib/services/ses-inbound-reader.service";
 
@@ -107,11 +111,8 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
     let from =
       sesEvent.mail.source || sesEvent.mail.commonHeaders?.from?.[0] || "";
     let fromName: string | undefined;
-    let recipient =
-      sesEvent.mail.destination?.[0] ||
-      sesEvent.mail.commonHeaders?.to?.[0] ||
-      "";
-    let toAddresses = sesEvent.mail.destination || [recipient];
+    let toAddresses =
+      sesEvent.mail.destination ?? sesEvent.mail.commonHeaders?.to ?? [];
     let ccAddresses: string[] = [];
     let subject = sesEvent.mail.commonHeaders?.subject || "(no subject)";
     let textBody: string | undefined = (rawEvent as Record<string, unknown>)
@@ -136,10 +137,7 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
       if (s3Email) {
         if (s3Email.from) from = s3Email.from;
         if (s3Email.fromName) fromName = s3Email.fromName;
-        if (s3Email.to.length && s3Email.to[0]) {
-          toAddresses = s3Email.to;
-          recipient = s3Email.to[0];
-        }
+        if (s3Email.to.length) toAddresses = s3Email.to;
         if (s3Email.cc.length) ccAddresses = s3Email.cc;
         if (s3Email.subject) subject = s3Email.subject;
         if (s3Email.text) textBody = s3Email.text;
@@ -159,36 +157,61 @@ async function handleSesEvent(rawEvent: unknown, snsMessageId?: string) {
       }
     }
 
-    if (!recipient || !from) {
+    // Deliver to every mailbox on the envelope, CC and BCC included. The To
+    // line is for display: it can name other people, or nobody at all.
+    const recipients = inboundRecipients(sesEvent, [
+      ...toAddresses,
+      ...ccAddresses,
+    ]);
+    if (!recipients.length || !from) {
       return Response.json(
         { error: "Missing recipient or sender in received email" },
         { status: 400 },
       );
     }
+    const mailboxes = await inboundMailboxAddresses(recipients);
+    if (!mailboxes.length) {
+      // Nobody made these addresses. A 200 stops SNS retrying them.
+      logInfo("ses.webhook.no_mailbox", {
+        messageId,
+        recipients: recipients.join(","),
+      });
+      return Response.json(
+        { received: false, reason: "no_mailbox" },
+        { status: 200 },
+      );
+    }
 
     try {
-      const result = await receiveMail({
-        providerEventId: snsMessageId || messageId,
-        mailbox: recipient,
-        messageId,
-        from,
-        fromName,
-        to: toAddresses,
-        cc: ccAddresses,
-        references: referencesList,
-        inReplyTo,
-        headers: {},
-        subject,
-        text: textBody,
-        html: htmlBody,
-        attachments: attachmentsList,
-      });
+      const deliveries = [];
+      for (const mailbox of mailboxes) {
+        deliveries.push({
+          mailbox,
+          ...(await receiveMail({
+            // Per mailbox, so a retry skips only the copies already stored.
+            providerEventId: `${snsMessageId || messageId}:${mailbox}`,
+            mailbox,
+            messageId,
+            from,
+            fromName,
+            to: toAddresses,
+            cc: ccAddresses,
+            references: referencesList,
+            inReplyTo,
+            headers: {},
+            subject,
+            text: textBody,
+            html: htmlBody,
+            attachments: attachmentsList,
+          })),
+        });
+      }
 
-      return Response.json({ received: true, ...result }, { status: 200 });
+      return Response.json({ received: true, deliveries }, { status: 200 });
     } catch (error) {
       logError("ses.webhook.receive_mail_failed", error, {
         messageId,
-        recipient,
+        mailboxes: mailboxes.join(","),
         from,
       });
       return Response.json(

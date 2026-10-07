@@ -54,9 +54,27 @@ function normalized(subject: string) {
     .toLowerCase();
 }
 
+/**
+ * The active mailbox addresses among an inbound message's recipients, in a
+ * stable order so a retried delivery lands the same way.
+ */
+export async function inboundMailboxAddresses(
+  recipients: string[],
+): Promise<string[]> {
+  if (!recipients.length) return [];
+  const mailboxes = await prisma.mailbox.findMany({
+    where: { address: { in: recipients }, status: "active" },
+    select: { address: true },
+    orderBy: { address: "asc" },
+  });
+  return [...new Set(mailboxes.map(({ address }) => address))];
+}
+
 export async function receiveMail(input: InboundMailInput) {
+  // The first account to set an address up keeps it.
   const mailbox = await prisma.mailbox.findFirst({
     where: { address: input.mailbox, status: "active" },
+    orderBy: { createdAt: "asc" },
   });
   if (!mailbox) throw new Error("Inbound mailbox not found");
   const existing = await prisma.mailEvent.findFirst({
@@ -71,9 +89,11 @@ export async function receiveMail(input: InboundMailInput) {
     );
     return { duplicate: true, repaired };
   }
+  // One email can sit in several of an account's mailboxes. Thread it with
+  // this mailbox's copy.
   const reply = input.inReplyTo
     ? await prisma.mailMessage.findFirst({
-        where: { userId: mailbox.userId, messageId: input.inReplyTo },
+        where: { mailboxId: mailbox.id, messageId: input.inReplyTo },
       })
     : null;
   const fallback = reply
