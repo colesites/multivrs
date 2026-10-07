@@ -49,7 +49,9 @@ export async function recordDecline(
     },
   };
   const status = exhausted ? "canceled" : "past_due";
-  const changed = sub.subscription.status === status ? null : withStatus(sub, status, now);
+  // A canceled subscription's last invoice (final usage) is retried, but never revives it.
+  const unchanged = sub.subscription.status === status || sub.subscription.status === "canceled";
+  const changed = unchanged ? null : withStatus(sub, status, now);
   const events: StoredEvent[] = [
     buildEvent(merchantId, mode, "invoice.payment_failed", failed.invoice),
   ];

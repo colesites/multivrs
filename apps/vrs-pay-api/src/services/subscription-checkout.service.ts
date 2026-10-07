@@ -80,10 +80,11 @@ export async function createSubscriptionCheckout(
   };
   await deps.billing.commit({ subscriptions: [{ record: subscription, expectedVersion: null }] });
 
-  const trial = plan.trial_days > 0;
+  // Trials and metered prices charge nothing now: the checkout only saves a card.
+  const upfront = plan.trial_days === 0 && price.usage_type === "licensed";
   const id = newId("checkoutSession");
   const description = `${plan.name} · ${periodLabel(interval, count)}`;
-  const platformFee = trial ? money(0, amount.currency) : feeFor(merchant, amount);
+  const platformFee = upfront ? feeFor(merchant, amount) : money(0, amount.currency);
   const metadata = { ...input.metadata, [SUBSCRIPTION_METADATA_KEY]: subscription.subscription.id };
   const checkout = await providersFor(deps, merchant.mode)[route.provider].createCheckout({
     merchantAccountId: null,
@@ -97,7 +98,7 @@ export async function createSubscriptionCheckout(
     cancelUrl: input.cancel_url,
     metadata,
     idempotencyKey: idempotencyKey ?? id,
-    mode: trial ? "setup" : "payment",
+    mode: upfront ? "payment" : "setup",
     providerCustomer,
     saveMethod: true,
   });
@@ -111,7 +112,7 @@ export async function createSubscriptionCheckout(
     customer: customer.id,
     subscription: subscription.subscription.id,
     payment_link: paymentLink,
-    amount: trial ? 0 : amount.amount,
+    amount: upfront ? amount.amount : 0,
     currency: amount.currency.toLowerCase(),
     payment_method: "card",
     description,

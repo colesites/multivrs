@@ -71,7 +71,8 @@ export async function activateSubscription(
   );
   const method = await methodRecord(deps, current.subscription.customer, current.provider, saved);
   const now = nowSeconds();
-  const trial = data === null;
+  // No payment means a trial, or a metered price that bills its usage later.
+  const trial = data === null && plan.trial_days > 0;
   const periodEnd = trial ? addDays(now, plan.trial_days) : addInterval(now, interval, count);
   const next: StoredSubscription = {
     ...current,

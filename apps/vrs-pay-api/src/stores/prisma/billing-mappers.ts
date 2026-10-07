@@ -21,6 +21,7 @@ export function subscriptionFromRow(row: SubscriptionRow): StoredSubscription {
     mode: row.mode,
     provider: row.provider,
     version: row.version,
+    usageFrom: unixOrNull(row.usageFrom),
     subscription: {
       id: row.id,
       object: "subscription",
@@ -49,6 +50,7 @@ export function subscriptionRow({
   mode,
   provider,
   version,
+  usageFrom,
   subscription: s,
 }: StoredSubscription) {
   return {
@@ -56,6 +58,7 @@ export function subscriptionRow({
     mode,
     provider,
     version,
+    usageFrom: dateOrNull(usageFrom ?? null),
     customerId: s.customer,
     planId: s.plan,
     priceId: s.price,

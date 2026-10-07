@@ -35,6 +35,11 @@ export interface StoredSubscription {
   provider: ProviderId;
   /** Optimistic lock: a write only applies to the version it read. */
   version: number;
+  /**
+   * Metered only: unbilled usage starts here, not at the period start,
+   * when an earlier period's usage was below the minimum charge.
+   */
+  usageFrom?: number | null;
   subscription: Subscription;
 }
 

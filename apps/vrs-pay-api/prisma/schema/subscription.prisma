@@ -19,6 +19,9 @@ model Subscription {
   quantity           Int                @default(1)
   /// What it charges in: the price's currency or one of its currency options.
   currency           String             @db.Char(3)
+  /// Metered only: usage from here on is unbilled, when an earlier period's
+  /// usage was too small to charge and carries into the next invoice.
+  usageFrom          DateTime?          @map("usage_from")
   currentPeriodStart DateTime?          @map("current_period_start")
   currentPeriodEnd   DateTime?          @map("current_period_end")
   trialEnd           DateTime?          @map("trial_end")
@@ -39,6 +42,7 @@ model Subscription {
   price         Price          @relation(fields: [priceId], references: [id])
   paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
   invoices      Invoice[]
+  usageRecords  UsageRecord[]
 
   @@index([customerId])
   @@index([status, currentPeriodEnd])

@@ -19,4 +19,12 @@ export const CancelSubscriptionSchema = z.strictObject({
   at: z.enum(["period_end", "now"]).default("period_end"),
 });
 
+/** `POST /v1/subscriptions/:id/usage_records` — usage for a metered subscription. */
+export const UsageRecordSchema = z.strictObject({
+  quantity: z.int().min(0).max(1_000_000_000_000),
+  /** When it happened, Unix seconds; now by default. */
+  timestamp: z.int().positive().optional(),
+});
+
 export type UpdateSubscriptionInput = z.infer<typeof UpdateSubscriptionSchema>;
+export type UsageRecordInput = z.infer<typeof UsageRecordSchema>;

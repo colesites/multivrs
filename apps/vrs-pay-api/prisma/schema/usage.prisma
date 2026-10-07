@@ -1,0 +1,18 @@
+/// Usage a merchant reports for a metered subscription. At the end of each
+/// period the records inside it add up (by the price's aggregate_usage) to
+/// what the invoice charges.
+model UsageRecord {
+  id             String   @id
+  merchantId     String   @map("merchant_id")
+  mode           Mode
+  subscriptionId String   @map("subscription_id")
+  quantity       BigInt
+  timestamp      DateTime
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  merchant     Merchant     @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, timestamp])
+  @@map("usage_records")
+}

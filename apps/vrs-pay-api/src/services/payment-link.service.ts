@@ -1,9 +1,10 @@
-import { invalidRequest, newId } from "@vrs-pay/core";
+import { CurrencyCodeSchema, invalidRequest, money, newId } from "@vrs-pay/core";
 import type { AppDeps, MerchantContext } from "../app.types";
 import type { CreatePaymentLinkInput } from "../routes/payment-link.schema";
 import { amountIn } from "./billing-helpers";
 import { nowSeconds } from "./events";
 import type { PaymentLink, StoredPaymentLink } from "./payment-link.types";
+import { assertMinimumAmount } from "./platform";
 import { findPrice } from "./price.service";
 
 export const PAYMENT_LINK_METADATA_KEY = "vrs_payment_link";
@@ -61,6 +62,8 @@ export async function createPaymentLink(
       "Send a price, or an amount, currency and description.",
     );
   }
+  // A quick amount is charged as it is; a price was checked when it was made.
+  if (!price) assertMinimumAmount(money(amount, CurrencyCodeSchema.parse(currency)));
   const record: StoredPaymentLink = {
     merchantId: merchant.id,
     mode: merchant.mode,

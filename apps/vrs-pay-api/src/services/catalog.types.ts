@@ -4,6 +4,10 @@ import type { BillingInterval } from "./subscription.types";
 export type FeatureType = "boolean" | "limit";
 export type PlanPayer = "user" | "org";
 export type PriceInterval = BillingInterval | "one_time";
+/** `licensed` charges a fixed amount up front each period; `metered` charges reported usage after it. */
+export type UsageType = "licensed" | "metered";
+/** How a metered period's usage records add up: their total, the highest, or the latest. */
+export type AggregateUsage = "sum" | "max" | "last";
 /** Plans come from the config sync; products are made in the dashboard or API. */
 export type ProductSource = "config" | "dashboard";
 /** true for a boolean feature, a number for a limit. */
@@ -29,8 +33,11 @@ export interface Price {
   interval_count: number;
   /** Lowercase ISO code. */
   currency: string;
-  /** Minor units. */
+  /** Minor units; per unit of usage for metered prices. */
   amount: number;
+  usage_type: UsageType;
+  /** Metered prices only. */
+  aggregate_usage: AggregateUsage | null;
   /** Other currencies it sells in, like Stripe's: lowercase code → amount. */
   currency_options: Record<string, CurrencyOption>;
   /** Your own label for it ("Launch discount"); customers never see it. */
@@ -50,11 +57,16 @@ export interface CurrencyOption {
 export type PriceLabels = Pick<Price, "id" | "nickname" | "lookup_key">;
 
 /** What a price gets beyond its slot; config prices have none of it. */
-export type PriceDetails = Pick<Price, "currency_options" | "nickname" | "lookup_key">;
+export type PriceDetails = Pick<
+  Price,
+  "currency_options" | "nickname" | "lookup_key" | "usage_type" | "aggregate_usage"
+>;
 export const NO_PRICE_DETAILS: PriceDetails = {
   currency_options: {},
   nickname: null,
   lookup_key: null,
+  usage_type: "licensed",
+  aggregate_usage: null,
 };
 
 export interface Plan {

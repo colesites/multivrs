@@ -32,11 +32,12 @@ export async function changeSubscription(
   const current = await findRecurringPrice(deps.catalog, scope, s.price);
   const target = input.price ? await findRecurringPrice(deps.catalog, scope, input.price) : current;
   const samePeriod = target.interval === current.interval && target.count === current.count;
+  const sameUsage = target.price.usage_type === current.price.usage_type;
   const targetAmount = amountIn(target.price, s.currency);
-  if (targetAmount === undefined || !samePeriod) {
+  if (targetAmount === undefined || !samePeriod || !sameUsage) {
     throw invalidRequest(
       "price_incompatible",
-      "Switch to a price with the same billing period, sold in this subscription's currency.",
+      "Switch to a price with the same billing period and usage type, sold in this subscription's currency.",
       "price",
     );
   }
@@ -66,6 +67,10 @@ export async function changeSubscription(
     pending_price: null,
     pending_quantity: null,
   };
+  // Metered usage is billed when the period ends, at the price in force then: nothing to prorate.
+  if (target.price.usage_type === "metered") {
+    return saveChange(deps, sub, next, "subscription.updated");
+  }
   if (newAmount < oldAmount && s.status !== "trialing") {
     return saveChange(
       deps,

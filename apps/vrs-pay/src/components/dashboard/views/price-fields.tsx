@@ -4,6 +4,7 @@ import { useDashboard } from "../context";
 import { toMinor } from "../format";
 import { Button, Input, NativeSelect } from "../ui";
 import { BillingPeriodField, readBillingPeriod } from "./billing-period-field";
+import { PricingModelField, readPricingModel } from "./pricing-model-field";
 import { Field } from "./section-form";
 
 /** Amount, currency and billing period for one price; `prefix` keeps several apart in one form. */
@@ -16,37 +17,40 @@ export function PriceFields({
 }) {
   const { session } = useDashboard();
   return (
-    <div className="grid items-start gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
-      <Field label="Price">
-        <Input
-          name={`${prefix}amount`}
-          required
-          inputMode="decimal"
-          placeholder="25.00"
-        />
-      </Field>
-      <Field label="Currency">
-        <NativeSelect name={`${prefix}currency`} defaultValue="USD">
-          {session.currencies.map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </NativeSelect>
-      </Field>
-      <BillingPeriodField prefix={prefix} />
-      {onRemove ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={onRemove}
-          aria-label="Remove price"
-          className="sm:mt-[26px]"
-        >
-          <X className="size-4" />
-        </Button>
-      ) : (
-        <span className="hidden size-9 sm:block" />
-      )}
+    <div className="grid gap-3">
+      <div className="grid items-start gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+        <Field label="Price">
+          <Input
+            name={`${prefix}amount`}
+            required
+            inputMode="decimal"
+            placeholder="25.00"
+          />
+        </Field>
+        <Field label="Currency">
+          <NativeSelect name={`${prefix}currency`} defaultValue="USD">
+            {session.currencies.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </NativeSelect>
+        </Field>
+        <BillingPeriodField prefix={prefix} />
+        {onRemove ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onRemove}
+            aria-label="Remove price"
+            className="sm:mt-[26px]"
+          >
+            <X className="size-4" />
+          </Button>
+        ) : (
+          <span className="hidden size-9 sm:block" />
+        )}
+      </div>
+      <PricingModelField prefix={prefix} />
     </div>
   );
 }
@@ -56,7 +60,12 @@ export function readPrice(fields: FormData, prefix = "") {
   const currency = String(fields.get(`${prefix}currency`) ?? "USD");
   const amount = toMinor(String(fields.get(`${prefix}amount`) ?? ""), currency);
   if (amount === null) return null;
-  return { amount, currency, ...readBillingPeriod(fields, prefix) };
+  return {
+    amount,
+    currency,
+    ...readBillingPeriod(fields, prefix),
+    ...readPricingModel(fields, prefix),
+  };
 }
 
 /**

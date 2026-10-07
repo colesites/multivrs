@@ -20,26 +20,33 @@ interface Period {
   interval_count: number;
 }
 
-/** "One-time", "Monthly", "Every 3 months". */
-export function billingLabel({
-  interval,
-  interval_count: count,
-}: Period): string {
+const SINGLE: Record<string, string> = {
+  day: "Daily",
+  week: "Weekly",
+  month: "Monthly",
+  year: "Yearly",
+};
+
+/** "One-time", "Monthly", "Every 3 months", "Monthly · usage-based". */
+export function billingLabel(price: Period & { usage_type?: string }): string {
+  const { interval, interval_count: count } = price;
   if (interval === "one_time") return "One-time";
-  if (count !== 1) return `Every ${count} ${interval}s`;
-  return (
-    { day: "Daily", week: "Weekly", month: "Monthly", year: "Yearly" }[
-      interval
-    ] ?? interval
-  );
+  const period =
+    count !== 1
+      ? `Every ${count} ${interval}s`
+      : (SINGLE[interval] ?? interval);
+  return price.usage_type === "metered" ? `${period} · usage-based` : period;
 }
 
-/** "$25.00", "$9.00 / month", "$27.00 every 3 months". */
+/** "$25.00", "$9.00 / month", "$27.00 every 3 months", "$0.10 per unit / month". */
 export function formatPrice(
-  price: Period & { amount: number; currency: string },
+  price: Period & { amount: number; currency: string; usage_type?: string },
   quantity = 1,
 ): string {
-  const money = formatMoney(price.amount * quantity, price.currency);
+  const money =
+    price.usage_type === "metered"
+      ? `${formatMoney(price.amount, price.currency)} per unit`
+      : formatMoney(price.amount * quantity, price.currency);
   if (price.interval === "one_time") return money;
   return price.interval_count === 1
     ? `${money} / ${price.interval}`

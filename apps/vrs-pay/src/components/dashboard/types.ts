@@ -164,7 +164,11 @@ export interface Price {
   interval: PriceInterval;
   interval_count: number;
   currency: string;
+  /** Per unit of usage for metered prices. */
   amount: number;
+  /** `metered`: usage is reported and charged after each period. */
+  usage_type: "licensed" | "metered";
+  aggregate_usage: "sum" | "max" | "last" | null;
   /** Other currencies it sells in: lowercase code → amount. */
   currency_options: Record<string, { amount: number }>;
   /** Your own label for it; customers never see it. */

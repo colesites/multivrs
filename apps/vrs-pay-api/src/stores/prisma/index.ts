@@ -17,6 +17,7 @@ import { createPrismaOnboardingStore } from "./onboarding";
 import { createPrismaPaymentLinkStore } from "./payment-links";
 import { createPrismaPaymentStore } from "./payments";
 import { createPrismaRefundStore } from "./refunds";
+import { createPrismaUsageStore } from "./usage";
 import { createPrismaDeliveryStore, createPrismaWebhookEndpointStore } from "./webhooks";
 
 /** Every store backed by the VRS Pay Postgres database. */
@@ -39,5 +40,6 @@ export function createPrismaStores(db: Db): Stores {
     paymentLinks: createPrismaPaymentLinkStore(db),
     onboarding: createPrismaOnboardingStore(db),
     ledger: createPrismaLedgerStore(db),
+    usage: createPrismaUsageStore(db),
   };
 }

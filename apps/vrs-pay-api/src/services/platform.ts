@@ -2,8 +2,11 @@ import {
   type ApiKeyMode,
   CURRENCY_CODES,
   type CurrencyCode,
+  formatMoney,
   invalidRequest,
   type Money,
+  minimumCharge,
+  money,
   type PaymentMethod,
   type ProviderRegistry,
   platformFee,
@@ -61,6 +64,17 @@ export function assertChargeable(deps: AppDeps, currency: CurrencyCode): void {
     "currency_unsupported",
     `VRS Pay can't take payments in ${currency} yet. Try ${chargeableCurrencies(deps).join(", ")}.`,
     "currency",
+  );
+}
+
+/** A charge has to cover the fees: at least the currency's minimum charge (about US$1). */
+export function assertMinimumAmount(amount: Money, param = "amount"): void {
+  const min = minimumCharge(amount.currency);
+  if (amount.amount >= min) return;
+  throw invalidRequest(
+    "amount_too_small",
+    `The smallest amount VRS Pay can charge is ${formatMoney(money(min, amount.currency))}, so the fees are covered.`,
+    param,
   );
 }
 

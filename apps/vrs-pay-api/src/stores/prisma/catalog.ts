@@ -32,6 +32,8 @@ function priceFromRow(row: PriceRow): Price {
     interval_count: row.intervalCount,
     currency: toCurrency(row.currency).toLowerCase(),
     amount: toMinor(row.amount),
+    usage_type: row.usageType,
+    aggregate_usage: row.aggregateUsage,
     currency_options: toCurrencyOptions(row.currencyOptions),
     nickname: row.nickname,
     lookup_key: row.lookupKey,
@@ -147,6 +149,8 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
             intervalCount: p.interval_count,
             currency: p.currency.toUpperCase(),
             amount: BigInt(p.amount),
+            usageType: p.usage_type,
+            aggregateUsage: p.aggregate_usage,
             currencyOptions: Object.fromEntries(
               Object.entries(p.currency_options).map(([code, { amount }]) => [code, { amount }]),
             ),

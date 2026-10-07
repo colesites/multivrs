@@ -1,4 +1,4 @@
-import { runBillingCycle } from "../../apps/vrs-pay-api/src/services/billing-engine.service";
+import { runBillingCycle } from "../../apps/vrs-pay-api/src/services/billing-cycle";
 import { harness } from "./harness";
 import { type FakeStripeOptions, fakeStripeApi } from "./stripe-fakes";
 import {

@@ -8,11 +8,13 @@
  *   VRS_TEST_DATABASE_URL=postgresql://… bun test test/vrs-pay-api/postgres.test.ts
  */
 import { afterAll, describe, expect, test } from "bun:test";
+import { renewSubscription } from "../../apps/vrs-pay-api/src/services/billing-engine.service";
 import { emptyOnboarding } from "../../apps/vrs-pay-api/src/services/onboarding.types";
 import { DATABASE_URL, postgresHarness } from "./postgres-harness";
 import {
   checkoutCompleted,
   stripeEvent as fixtureEvent,
+  setupCompleted,
   signedStripeRequest,
 } from "./stripe-fixtures";
 
@@ -174,6 +176,58 @@ describe.skipIf(!DATABASE_URL)("on Postgres", () => {
     );
     expect(await db.customer.count({ where: { merchantId } })).toBe(0);
     expect(await db.subscription.count({ where: { merchantId } })).toBe(0);
+  });
+
+  test("metered usage adds up in SQL, and small usage carries over", async () => {
+    const { call, deliver, deps } = await setUp();
+    const product = await (
+      await call("/v1/products", {
+        body: {
+          name: "API",
+          prices: [{ amount: 10, currency: "gbp", interval: "month", usage_type: "metered" }],
+        },
+      })
+    ).json();
+    const customer = await (
+      await call("/v1/customers", { body: { external_id: "user_1", email: "a@b.test" } })
+    ).json();
+    const session = await (
+      await call("/v1/checkout/sessions", {
+        body: {
+          mode: "subscription",
+          price: product.prices[0].id,
+          customer: customer.id,
+          success_url: "https://shop.test/ok",
+          cancel_url: "https://shop.test/no",
+        },
+      })
+    ).json();
+    await deliver(
+      stripeEvent(
+        "checkout.session.completed",
+        setupCompleted(session.provider_reference, session.id),
+      ),
+    );
+    const id = session.subscription;
+    for (const quantity of [3, 1]) {
+      await call(`/v1/subscriptions/${id}/usage_records`, { body: { quantity } });
+    }
+    expect((await (await call(`/v1/subscriptions/${id}/usage`)).json()).quantity).toBe(4);
+    const sub = await deps.billing.findSubscription(id);
+    if (!sub) throw new Error("subscription missing");
+    const end = sub.subscription.current_period_end ?? 0;
+    expect(await renewSubscription(deps, sub, end + 1)).toBe(true);
+    const renewed = await deps.billing.findSubscription(id);
+    // 4 × 10p is under the minimum charge, so nothing is invoiced and it carries over.
+    expect(renewed?.usageFrom).toBe(sub.subscription.current_period_start);
+    expect(
+      await deps.billing.listInvoices(
+        { merchantId: sub.merchantId, mode: "test" },
+        {
+          subscriptionId: id,
+        },
+      ),
+    ).toHaveLength(0);
   });
 
   test("setup keeps the identity session and registration number", async () => {

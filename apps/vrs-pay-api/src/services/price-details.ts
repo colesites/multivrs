@@ -1,8 +1,8 @@
-import { CurrencyCodeSchema, invalidRequest } from "@vrs-pay/core";
+import { CurrencyCodeSchema, invalidRequest, money } from "@vrs-pay/core";
 import type { AppDeps } from "../app.types";
 import type { PriceDataInput } from "../routes/product.schema";
 import type { CurrencyOption, Plan, PriceDetails, PriceLabels } from "./catalog.types";
-import { chargeableCurrencies } from "./platform";
+import { assertMinimumAmount, chargeableCurrencies } from "./platform";
 
 /** Lowercase codes, each one VRS Pay can charge, none repeating the price's own currency. */
 function currencyOptions(deps: AppDeps, input: PriceDataInput): Record<string, CurrencyOption> {
@@ -30,12 +30,24 @@ function currencyOptions(deps: AppDeps, input: PriceDataInput): Record<string, C
   return options;
 }
 
+/** Fixed prices are charged as they are, so each currency's amount must cover the fees. Metered unit prices can be tiny. */
+function assertChargeableAmounts(input: PriceDataInput) {
+  if (input.usage_type === "metered") return;
+  assertMinimumAmount(money(input.amount, input.currency));
+  for (const [code, { amount }] of Object.entries(input.currency_options)) {
+    assertMinimumAmount(money(amount, CurrencyCodeSchema.parse(code)), `currency_options.${code}`);
+  }
+}
+
 /** A new price's currency options, nickname and lookup key, checked. */
 export function priceDetails(deps: AppDeps, input: PriceDataInput): PriceDetails {
+  assertChargeableAmounts(input);
   return {
     currency_options: currencyOptions(deps, input),
     nickname: input.nickname ?? null,
     lookup_key: input.lookup_key ?? null,
+    usage_type: input.usage_type,
+    aggregate_usage: input.usage_type === "metered" ? (input.aggregate_usage ?? "sum") : null,
   };
 }
 

@@ -61,6 +61,24 @@ export function paidInvoice(stored: StoredInvoice, paymentId: string): StoredInv
   };
 }
 
+/** A metered period's usage: `quantity` units, `amount` in total. */
+export function usageLine(
+  description: string,
+  quantity: number,
+  amount: Money,
+  periodStart: number,
+  periodEnd: number,
+): InvoiceLine {
+  return {
+    kind: "usage",
+    description,
+    quantity,
+    amount: amount.amount,
+    period_start: periodStart,
+    period_end: periodEnd,
+  };
+}
+
 export function subscriptionLine(
   description: string,
   quantity: number,

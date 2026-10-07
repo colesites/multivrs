@@ -62,6 +62,18 @@ model Plan {
   @@map("plans")
 }
 
+/// licensed: a fixed amount up front each period; metered: reported usage, charged after it.
+enum UsageType {
+  licensed
+  metered
+}
+
+enum AggregateUsage {
+  sum
+  max
+  last
+}
+
 enum PriceInterval {
   month
   year
@@ -81,6 +93,9 @@ model Price {
   intervalCount Int           @default(1) @map("interval_count")
   currency   String        @db.Char(3)
   amount     BigInt
+  usageType  UsageType     @default(licensed) @map("usage_type")
+  /// Metered prices only: how a period's usage records add up.
+  aggregateUsage AggregateUsage? @map("aggregate_usage")
   /// Other currencies it sells in, as on Stripe: { "eur": { "amount": 2200 } }.
   currencyOptions Json     @default("{}") @map("currency_options")
   /// The merchant's own label; customers never see it.

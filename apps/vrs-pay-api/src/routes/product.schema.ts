@@ -42,13 +42,32 @@ const PriceFields = z.strictObject({
   interval: z.enum(["one_time", "day", "week", "month", "year"]).default("one_time"),
   /** Intervals per charge: `month` with 3 charges every 3 months. */
   interval_count: z.int().min(1).default(1),
+  /** `metered`: `amount` is per unit, and each period's reported usage is charged when it ends. */
+  usage_type: z.enum(["licensed", "metered"]).default("licensed"),
+  /** How a period's usage records add up (metered only): total, highest or latest. */
+  aggregate_usage: z.enum(["sum", "max", "last"]).optional(),
 });
 
-/** Up to three years per period, like Stripe; one-time prices have no period. */
-function checkPeriod(
-  price: { interval: z.infer<typeof PriceFields>["interval"]; interval_count: number },
-  ctx: z.RefinementCtx,
-) {
+type PeriodFields = Pick<
+  z.infer<typeof PriceFields>,
+  "interval" | "interval_count" | "usage_type" | "aggregate_usage"
+>;
+
+/**
+ * Up to three years per period, like Stripe; one-time prices have no
+ * period. Usage is only metered on recurring prices.
+ */
+function checkPeriod(price: PeriodFields, ctx: z.RefinementCtx) {
+  if (price.usage_type === "metered" && price.interval === "one_time") {
+    ctx.addIssue({ code: "custom", message: "Metered prices must recur", path: ["usage_type"] });
+  }
+  if (price.aggregate_usage && price.usage_type !== "metered") {
+    ctx.addIssue({
+      code: "custom",
+      message: "Only metered prices aggregate usage",
+      path: ["aggregate_usage"],
+    });
+  }
   const path = ["interval_count"];
   if (price.interval === "one_time") {
     if (price.interval_count !== 1) {

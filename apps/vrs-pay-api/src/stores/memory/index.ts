@@ -14,6 +14,7 @@ import { createMemoryPaymentLinkStore } from "./payment-links";
 import { createMemoryPaymentStore } from "./payments";
 import { createMemoryRefundStore } from "./refunds";
 import { createMemoryState, type MemoryState } from "./state";
+import { createMemoryUsageStore } from "./usage";
 import { createMemoryDeliveryStore, createMemoryWebhookEndpointStore } from "./webhooks";
 
 export interface MemoryStores extends Stores {
@@ -61,5 +62,6 @@ export function createMemoryStores(state: MemoryState = createMemoryState()): Me
     paymentLinks: createMemoryPaymentLinkStore(),
     onboarding: createMemoryOnboardingStore(),
     ledger: createMemoryLedgerStore(state),
+    usage: createMemoryUsageStore(),
   };
 }
