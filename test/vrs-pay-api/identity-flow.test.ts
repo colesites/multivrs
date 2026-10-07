@@ -22,7 +22,7 @@ const UK_PASSPORT = {
 async function setUp() {
   const stripe = fakeIdentityApi();
   const documents = createDocumentVerifier({ api: stripe.api, returnUrl: "https://vrs.test" });
-  const h = await dashboardHarness({ identity: routeIdentity({ documents }) });
+  const h = await dashboardHarness({ identity: routeIdentity({ stripe: documents }) });
   const identity = async () => (await (await h.dash("/setup")).json()).details.identity;
   const deliver = async (type: string, id: string, merchantId?: string) => {
     const session = {

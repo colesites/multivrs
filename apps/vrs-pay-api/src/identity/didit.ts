@@ -1,12 +1,8 @@
 import { z } from "zod";
+import { type DiditConfig, diditRequest, diditUnavailable } from "./didit-http";
 import type { IdentityCheck, IdentityResult, PersonDetails } from "./identity.types";
-import { identityCheckUnavailable, idTypeNotSupported } from "./identity-errors";
+import { idTypeNotSupported } from "./identity-errors";
 import { DOB_MISMATCH, isoDate, NAME_MISMATCH, namesMatch } from "./name-match";
-
-export const DIDIT_API_URL = "https://verification.didit.me";
-
-const PROVIDER = "didit";
-const TIMEOUT_MS = 30_000;
 
 /**
  * Our ID types → Didit's database validation service and the form field
@@ -91,26 +87,21 @@ export function diditOutcome(validation: Validation, person: PersonDetails): Did
   return { status: "unavailable", detail: `unknown outcome ${code}` };
 }
 
-export interface DiditConfig {
-  apiKey: string;
-  apiUrl?: string;
-  /** Defaults to the global fetch; tests pass a fake. */
-  fetch?: (url: string, init: RequestInit) => Promise<Response>;
-}
-
 /** Instant lookups at the issuing registry. */
 export interface RegistryVerifier {
   supports(country: string, idType: string): boolean;
   verify(check: IdentityCheck): Promise<IdentityResult>;
 }
 
-/** Instant ID lookups at the issuer (Nigeria's NIN) through Didit's database validation. */
-export function createDiditVerifier(config: DiditConfig): RegistryVerifier {
-  const send = config.fetch ?? ((url: string, init: RequestInit) => fetch(url, init));
-  const url = `${(config.apiUrl ?? DIDIT_API_URL).replace(/\/+$/, "")}/v3/database-validation/`;
+/**
+ * Instant ID lookups at the issuer (Nigeria's NIN) through Didit's database
+ * validation, for merchants with a NIN number but no slip or card. Each
+ * lookup is paid.
+ */
+export function createDiditLookup(config: DiditConfig): RegistryVerifier {
   const serviceFor = (country: string, idType: string) => DIDIT_SERVICES[country]?.[idType];
 
-  async function lookup(check: IdentityCheck, service: { service: string; field: string }) {
+  function lookup(check: IdentityCheck, service: { service: string; field: string }) {
     const form = new FormData();
     form.set("issuing_state", ALPHA3[check.country] ?? check.country);
     form.set("services", service.service);
@@ -118,22 +109,7 @@ export function createDiditVerifier(config: DiditConfig): RegistryVerifier {
     form.set("first_name", check.firstName);
     form.set("last_name", check.lastName);
     form.set("date_of_birth", check.dateOfBirth);
-    let response: Response;
-    try {
-      response = await send(url, {
-        method: "POST",
-        headers: { "x-api-key": config.apiKey },
-        body: form,
-        signal: AbortSignal.timeout(TIMEOUT_MS),
-      });
-    } catch (error) {
-      throw identityCheckUnavailable(PROVIDER, error instanceof Error ? error.message : "network");
-    }
-    if (!response.ok) {
-      const text = await response.text().catch(() => "");
-      throw identityCheckUnavailable(PROVIDER, `HTTP ${response.status} ${text.slice(0, 200)}`);
-    }
-    return response.json().catch(() => null);
+    return diditRequest(config, "/v3/database-validation/", form);
   }
 
   return {
@@ -142,14 +118,12 @@ export function createDiditVerifier(config: DiditConfig): RegistryVerifier {
       const service = serviceFor(check.country, check.idType);
       if (!service) throw idTypeNotSupported();
       const parsed = DatabaseValidationSchema.safeParse(await lookup(check, service));
-      if (!parsed.success) throw identityCheckUnavailable(PROVIDER, "unexpected response");
+      if (!parsed.success) throw diditUnavailable("unexpected response");
       const [validation] = parsed.data.validations;
       const outcome = validation
         ? diditOutcome(validation, check)
         : ({ status: "unavailable", detail: "no validation" } as const);
-      if (outcome.status === "unavailable") {
-        throw identityCheckUnavailable(PROVIDER, outcome.detail);
-      }
+      if (outcome.status === "unavailable") throw diditUnavailable(outcome.detail);
       return outcome;
     },
   };
