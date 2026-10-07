@@ -58,6 +58,8 @@ model User {
   logDrains            ProjectLogDrain[]
   twoFactor            TwoFactor?
   organizationMembers  Member[]
+  /// The team that belongs to this account: members can open its projects.
+  accountTeam          Organization?         @relation("AccountTeam")
   organizationInvites  Invitation[]          @relation("InvitationInviter")
 
   @@index([email])
@@ -700,7 +702,11 @@ model Organization {
   logo      String?
   metadata  String?  @db.Text
   createdAt DateTime @default(now())
+  /// Set on the one team that belongs to a user's account. Its members can
+  /// open that user's personal projects; billing stays on the user's plan.
+  accountOwnerId String? @unique
 
+  accountOwner  User?                 @relation("AccountTeam", fields: [accountOwnerId], references: [id], onDelete: Cascade)
   members       Member[]
   invitations   Invitation[]
   projects      Project[]

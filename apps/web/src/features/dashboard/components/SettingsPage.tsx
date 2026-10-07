@@ -4,7 +4,7 @@ import { AccountProfileForm } from "@/features/dashboard/components/AccountProfi
 import { AccountSecurity } from "@/features/dashboard/components/AccountSecurity";
 import { ApiTokensPage } from "@/features/dashboard/components/ApiTokensPage";
 import { BillingManager } from "@/features/dashboard/components/BillingManager";
-import { OrganizationManager } from "@/features/dashboard/components/OrganizationManager";
+import { TeamManager } from "@/features/dashboard/components/TeamManager";
 import type { BillingOverview } from "@/features/dashboard/types/billing.types";
 import type { AccountProfile } from "@/lib/schemas/account.schemas";
 import type { ApiTokenSummary } from "@/lib/services/api-token.service";
@@ -46,7 +46,7 @@ export function SettingsPage({
       <div className="space-y-7">
         <AccountProfileForm initialProfile={profile} />
         <AccountSecurity initiallyEnabled={twoFactorEnabled} />
-        <OrganizationManager />
+        <TeamManager />
         <BillingManager initial={billing} />
         <ApiTokensPage initialTokens={tokens} embedded />
         <AccountActivity events={events} />

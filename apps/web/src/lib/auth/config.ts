@@ -165,6 +165,14 @@ export const authConfig = {
       invitationExpiresIn: 60 * 60 * 48,
       invitationLimit: 100,
       membershipLimit: 1_000,
+      schema: {
+        organization: {
+          additionalFields: {
+            // The user whose account this team is (see account-team.service).
+            accountOwnerId: { type: "string", required: false, input: false },
+          },
+        },
+      },
       organizationHooks: {
         beforeCreateInvitation: async ({ invitation }) => {
           try {

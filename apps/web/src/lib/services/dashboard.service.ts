@@ -6,6 +6,7 @@ import type {
   ProjectStatus,
 } from "@/features/dashboard/types/project.types";
 import { prisma } from "@/lib/prisma";
+import { projectAccessWhere } from "@/lib/services/project-access";
 import { deploymentUrl } from "@/lib/services/serve.service";
 import { SITE_URL } from "@/lib/site";
 
@@ -51,10 +52,7 @@ export const dashboardProjectOptions = cache(
     return prisma.project.findMany({
       where: {
         ownerId: owner.id,
-        OR: [
-          { ownerId: viewerId },
-          { organization: { members: { some: { userId: viewerId } } } },
-        ],
+        OR: projectAccessWhere(viewerId),
       },
       select: { slug: true, name: true },
       orderBy: { updatedAt: "desc" },
@@ -74,10 +72,7 @@ export const dashboardProjects = cache(async function dashboardProjects(
   const projects = await prisma.project.findMany({
     where: {
       ownerId: owner.id,
-      OR: [
-        { ownerId: viewerId },
-        { organization: { members: { some: { userId: viewerId } } } },
-      ],
+      OR: projectAccessWhere(viewerId),
     },
     include: {
       deployments: { orderBy: { createdAt: "desc" }, take: 1 },
@@ -154,10 +149,7 @@ export async function dashboardDeployments(
       project: {
         ownerId: owner.id,
         ...(projectSlug ? { slug: projectSlug } : {}),
-        OR: [
-          { ownerId: viewerId },
-          { organization: { members: { some: { userId: viewerId } } } },
-        ],
+        OR: projectAccessWhere(viewerId),
       },
     },
     include: { project: true },

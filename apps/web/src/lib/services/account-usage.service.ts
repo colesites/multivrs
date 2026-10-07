@@ -3,6 +3,7 @@ import { cacheLife } from "next/cache";
 import { z } from "zod";
 import type { AccountUsage } from "@/features/dashboard/types/usage.types";
 import { prisma } from "@/lib/prisma";
+import { projectAccessWhere } from "@/lib/services/project-access";
 
 const responseSchema = z.object({
   data: z.array(z.record(z.string(), z.unknown())),
@@ -49,10 +50,7 @@ export async function getAccountUsage(
   const projects = await prisma.project.findMany({
     where: {
       owner: { username: workspaceUsername },
-      OR: [
-        { ownerId: userId },
-        { organization: { members: { some: { userId } } } },
-      ],
+      OR: projectAccessWhere(userId),
     },
     select: { id: true },
   });

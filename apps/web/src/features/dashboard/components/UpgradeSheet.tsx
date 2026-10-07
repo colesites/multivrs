@@ -70,11 +70,15 @@ const DEFAULT_PRO_CARD_FEATURES = [
 ];
 
 const DEFAULT_PRO_CARD_DESCRIPTIONS: Record<string, string> = {
-  "Spend controls": "Manage budgets, prevent overages, and keep spend predictable",
-  "Team collaboration": "Collaborate with your team with role-based member permissions",
-  "Faster builds, no queues": "Dedicated build concurrency with zero queuing delays",
+  "Spend controls":
+    "Manage budgets, prevent overages, and keep spend predictable",
+  "Team collaboration":
+    "Collaborate with your team with role-based member permissions",
+  "Faster builds, no queues":
+    "Dedicated build concurrency with zero queuing delays",
   "No cold starts": "Always-warm global edge compute execution",
-  "Enterprise add-ons": "Scale with custom domains, dedicated support, and advanced add-ons",
+  "Enterprise add-ons":
+    "Scale with custom domains, dedicated support, and advanced add-ons",
 };
 
 export function UpgradeSheet({
@@ -89,7 +93,12 @@ export function UpgradeSheet({
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [organizations, setOrganizations] = useState<
-    Array<{ id: string; name: string; slug: string }>
+    Array<{
+      id: string;
+      name: string;
+      slug: string;
+      accountOwnerId?: string | null;
+    }>
   >([]);
 
   const activeWorkspaceName = workspaceName || user.username || "Personal";
@@ -196,7 +205,8 @@ export function UpgradeSheet({
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (active && Array.isArray(data)) {
-          setOrganizations(data);
+          // Account teams bill to the personal plan, so they aren't options.
+          setOrganizations(data.filter((org) => !org.accountOwnerId));
         }
       })
       .catch(() => {});
@@ -443,8 +453,8 @@ export function UpgradeSheet({
                       </span>
                     </div>
                     <p className="text-[11px] text-muted-foreground/80 pt-2 border-t border-(--hairline)">
-                      Your team gets access to higher limits, fast builds,
-                      and premium developer workflows.
+                      Your team gets access to higher limits, fast builds, and
+                      premium developer workflows.
                     </p>
                   </div>
                 </div>
@@ -522,7 +532,8 @@ export function UpgradeSheet({
                       <span className="font-geist-mono">$0</span>
                     </div>
                     <p className="text-[10.5px] text-muted-foreground -mt-1 pb-2">
-                      1M CDN requests included • Tiers from 10M (+$20/mo.) up to 150M (+$300/mo)
+                      1M CDN requests included • Tiers from 10M (+$20/mo.) up to
+                      150M (+$300/mo)
                     </p>
 
                     <div className="py-2.5 flex items-center justify-between border-t border-(--hairline) text-foreground">
@@ -547,14 +558,14 @@ export function UpgradeSheet({
 
                   {/* Legal Terms Disclaimer */}
                   <p className="text-[10.5px] text-muted-foreground/80 leading-relaxed pt-1">
-                    You will be charged $20 immediately. Renews monthly in advance
-                    at $20 plus your Flat Rate CDN tier and applicable taxes. Flat
-                    rate CDN includes protection from unexpected spikes in
-                    traffic. If your usage exceeds 1M CDN Requests, you will move
-                    to the matching Flat Rate CDN tier at your next billing
-                    cycle. Other metered features bill in arrears per pricing.
-                    Downgrade or cancel any time in Settings. See terms for more
-                    information.
+                    You will be charged $20 immediately. Renews monthly in
+                    advance at $20 plus your Flat Rate CDN tier and applicable
+                    taxes. Flat rate CDN includes protection from unexpected
+                    spikes in traffic. If your usage exceeds 1M CDN Requests,
+                    you will move to the matching Flat Rate CDN tier at your
+                    next billing cycle. Other metered features bill in arrears
+                    per pricing. Downgrade or cancel any time in Settings. See
+                    terms for more information.
                   </p>
                 </div>
               )}
@@ -609,7 +620,9 @@ export function UpgradeSheet({
                         >
                           Back
                         </button>
-                        <span className="text-xs text-muted-foreground/30">•</span>
+                        <span className="text-xs text-muted-foreground/30">
+                          •
+                        </span>
                       </>
                     )}
                     <button

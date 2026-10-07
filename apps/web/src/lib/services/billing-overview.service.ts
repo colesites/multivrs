@@ -16,8 +16,9 @@ const ACTIVE = ["active", "trialing", "past_due", "unpaid"];
 export async function getBillingOverview(
   userId: string,
 ): Promise<BillingOverview> {
+  // Account teams bill to the account's personal plan, so they aren't scopes.
   const memberships = await prisma.member.findMany({
-    where: { userId },
+    where: { userId, organization: { accountOwnerId: null } },
     select: { organizationId: true },
     orderBy: { createdAt: "asc" },
   });

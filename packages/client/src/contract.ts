@@ -49,6 +49,8 @@ export const createProjectInputSchema = z.object({
   framework: z.enum(FRAMEWORK_IDS).nullable().optional(),
   repositoryUrl: repositoryUrlSchema.optional(),
   organizationId: z.string().uuid().optional(),
+  /** Username of the account to create it in; your own by default. Needs a team role there. */
+  account: z.string().min(1).max(100).optional(),
 });
 export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
 

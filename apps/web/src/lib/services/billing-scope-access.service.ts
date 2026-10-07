@@ -29,6 +29,7 @@ export async function requireBillingScope(
     select: {
       id: true,
       name: true,
+      accountOwnerId: true,
       members: {
         where: { userId },
         select: { role: true },
@@ -37,7 +38,8 @@ export async function requireBillingScope(
     },
   });
   const role = organization?.members[0]?.role;
-  if (!organization || !role)
+  // An account's team bills to the account's personal plan.
+  if (!organization || !role || organization.accountOwnerId)
     throw new NotFoundError("Billing workspace not found");
   const canManage = role === "owner" || role === "billing";
   if (manage && !canManage) {
