@@ -2,7 +2,7 @@ import { invalidRequest } from "@vrs-pay/core";
 import type { AppDeps } from "../app.types";
 import { findIdType, normalizeIdNumber } from "../identity/id-types";
 import type { IdentityResult, PersonDetails } from "../identity/identity.types";
-import { identityNotConfigured } from "../identity/identity-errors";
+import { identityNotConfigured, tooManyIdentityChecks } from "../identity/identity-errors";
 import type { IdentityInput } from "../routes/setup.schema";
 import type { EventOutcome } from "./capture.service";
 import { nowSeconds } from "./events";
@@ -11,6 +11,10 @@ import { accountSetup, loadOnboarding } from "./setup.service";
 import { seal } from "./setup-update.service";
 
 type Scope = { id: string; mode: "test" | "live" };
+
+/** New ID checks a merchant can start in any 24 hours. Each one can cost money at the provider. */
+export const IDENTITY_CHECKS_PER_DAY = 3;
+const DAY_SECONDS = 86_400;
 
 /** A result as stored on the onboarding record. */
 function resultFields(result: IdentityResult) {
@@ -45,28 +49,59 @@ export async function verifyIdentity(deps: AppDeps, merchant: Scope, input: Iden
     );
   }
   if (!deps.identity) throw identityNotConfigured();
-  const result = await deps.identity.verify({
-    merchantId: merchant.id,
-    country: input.country,
-    idType: idType.id,
-    idNumber,
+  const person = {
     firstName: input.first_name,
     lastName: input.last_name,
     dateOfBirth: input.date_of_birth,
-  });
+  };
   const current = await loadOnboarding(deps, merchant.id);
+  let attempts = current.identityAttempts;
+  let result = await openCheck(deps, current, input.country, idType.id, person);
+  if (!result) {
+    const now = nowSeconds();
+    const recent = attempts.filter((startedAt) => startedAt > now - DAY_SECONDS);
+    const [oldest] = recent;
+    if (oldest !== undefined && recent.length >= IDENTITY_CHECKS_PER_DAY) {
+      throw tooManyIdentityChecks(oldest + DAY_SECONDS - now);
+    }
+    result = await deps.identity.verify({
+      merchantId: merchant.id,
+      country: input.country,
+      idType: idType.id,
+      idNumber,
+      ...person,
+    });
+    attempts = [...recent, now];
+  }
   await deps.onboarding.save({
     ...current,
     country: input.country,
     idType: idType.id,
     idNumber: await seal(deps, idNumber),
     idLast4: idNumber.slice(-4),
-    firstName: input.first_name,
-    lastName: input.last_name,
-    dateOfBirth: input.date_of_birth,
+    ...person,
     ...resultFields(result),
+    identityAttempts: attempts,
   });
   return accountSetup(deps, merchant, sessionUrl(result));
+}
+
+/**
+ * A check the merchant already started for the same ID and hasn't
+ * finished, or one that now passes (a fixed typo in the name): reuse it
+ * instead of paying for another. Null when a new check is needed.
+ */
+async function openCheck(
+  deps: AppDeps,
+  record: OnboardingRecord,
+  country: string,
+  idType: string,
+  person: PersonDetails,
+): Promise<IdentityResult | null> {
+  if (record.identityStatus !== "pending" || !record.identitySessionId) return null;
+  if (record.country !== country || record.idType !== idType || !deps.identity?.resume) return null;
+  const result = await deps.identity.resume(record.identitySessionId, person).catch(() => null);
+  return result && result.status !== "failed" ? result : null;
 }
 
 function personOf({ firstName, lastName, dateOfBirth }: OnboardingRecord): PersonDetails | null {

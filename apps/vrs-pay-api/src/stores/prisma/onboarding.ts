@@ -9,20 +9,36 @@ export function createPrismaOnboardingStore(db: Db): OnboardingStore {
     async get(merchantId) {
       const row = await db.merchantOnboarding.findUnique({ where: { merchantId } });
       if (!row) return null;
-      const { updatedAt: _, submittedAt, reviewedAt, identityCheckedAt, ...fields } = row;
+      const {
+        updatedAt: _,
+        submittedAt,
+        reviewedAt,
+        identityCheckedAt,
+        identityAttempts,
+        ...fields
+      } = row;
       return {
         ...fields,
         submittedAt: submittedAt ? toUnix(submittedAt) : null,
         reviewedAt: reviewedAt ? toUnix(reviewedAt) : null,
         identityCheckedAt: identityCheckedAt ? toUnix(identityCheckedAt) : null,
+        identityAttempts: identityAttempts.map(toUnix),
       };
     },
-    async save({ merchantId, submittedAt, reviewedAt, identityCheckedAt, ...fields }) {
+    async save({
+      merchantId,
+      submittedAt,
+      reviewedAt,
+      identityCheckedAt,
+      identityAttempts,
+      ...fields
+    }) {
       const data = {
         ...fields,
         submittedAt: dateOrNull(submittedAt),
         reviewedAt: dateOrNull(reviewedAt),
         identityCheckedAt: dateOrNull(identityCheckedAt),
+        identityAttempts: identityAttempts.map((seconds) => new Date(seconds * 1000)),
       };
       await db.merchantOnboarding.upsert({
         where: { merchantId },

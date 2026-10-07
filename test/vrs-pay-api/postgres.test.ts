@@ -230,7 +230,7 @@ describe.skipIf(!DATABASE_URL)("on Postgres", () => {
     ).toHaveLength(0);
   });
 
-  test("setup keeps the identity session and registration number", async () => {
+  test("setup keeps the identity session, recent checks and registration number", async () => {
     const { deps, merchantId } = await setUp();
     const record = {
       ...emptyOnboarding(merchantId),
@@ -238,11 +238,13 @@ describe.skipIf(!DATABASE_URL)("on Postgres", () => {
       registrationNumber: "RC 1234567",
       identityStatus: "pending" as const,
       identitySessionId: "vs_test_123",
+      identityAttempts: [1_791_000_000, 1_791_000_600],
     };
     await deps.onboarding.save(record);
     expect(await deps.onboarding.get(merchantId)).toMatchObject({
       registrationNumber: "RC 1234567",
       identitySessionId: "vs_test_123",
+      identityAttempts: [1_791_000_000, 1_791_000_600],
     });
   });
 });
