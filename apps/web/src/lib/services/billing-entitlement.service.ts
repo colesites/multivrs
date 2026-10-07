@@ -87,6 +87,18 @@ export async function resolveBillingEntitlements(
   };
 }
 
+/** The plan name shown beside an account. Whitelisted accounts have no limits. */
+export async function accountPlanLabel(username: string): Promise<string> {
+  const owner = await prisma.user.findUnique({
+    where: { username },
+    select: { id: true },
+  });
+  if (!owner) return "Hobby";
+  const { context } = await resolveBillingEntitlements(owner.id);
+  if (context.isLimitExempt) return "Unlimited";
+  return context.plan.charAt(0).toUpperCase() + context.plan.slice(1);
+}
+
 export async function assertResourceAvailable(input: {
   current: number;
   increment?: number;

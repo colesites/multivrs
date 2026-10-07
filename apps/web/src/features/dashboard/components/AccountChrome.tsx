@@ -1,3 +1,4 @@
+import { accountPlanLabel } from "@/lib/services/billing-entitlement.service";
 import { dashboardProjectOptions } from "@/lib/services/dashboard.service";
 import { listNotifications } from "@/lib/services/notification.service";
 import { DashboardMobileNavigation } from "./DashboardMobileNavigation";
@@ -13,9 +14,13 @@ export async function AccountChrome({
   user,
   workspaceName,
 }: AccountChromeProps) {
-  const [projects, notifications] = await Promise.all([
+  const [projects, notifications, plan] = await Promise.all([
     loadProjectOptions(workspaceName, user.id),
     listNotifications(user.id),
+    accountPlanLabel(workspaceName).catch((error: unknown) => {
+      console.error("[AccountChrome] accountPlanLabel error:", error);
+      return undefined;
+    }),
   ]);
   const publicUser = { name: user.name, email: user.email, image: user.image };
 
@@ -24,6 +29,7 @@ export async function AccountChrome({
       <Sidebar
         user={publicUser}
         workspaceName={workspaceName}
+        plan={plan}
         notifications={notifications}
       />
       <div className="fixed inset-x-0 top-0 z-30 lg:left-[268px]">
@@ -31,6 +37,7 @@ export async function AccountChrome({
           mobileNavigation={
             <DashboardMobileNavigation
               notifications={notifications}
+              plan={plan}
               user={publicUser}
               workspaceName={workspaceName}
             />
