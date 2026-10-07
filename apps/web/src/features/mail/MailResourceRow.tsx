@@ -95,63 +95,71 @@ export function MailResourceRow({
         }
       : {};
 
+  // The dialogs sit beside the row, not inside it: clicks in a dialog would
+  // otherwise bubble to the row and open the domain being deleted.
   return (
-    <div
-      {...interactiveProps}
-      className={`grid grid-cols-[1.4fr_.9fr_.45fr_32px] items-center gap-3 border-b border-border px-4 py-3.5 text-xs last:border-0 ${view === "domains" ? "cursor-pointer hover:bg-muted/50" : ""}`}
-    >
-      <div className="min-w-0">
-        <p className="truncate text-black/75 dark:text-white/75">{item.name}</p>
-        {item.createdAt ? (
-          <p className="mt-1 text-[9px] text-black/50 dark:text-white/50">
-            {new Date(item.createdAt).toLocaleDateString("en-US", {
-              timeZone: "UTC",
-            })}
+    <>
+      <div
+        {...interactiveProps}
+        className={`grid grid-cols-[1.4fr_.9fr_.45fr_32px] items-center gap-3 border-b border-border px-4 py-3.5 text-xs last:border-0 ${view === "domains" ? "cursor-pointer hover:bg-muted/50" : ""}`}
+      >
+        <div className="min-w-0">
+          <p className="truncate text-black/75 dark:text-white/75">
+            {item.name}
           </p>
-        ) : null}
-      </div>
-      <p className="truncate text-black/35 dark:text-white/35">{item.detail}</p>
-      <span className="flex items-center gap-1.5 text-[10px] text-black/45 dark:text-white/45">
-        {healthy ? (
-          <CheckCircle2 className="size-3 text-emerald-400" />
-        ) : (
-          <CircleDashed className="size-3 text-black/30 dark:text-white/30" />
-        )}
-        {item.status}
-      </span>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            aria-label="More actions"
-            type="button"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <MoreHorizontal className="size-4 text-black/30 dark:text-white/30 hover:text-black/70 dark:hover:text-white/70 transition-colors" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-          {view === "domains" && item.status !== "verified" && (
-            <DropdownMenuItem onClick={verify}>
-              <RefreshCw className="size-3.5" />
-              Check DNS now
-            </DropdownMenuItem>
+          {item.createdAt ? (
+            <p className="mt-1 text-[9px] text-black/50 dark:text-white/50">
+              {new Date(item.createdAt).toLocaleDateString("en-US", {
+                timeZone: "UTC",
+              })}
+            </p>
+          ) : null}
+        </div>
+        <p className="truncate text-black/35 dark:text-white/35">
+          {item.detail}
+        </p>
+        <span className="flex items-center gap-1.5 text-[10px] text-black/45 dark:text-white/45">
+          {healthy ? (
+            <CheckCircle2 className="size-3 text-emerald-400" />
+          ) : (
+            <CircleDashed className="size-3 text-black/30 dark:text-white/30" />
           )}
-          {view === "mailboxes" && (
-            <DropdownMenuItem onClick={() => setEditing(true)}>
-              <Pencil className="size-3.5" />
-              Edit
-            </DropdownMenuItem>
-          )}
-          {(view === "mailboxes" || view === "domains") && (
-            <DropdownMenuItem
-              onClick={() => setConfirming(true)}
-              className="text-red-400 focus:text-red-400 focus:bg-red-400/10"
+          {item.status}
+        </span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label="More actions"
+              type="button"
+              onClick={(e) => e.stopPropagation()}
             >
-              Delete
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+              <MoreHorizontal className="size-4 text-black/30 dark:text-white/30 hover:text-black/70 dark:hover:text-white/70 transition-colors" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+            {view === "domains" && item.status !== "verified" && (
+              <DropdownMenuItem onClick={verify}>
+                <RefreshCw className="size-3.5" />
+                Check DNS now
+              </DropdownMenuItem>
+            )}
+            {view === "mailboxes" && (
+              <DropdownMenuItem onClick={() => setEditing(true)}>
+                <Pencil className="size-3.5" />
+                Edit
+              </DropdownMenuItem>
+            )}
+            {(view === "mailboxes" || view === "domains") && (
+              <DropdownMenuItem
+                onClick={() => setConfirming(true)}
+                className="text-red-400 focus:text-red-400 focus:bg-red-400/10"
+              >
+                Delete
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       {view === "mailboxes" && (
         <MailboxEditDialog
           mailbox={{
@@ -176,6 +184,6 @@ export function MailResourceRow({
         open={confirming}
         title={`Delete ${item.name}?`}
       />
-    </div>
+    </>
   );
 }

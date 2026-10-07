@@ -39,6 +39,9 @@ export interface SesIdentityAttributes {
  */
 export const MAIL_FROM_SUBDOMAIN = "bounces";
 
+/** The optional MX record that brings the domain's mail into Multivrs. */
+export const RECEIVING_PURPOSE = "inbound";
+
 /**
  * SES DKIM and MAIL FROM statuses. TEMPORARY_FAILURE means SES couldn't
  * check this time and will try again, so it is still pending, not failed.
@@ -65,6 +68,17 @@ export function sesDomainSnapshot(
   );
   const mailFrom = absoluteMailDnsName(domain, MAIL_FROM_SUBDOMAIN);
   const records: ProviderDomainRecord[] = [
+    {
+      // Receiving: mail for the domain itself goes to SES, which hands it to
+      // Multivrs. Optional, since the domain's mail may live elsewhere.
+      name: domain,
+      priority: 10,
+      purpose: RECEIVING_PURPOSE,
+      status: "pending",
+      ttl: "Auto",
+      type: "MX",
+      value: `inbound-smtp.${region}.amazonaws.com`,
+    },
     ...(identity.DkimAttributes?.Tokens ?? []).map((token, index) => ({
       name: `${token}._domainkey.${domain}`,
       priority: null,

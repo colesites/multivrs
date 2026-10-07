@@ -19,10 +19,12 @@ import type { DashboardNotification } from "@/features/dashboard/types/notificat
 
 export function DashboardMobileNavigation({
   notifications,
+  plan,
   user,
   workspaceName,
 }: {
   notifications: DashboardNotification[];
+  plan?: string;
   user: { email: string; image?: string | null; name: string };
   workspaceName: string;
 }) {
@@ -76,7 +78,11 @@ export function DashboardMobileNavigation({
         }}
       >
         <SheetTitle className="sr-only">Dashboard navigation</SheetTitle>
-        <SidebarHeader displayName={workspaceName} image={user.image} />
+        <SidebarHeader
+          displayName={workspaceName}
+          image={user.image}
+          plan={plan}
+        />
         {currentView === "emails" ? (
           <SidebarMailNav
             onLinkClick={() => setOpen(false)}
