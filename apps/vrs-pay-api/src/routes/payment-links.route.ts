@@ -6,6 +6,7 @@ import { readJson } from "../lib/read-json";
 import { createPaymentLink, publicLink } from "../services/payment-link.service";
 import { openPaymentLink } from "../services/payment-link-open.service";
 import { CreatePaymentLinkSchema, UpdatePaymentLinkSchema } from "./payment-link.schema";
+import { paymentLinkPage } from "./payment-link-page";
 
 /** `/v1/payment_links` — no-code links to a hosted checkout. */
 export function paymentLinkRoutes(deps: AppDeps): Hono<AppEnv> {
@@ -33,9 +34,17 @@ export function paymentLinkRoutes(deps: AppDeps): Hono<AppEnv> {
     });
 }
 
-/** `GET /l/:id` — public: opens a checkout and redirects the payer to it. */
+/**
+ * `/l/:id` — public. GET shows a page that posts straight back (so link
+ * previews never start a checkout); POST opens a checkout and redirects
+ * the payer to it.
+ */
 export function paymentLinkRedirect(deps: AppDeps): Hono<AppEnv> {
-  return new Hono<AppEnv>().get("/:id", async (c) =>
-    c.redirect(await openPaymentLink(deps, c.req.param("id")), 303),
-  );
+  return new Hono<AppEnv>()
+    .get("/:id", async (c) => {
+      const stored = await deps.paymentLinks.find(c.req.param("id"));
+      if (!stored) throw resourceMissing("payment link", c.req.param("id"));
+      return c.html(paymentLinkPage(stored.link));
+    })
+    .post("/:id", async (c) => c.redirect(await openPaymentLink(deps, c.req.param("id")), 303));
 }

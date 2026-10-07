@@ -1,6 +1,7 @@
 import type { ProviderWebhookEvent } from "@vrs-pay/core";
 import type { AppDeps } from "../app.types";
 import type { ProviderAccountOwner } from "../stores/provider-account.store";
+import { removeAbandonedLinkCustomer } from "./abandoned-link.service";
 import { type EventOutcome, ownedSession, recordCheckoutPayment } from "./capture.service";
 import { fillMissingEmail } from "./customer.service";
 import { buildEvent } from "./events";
@@ -56,6 +57,7 @@ async function handle(
             event: buildEvent(s.merchantId, s.mode, "checkout.session.expired", s.session),
           }))
         : null;
+      if (expired && session) await removeAbandonedLinkCustomer(deps, session);
       return expired ? "processed" : "ignored";
     }
     case "account.updated":

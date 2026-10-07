@@ -1,9 +1,11 @@
 import type { StoredCustomer, StoredCustomerSession } from "../../services/customer.types";
 import type { CustomerStore } from "../customer.store";
 
+/** `cascade` removes what the database would delete with a customer. */
 export function createMemoryCustomerStore(
   customers = new Map<string, StoredCustomer>(),
   sessions = new Map<string, StoredCustomerSession>(),
+  cascade: (customerId: string) => void = () => {},
 ): CustomerStore {
   const owned = (r: StoredCustomer | undefined, merchantId: string, mode: string) =>
     r && r.merchantId === merchantId && r.mode === mode ? r : null;
@@ -35,6 +37,13 @@ export function createMemoryCustomerStore(
         .filter((r) => owned(r, merchantId, mode))
         .sort((a, b) => b.customer.created - a.customer.created)
         .slice(0, limit);
+    },
+    async remove(merchantId, mode, id) {
+      if (!owned(customers.get(id), merchantId, mode)) return false;
+      customers.delete(id);
+      for (const [hash, s] of sessions) if (s.customerId === id) sessions.delete(hash);
+      cascade(id);
+      return true;
     },
     async createSession(session) {
       sessions.set(session.secretHash, session);

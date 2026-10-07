@@ -70,6 +70,11 @@ export function createPrismaCustomerStore(db: Db): CustomerStore {
       });
       return rows.map(customerFromRow);
     },
+    async remove(merchantId, mode, id) {
+      // Subscriptions, invoices, saved cards and provider customers cascade.
+      const { count } = await db.customer.deleteMany({ where: { id, merchantId, mode } });
+      return count > 0;
+    },
     async createSession({ id, customerId, secretHash, expiresAt }) {
       await db.customerSession.create({ data: { id, customerId, secretHash, expiresAt } });
     },

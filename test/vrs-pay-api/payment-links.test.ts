@@ -33,7 +33,7 @@ describe("payment links", () => {
 
   test("opening it redirects to a fresh checkout on the merchant's account", async () => {
     const { app, link, stripe } = await withLink();
-    const res = await app.request(`/l/${link.id}`);
+    const res = await app.request(`/l/${link.id}`, { method: "POST" });
     expect(res.status).toBe(303);
     expect(res.headers.get("Location")).toBe("https://checkout.stripe.test/cs_test_1");
     const { params, options } = stripe.calls.sessions[0] ?? { params: {} };
@@ -41,21 +41,34 @@ describe("payment links", () => {
     expect(params.metadata).toMatchObject({ vrs_payment_link: link.id });
     expect(params.success_url).toBe("https://vrs.test/paid");
     expect(params.cancel_url).toBe("https://vrs.test/paid?canceled=1");
-    await app.request(`/l/${link.id}`);
+    await app.request(`/l/${link.id}`, { method: "POST" });
     expect(stripe.calls.sessions).toHaveLength(2);
+  });
+
+  test("visiting it shows a page that posts itself; previews never start a checkout", async () => {
+    const { app, link, stripe } = await withLink();
+    const res = await app.request(`/l/${link.id}`);
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('<form method="post">');
+    expect(html).toContain("£49.00");
+    expect(stripe.calls.sessions).toHaveLength(0);
+    expect((await app.request("/l/plink_000000000000000000000000")).status).toBe(404);
   });
 
   test("a turned-off link refuses; unknown links 404", async () => {
     const { app, call, link } = await withLink();
     await call(`/v1/payment_links/${link.id}`, { body: { active: false } });
-    const res = await app.request(`/l/${link.id}`);
+    const res = await app.request(`/l/${link.id}`, { method: "POST" });
     expect([res.status, (await res.json()).error.code]).toEqual([400, "payment_link_inactive"]);
-    expect((await app.request("/l/plink_000000000000000000000000")).status).toBe(404);
+    expect(
+      (await app.request("/l/plink_000000000000000000000000", { method: "POST" })).status,
+    ).toBe(404);
   });
 
   test("paying through the link records a normal payment", async () => {
     const { app, call, link, state } = await withLink();
-    await app.request(`/l/${link.id}`);
+    await app.request(`/l/${link.id}`, { method: "POST" });
     const [session] = [...state.sessions.values()];
     expect(session?.session.payment_link).toBe(link.id);
     const event = stripeEvent(

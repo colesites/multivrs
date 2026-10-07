@@ -134,7 +134,7 @@ describe("one price, several currencies", () => {
       await call("/v1/payment_links", { body: { price: power.id, currency: "usd" } })
     ).json();
     expect(link).toMatchObject({ amount: 1100, currency: "usd" });
-    expect((await app.request(`/l/${link.id}`)).status).toBe(303);
+    expect((await app.request(`/l/${link.id}`, { method: "POST" })).status).toBe(303);
     const subscriptions = [...state.subscriptions.values()];
     expect(subscriptions.at(-1)?.subscription).toMatchObject({ currency: "usd" });
   });
