@@ -69,6 +69,8 @@ export async function harness(options: { realAdapters?: boolean; stripeApi?: Str
   const otherKey = await generateApiKey("secret", "test");
   await stores.apiKeys.add({ hash: key.hash, merchant: MERCHANT });
   await stores.apiKeys.add({ hash: otherKey.hash, merchant: { ...MERCHANT, id: "mer_other" } });
+  const publishable = await generateApiKey("publishable", "test");
+  await stores.apiKeys.add({ hash: publishable.hash, merchant: MERCHANT });
   stores.state.accounts.set("stripe:acct_1", {
     merchantId: MERCHANT.id,
     mode: "test",
@@ -111,6 +113,7 @@ export async function harness(options: { realAdapters?: boolean; stripeApi?: Str
     state: stores.state,
     key: key.plaintext,
     otherKey: otherKey.plaintext,
+    publishableKey: publishable.plaintext,
     stripe,
     paystack,
   };
