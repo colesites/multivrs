@@ -1,8 +1,18 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { visibleMailboxWhere } from "@/lib/services/mail-access.service";
 
-export async function mailDashboardStats(userId: string, projectId?: string) {
-  const scope = projectId ? { projectId } : {};
+/** Counts over the account's mailboxes that the viewer may see. */
+export async function mailDashboardStats(
+  ownerId: string,
+  viewerId: string,
+  projectId?: string,
+) {
+  const mailbox = {
+    userId: ownerId,
+    ...(projectId ? { projectId } : {}),
+    ...visibleMailboxWhere(viewerId),
+  };
   const month = new Date();
   month.setUTCDate(1);
   month.setUTCHours(0, 0, 0, 0);
@@ -10,42 +20,38 @@ export async function mailDashboardStats(userId: string, projectId?: string) {
     await Promise.all([
       prisma.mailMessage.groupBy({
         by: ["folder"],
-        where: { userId, mailbox: scope },
+        where: { mailbox },
         _count: true,
       }),
       prisma.mailMessage.count({
-        where: { userId, mailbox: scope, folder: "inbox", isRead: false },
+        where: { mailbox, folder: "inbox", isRead: false },
       }),
       prisma.mailMessage.count({
         where: {
-          userId,
           direction: "outbound",
           createdAt: { gte: month },
-          mailbox: scope,
+          mailbox,
         },
       }),
       prisma.mailMessage.count({
         where: {
-          userId,
           direction: "inbound",
           createdAt: { gte: month },
-          mailbox: scope,
+          mailbox,
         },
       }),
       prisma.mailEvent.count({
         where: {
-          userId,
           type: "email.delivered",
           occurredAt: { gte: month },
-          message: { mailbox: scope },
+          message: { mailbox },
         },
       }),
       prisma.mailEvent.count({
         where: {
-          userId,
           type: "email.opened",
           occurredAt: { gte: month },
-          message: { mailbox: scope },
+          message: { mailbox },
         },
       }),
     ]);

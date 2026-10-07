@@ -3,6 +3,7 @@ import { MultivrsMailPage } from "@/features/mail/MultivrsMailPage";
 import { MailProvider } from "@/features/mail/mail-context";
 import type { MailView } from "@/features/mail/mail-navigation";
 import { getScopedProject } from "@/lib/services/dashboard-scope.service";
+import { mailAccount } from "@/lib/services/mail-access.service";
 import { mailDashboard } from "@/lib/services/mail-dashboard.service";
 
 export async function ProjectEmailSection({
@@ -19,7 +20,13 @@ export async function ProjectEmailSection({
   username: string;
 }) {
   if (scope === ALL_PROJECTS_SCOPE) {
-    const data = await mailDashboard(userId);
+    // The account in the URL: yours, or one whose team you're on.
+    const { ownerId } = await mailAccount(
+      userId,
+      { account: username },
+      "read",
+    );
+    const data = await mailDashboard(ownerId, userId);
     return (
       <MailProvider
         key={`all:${initialView}`}
@@ -32,7 +39,12 @@ export async function ProjectEmailSection({
     );
   }
   const project = await getScopedProject(userId, username, scope);
-  const data = await mailDashboard(userId, project.id);
+  const { ownerId } = await mailAccount(
+    userId,
+    { projectId: project.id },
+    "read",
+  );
+  const data = await mailDashboard(ownerId, userId, project.id);
   return (
     <MailProvider
       key={`${project.id}:${initialView}`}

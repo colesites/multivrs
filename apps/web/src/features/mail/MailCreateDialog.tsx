@@ -47,37 +47,41 @@ export function MailCreateDialog({
   const [connection, setConnection] = useState<SmtpConnection>();
   function submit(formData: FormData) {
     setSaving(true);
-    void submitMailResource(view, formData, projectId).then((result) => {
-      setSaving(false);
-      if (!result.ok) {
-        toast.error(result.message);
-        return;
-      }
-      toast.success(`${createMailLabel(view)} created`);
-      if (result.secret) {
-        setSecret(result.secret);
-        setConnection(result.connection);
-        toast.info("Copy this secret now. It will not be shown again.");
-      } else {
-        onOpenChange(false);
-        if (
-          view === "domains" &&
-          result.id &&
-          params.username &&
-          params.scope
-        ) {
-          if (result.setupError) {
-            toast.warning("Domain added, but automatic DNS needs attention");
-          } else if (result.dnsMode === "automatic") {
-            toast.info("Multivrs added the required DNS records automatically");
-          }
-          router.push(
-            `/${params.username}/${params.scope}/email/domains/${result.id}`,
-          );
+    void submitMailResource(view, formData, projectId, params.username).then(
+      (result) => {
+        setSaving(false);
+        if (!result.ok) {
+          toast.error(result.message);
+          return;
         }
-      }
-      router.refresh();
-    });
+        toast.success(`${createMailLabel(view)} created`);
+        if (result.secret) {
+          setSecret(result.secret);
+          setConnection(result.connection);
+          toast.info("Copy this secret now. It will not be shown again.");
+        } else {
+          onOpenChange(false);
+          if (
+            view === "domains" &&
+            result.id &&
+            params.username &&
+            params.scope
+          ) {
+            if (result.setupError) {
+              toast.warning("Domain added, but automatic DNS needs attention");
+            } else if (result.dnsMode === "automatic") {
+              toast.info(
+                "Multivrs added the required DNS records automatically",
+              );
+            }
+            router.push(
+              `/${params.username}/${params.scope}/email/domains/${result.id}`,
+            );
+          }
+        }
+        router.refresh();
+      },
+    );
   }
   return (
     <Dialog

@@ -4,14 +4,19 @@ import { mailDashboardPrimary } from "@/lib/services/mail-dashboard-primary.serv
 import { mailDashboardResources } from "@/lib/services/mail-dashboard-resources.service";
 import { mailDashboardStats } from "@/lib/services/mail-dashboard-stats.service";
 
+/**
+ * The mail of the account `ownerId` as `viewerId` sees it: every shared
+ * resource, and only the mailboxes (with their mail) they may see.
+ */
 export async function mailDashboard(
-  userId: string,
+  ownerId: string,
+  viewerId: string,
   projectId?: string,
 ): Promise<MailDashboardData> {
   const [primary, stats, resourceData] = await Promise.all([
-    mailDashboardPrimary(userId, projectId),
-    mailDashboardStats(userId, projectId),
-    mailDashboardResources(userId, projectId),
+    mailDashboardPrimary(ownerId, viewerId, projectId),
+    mailDashboardStats(ownerId, viewerId, projectId),
+    mailDashboardResources(ownerId, projectId),
   ]);
   return {
     stats: {

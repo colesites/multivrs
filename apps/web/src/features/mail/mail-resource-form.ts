@@ -57,7 +57,20 @@ function project(value?: string) {
   return value ? { projectId: value } : {};
 }
 
+/**
+ * The JSON body for creating `view`. `account` is the username of the
+ * account being viewed, so a team member's creates land in that account.
+ */
 export function resourcePayload(
+  view: CreateMailView,
+  form: FormData,
+  projectId?: string,
+  account?: string,
+): object {
+  return { ...(account ? { account } : {}), ...fields(view, form, projectId) };
+}
+
+function fields(
   view: CreateMailView,
   form: FormData,
   projectId?: string,

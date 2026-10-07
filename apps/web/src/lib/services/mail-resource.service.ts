@@ -3,7 +3,10 @@ import type { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import type { createMailboxSchema } from "@/lib/schemas/mail-resource.schemas";
 import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
-import { assertMailProject } from "@/lib/services/mail-access.service";
+import {
+  accessibleMailbox,
+  mailAccount,
+} from "@/lib/services/mail-access.service";
 
 export {
   createAutomation,
@@ -21,42 +24,53 @@ export {
 
 type MailboxInput = z.infer<typeof createMailboxSchema>;
 
-export async function createMailbox(userId: string, input: MailboxInput) {
-  await assertMailProject(userId, input.projectId);
-  const project = input.projectId
+/**
+ * A mailbox in the account the request works in. A personal mailbox's
+ * creator becomes its member, so only they see it.
+ */
+export async function createMailbox(actorId: string, input: MailboxInput) {
+  const { account, ...fields } = input;
+  const { ownerId } = await mailAccount(actorId, {
+    projectId: fields.projectId,
+    account,
+  });
+  const project = fields.projectId
     ? await prisma.project.findUniqueOrThrow({
-        where: { id: input.projectId },
+        where: { id: fields.projectId },
         select: { organizationId: true },
       })
     : null;
   const current = await prisma.mailbox.count({
     where: project?.organizationId
       ? { project: { organizationId: project.organizationId } }
-      : { userId },
+      : { userId: ownerId },
   });
   await assertResourceAvailable({
     current,
-    projectId: input.projectId,
+    projectId: fields.projectId,
     resource: "mailboxes",
-    userId,
+    userId: ownerId,
   });
-  const domainName = input.address.split("@")[1];
+  const domainName = fields.address.split("@")[1];
   const domain = domainName
     ? await prisma.mailDomain.findFirst({
-        where: { userId, domain: domainName },
+        where: { userId: ownerId, domain: domainName },
       })
     : null;
   return prisma.mailbox.create({
-    data: { ...input, userId, domainId: domain?.id },
+    data: {
+      ...fields,
+      userId: ownerId,
+      domainId: domain?.id,
+      ...(fields.kind === "personal"
+        ? { members: { create: { userId: actorId, role: "owner" } } }
+        : {}),
+    },
   });
 }
 
-export async function deleteMailbox(userId: string, mailboxId: string) {
-  const mailbox = await prisma.mailbox.findFirst({
-    where: { id: mailboxId, userId },
-  });
-  if (!mailbox) throw new Error("Mailbox not found");
-
+export async function deleteMailbox(actorId: string, mailboxId: string) {
+  await accessibleMailbox(actorId, mailboxId, "manage");
   return prisma.mailbox.delete({
     where: { id: mailboxId },
   });

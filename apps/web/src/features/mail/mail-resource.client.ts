@@ -33,12 +33,13 @@ export async function submitMailResource(
   view: CreateMailView,
   form: FormData,
   projectId?: string,
+  account?: string,
 ) {
   try {
     const response = await fetch(`/api/mail/${resourceEndpoints[view]}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(resourcePayload(view, form, projectId)),
+      body: JSON.stringify(resourcePayload(view, form, projectId, account)),
     });
     if (!response.ok) {
       const result: unknown = await response.json();

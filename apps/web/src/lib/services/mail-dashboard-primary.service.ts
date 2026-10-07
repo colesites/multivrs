@@ -2,17 +2,27 @@ import "server-only";
 
 import type { MailMessageDetail } from "@/features/mail/mail.types";
 import { prisma } from "@/lib/prisma";
+import { visibleMailboxWhere } from "@/lib/services/mail-access.service";
 import { mapMessage, mapThread } from "@/lib/services/mail-dashboard-mappers";
 
-export async function mailDashboardPrimary(userId: string, projectId?: string) {
-  const scope = projectId ? { projectId } : {};
+/** The account's mailboxes, threads and messages that the viewer may see. */
+export async function mailDashboardPrimary(
+  ownerId: string,
+  viewerId: string,
+  projectId?: string,
+) {
+  const mailbox = {
+    userId: ownerId,
+    ...(projectId ? { projectId } : {}),
+    ...visibleMailboxWhere(viewerId),
+  };
   const [mailboxes, threads, messages] = await Promise.all([
     prisma.mailbox.findMany({
-      where: { userId, ...scope },
+      where: mailbox,
       orderBy: { createdAt: "asc" },
     }),
     prisma.mailThread.findMany({
-      where: { userId, mailbox: scope },
+      where: { mailbox },
       include: {
         assignedTo: { select: { name: true } },
         messages: { orderBy: { createdAt: "desc" }, take: 1 },
@@ -21,7 +31,7 @@ export async function mailDashboardPrimary(userId: string, projectId?: string) {
       take: 100,
     }),
     prisma.mailMessage.findMany({
-      where: { userId, mailbox: scope },
+      where: { mailbox },
       include: { attachments: true },
       orderBy: { createdAt: "asc" },
       take: 500,

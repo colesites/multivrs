@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -60,6 +60,7 @@ export function MailboxView({
   }, []);
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [confirmEmpty, setConfirmEmpty] = useState(false);
+  const params = useParams<{ username?: string }>();
   const selected = threads.find((thread) => thread.id === selectedId);
   const action = async (
     messageId: string,
@@ -97,9 +98,14 @@ export function MailboxView({
 
   async function emptyTrash() {
     setConfirmEmpty(false);
-    const suffix = projectId
-      ? `?projectId=${encodeURIComponent(projectId)}`
-      : "";
+    const query = new URLSearchParams(
+      projectId
+        ? { projectId }
+        : params.username
+          ? { account: params.username }
+          : {},
+    ).toString();
+    const suffix = query ? `?${query}` : "";
     const response = await fetch(`/api/mail/messages${suffix}`, {
       method: "DELETE",
     });
