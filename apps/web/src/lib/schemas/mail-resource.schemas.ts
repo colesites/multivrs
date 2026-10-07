@@ -2,20 +2,36 @@ import { z } from "zod";
 import { hostnameSchema } from "@/lib/domains/dns.schemas";
 import { mailAddressSchema } from "@/lib/schemas/mail-message.schemas";
 
+/** The account (username) a request works in; the sender's own by default. */
+const account = z.string().trim().min(1).max(100).optional();
+
 export const createMailboxSchema = z.object({
+  account,
   address: mailAddressSchema,
   name: z.string().trim().min(1).max(120),
   kind: z.enum(["personal", "shared", "sending", "no-reply"]),
   projectId: z.uuid().optional(),
 });
 
+/** What can change on a mailbox; the address is fixed (it's wired to DNS and routing). */
+export const updateMailboxSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120).optional(),
+    kind: z.enum(["personal", "shared", "sending", "no-reply"]).optional(),
+  })
+  .refine((value) => value.name !== undefined || value.kind !== undefined, {
+    message: "Change the name or the kind",
+  });
+
 export const createMailDomainSchema = z.object({
+  account,
   domain: hostnameSchema,
   kind: z.enum(["sending", "mailbox", "tracking", "return-path"]),
   projectId: z.uuid().optional(),
 });
 
 export const createMailContactSchema = z.object({
+  account,
   email: mailAddressSchema,
   firstName: z.string().trim().max(120).optional(),
   lastName: z.string().trim().max(120).optional(),
@@ -24,11 +40,13 @@ export const createMailContactSchema = z.object({
 });
 
 export const createMailAudienceSchema = z.object({
+  account,
   name: z.string().trim().min(1).max(160),
   description: z.string().trim().max(500).optional(),
 });
 
 export const createMailTemplateSchema = z.object({
+  account,
   name: z.string().trim().min(1).max(160),
   projectId: z.uuid().optional(),
   subject: z.string().trim().min(1).max(998),
@@ -42,6 +60,7 @@ export const createMailTemplateSchema = z.object({
 });
 
 export const createMailBroadcastSchema = z.object({
+  account,
   name: z.string().trim().min(1).max(160),
   subject: z.string().trim().min(1).max(998),
   fromAddress: mailAddressSchema,
@@ -53,6 +72,7 @@ export const createMailBroadcastSchema = z.object({
 });
 
 export const createMailAutomationSchema = z.object({
+  account,
   name: z.string().trim().min(1).max(160),
   projectId: z.uuid().optional(),
   trigger: z.record(z.string(), z.json()),
@@ -60,6 +80,7 @@ export const createMailAutomationSchema = z.object({
 });
 
 export const createMailCredentialSchema = z.object({
+  account,
   name: z.string().trim().min(1).max(120),
   kind: z.enum(["api", "smtp"]),
   mode: z.enum(["test", "live"]),
@@ -68,6 +89,7 @@ export const createMailCredentialSchema = z.object({
 });
 
 export const createMailWebhookSchema = z.object({
+  account,
   url: z
     .url()
     .refine((value) => value.startsWith("https://"), "HTTPS is required"),

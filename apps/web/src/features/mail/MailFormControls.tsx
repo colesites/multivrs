@@ -70,7 +70,7 @@ export function FormChoice({
   options: string[];
 }) {
   return (
-    <label className="space-y-1.5">
+    <label className="block space-y-1.5">
       <Label className="capitalize text-black/45 dark:text-white/45">
         {name}
       </Label>
@@ -94,7 +94,7 @@ export function AudienceChoice({
   optional?: boolean;
 }) {
   return (
-    <label className="space-y-1.5">
+    <label className="block space-y-1.5">
       <Label className="text-black/45 dark:text-white/45">
         Audience{optional ? " (optional)" : ""}
       </Label>

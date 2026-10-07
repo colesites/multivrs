@@ -39,8 +39,10 @@ export function MailMessageBody({ message }: { message: MailMessageDetail }) {
           onLoad={handleIframeLoad}
           className="w-full border-0 bg-transparent"
           style={{ height: `${iframeHeight}px`, minHeight: "200px" }}
+          // Links open in a new tab (the <base> below): most sites refuse to
+          // load inside a frame, so following them in place fails.
           sandbox="allow-popups allow-popups-to-escape-sandbox"
-          srcDoc={`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><style>body{margin:0;padding:16px;background:transparent;color:#030303;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6}a{color:#A855F7}img{max-width:100%;height:auto}table{border-collapse:collapse;max-width:100%}@media (prefers-color-scheme: dark){body{color:#e2e8f0}a{color:#c084fc}}</style></head><body>${message.html}</body></html>`}
+          srcDoc={`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><base target="_blank"><style>body{margin:0;padding:16px;background:transparent;color:#030303;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6}a{color:#A855F7}img{max-width:100%;height:auto}table{border-collapse:collapse;max-width:100%}@media (prefers-color-scheme: dark){body{color:#e2e8f0}a{color:#c084fc}}</style></head><body>${message.html}</body></html>`}
           title={`Email: ${message.subject}`}
         />
       ) : message.text ? (

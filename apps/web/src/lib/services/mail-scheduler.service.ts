@@ -48,6 +48,7 @@ async function materializeBroadcast(
           html: content?.html,
         },
         broadcast.id,
+        true,
       ),
     ),
   );

@@ -7,6 +7,7 @@ import { Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,6 +35,7 @@ export function ProjectSettingsPage({
     repositoryUrl?: string;
   }>({});
   const [busy, setBusy] = useState<"delete" | "save" | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const name = draft.name ?? project.name;
   const framework = draft.framework ?? project.framework ?? "auto";
   const repositoryUrl = draft.repositoryUrl ?? project.repositoryUrl ?? "";
@@ -67,8 +69,6 @@ export function ProjectSettingsPage({
   }
 
   function remove() {
-    if (!window.confirm(`Delete ${project.name} and all of its deployments?`))
-      return;
     if (busy) return;
     setBusy("delete");
     void requestOk(
@@ -197,13 +197,21 @@ export function ProjectSettingsPage({
           </p>
           <Button
             variant="destructive"
-            onClick={remove}
+            onClick={() => setConfirmDelete(true)}
             disabled={busy !== null}
           >
             {busy === "delete" ? "Deleting…" : "Delete project"}
           </Button>
         </div>
       </section>
+      <ConfirmDialog
+        busy={busy === "delete"}
+        description="This permanently removes the project and all of its deployments. This can't be undone."
+        onConfirm={remove}
+        onOpenChange={setConfirmDelete}
+        open={confirmDelete}
+        title={`Delete ${project.name}?`}
+      />
     </div>
   );
 }

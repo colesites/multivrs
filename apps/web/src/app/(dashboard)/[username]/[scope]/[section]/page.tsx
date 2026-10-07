@@ -124,8 +124,8 @@ export default async function SectionPage({
     if (!session) notFound();
     const projectSlug = scope === ALL_PROJECTS_SCOPE ? undefined : scope;
     const [domains, projects] = await Promise.all([
-      dashboardDomains(session.user.id, projectSlug),
-      domainProjectOptions(session.user.id, projectSlug),
+      dashboardDomains(session.user.id, username, projectSlug),
+      domainProjectOptions(session.user.id, username, projectSlug),
     ]);
     return (
       <DomainsPage

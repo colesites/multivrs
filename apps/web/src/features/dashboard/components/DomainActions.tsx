@@ -4,6 +4,7 @@ import { MoreHorizontal, RefreshCw, Settings, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { ConfirmDialog, responseError } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,6 +30,7 @@ export function DomainActions({
 }: DomainActionsProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [autoRenew, setAutoRenew] = useState(initialAutoRenew);
   const [renewPending, setRenewPending] = useState(false);
 
@@ -60,15 +62,15 @@ export function DomainActions({
   }
 
   function remove() {
-    if (!window.confirm(`Delete ${hostname} from Multivrs?`)) return;
     startTransition(async () => {
       const response = await fetch(`/api/domains/${domainId}`, {
         method: "DELETE",
-      });
-      if (!response.ok) {
-        toast.error("Unable to delete domain");
+      }).catch(() => null);
+      if (!response?.ok) {
+        toast.error(await responseError(response, "Unable to delete domain"));
         return;
       }
+      setConfirmDelete(false);
       toast.success(`${hostname} deleted`);
       router.refresh();
     });
@@ -131,13 +133,21 @@ export function DomainActions({
 
         <DropdownMenuSeparator className="-mx-1.5 my-1.5 bg-white/10" />
         <DropdownMenuItem
-          onClick={remove}
+          onClick={() => setConfirmDelete(true)}
           className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 hover:text-red-400 cursor-pointer"
         >
           <Trash2 className="size-4 shrink-0 text-red-500" />
           <span>Delete</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <ConfirmDialog
+        busy={pending}
+        description="This removes the domain from Multivrs."
+        onConfirm={remove}
+        onOpenChange={setConfirmDelete}
+        open={confirmDelete}
+        title={`Delete ${hostname}?`}
+      />
     </DropdownMenu>
   );
 }

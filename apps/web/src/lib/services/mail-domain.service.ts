@@ -1,7 +1,11 @@
 import "server-only";
 
 import { resolveCname, resolveMx, resolveTxt } from "node:dns/promises";
-import { ConflictError, NotFoundError } from "@multivrs/error-utils";
+import {
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+} from "@multivrs/error-utils";
 import type { z } from "zod";
 import { DNS_RECORD_TYPES, type DnsRecordType } from "@/lib/domains/dns.types";
 import {
@@ -29,16 +33,30 @@ import {
 import { dnsRecordStatus } from "@/lib/mail/ses-domain-snapshot";
 import { prisma } from "@/lib/prisma";
 import type { createMailDomainSchema } from "@/lib/schemas/mail-resource.schemas";
+import {
+  type AccountAction,
+  accountRole,
+  accountRoleSelect,
+  canAccount,
+  ownedOrTeamWhere,
+} from "@/lib/services/account-access";
 import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
 import { logError } from "@/lib/services/logger.service";
-import { assertMailProject } from "@/lib/services/mail-access.service";
+import { mailAccount } from "@/lib/services/mail-access.service";
 
 type DomainInput = z.infer<typeof createMailDomainSchema>;
 type DnsMode = "automatic" | "manual";
 type ReconcileResult = Awaited<ReturnType<typeof verifyMailDomain>>;
 
-export async function createMailDomain(userId: string, input: DomainInput) {
-  await assertMailProject(userId, input.projectId);
+export async function createMailDomain(
+  actorId: string,
+  domainInput: DomainInput,
+) {
+  const { account, ...input } = domainInput;
+  const { ownerId: userId } = await mailAccount(actorId, {
+    projectId: input.projectId,
+    account,
+  });
   const existing = await prisma.mailDomain.findUnique({
     where: { userId_domain: { userId, domain: input.domain } },
     select: { id: true },
@@ -102,14 +120,16 @@ export async function createMailDomain(userId: string, input: DomainInput) {
 /** What a domain needs before it can send: DKIM, the MAIL FROM MX and SPF. */
 const REQUIRED_PURPOSES = /^(dkim-\d+|mx|spf)$/;
 
-export async function verifyMailDomain(userId: string, domainId: string) {
-  let domain = await ownedMailDomain(userId, domainId);
+export async function verifyMailDomain(actorId: string, domainId: string) {
+  let domain = await ownedMailDomain(actorId, domainId, "manage");
+  // The domain's account owns its SES tenant and DNS zones.
+  const userId = domain.userId;
   let snapshot = domain.providerDomainId
     ? await getSesDomain(domain.providerDomainId)
     : await addCustomDomain(domain.domain, userId);
 
   let records = await persistSnapshot(domain.id, snapshot);
-  domain = await ownedMailDomain(userId, domainId);
+  domain = await ownedMailDomain(actorId, domainId, "manage");
   const managedZone = await findManagedZone(userId, domain.domain);
   let automaticDnsConfigured = false;
   if (managedZone) {
@@ -262,13 +282,11 @@ export async function refreshMailDomainFromProvider(providerDomainId: string) {
   return { matched: true };
 }
 
-export async function deleteMailDomain(userId: string, domainId: string) {
-  const domain = await ownedMailDomain(userId, domainId);
-  if (domain.providerDomainId) {
-    await deleteCustomDomain(domain.providerDomainId);
-  } else if (domain.domain) {
-    await deleteCustomDomain(domain.domain);
-  }
+export async function deleteMailDomain(actorId: string, domainId: string) {
+  const domain = await ownedMailDomain(actorId, domainId, "delete");
+  const userId = domain.userId;
+  // Each account's SES tenant is named after its user id (see ensureSesTenant).
+  await deleteCustomDomain(domain.providerDomainId ?? domain.domain, userId);
 
   const managedZone = await findManagedZone(userId, domain.domain);
   const managedRecords = domain.dnsRecords.filter(
@@ -284,12 +302,21 @@ export async function deleteMailDomain(userId: string, domainId: string) {
   return prisma.mailDomain.delete({ where: { id: domain.id } });
 }
 
-async function ownedMailDomain(userId: string, domainId: string) {
+/** A sending domain on an account the actor is on, if their role allows `action`. */
+async function ownedMailDomain(
+  actorId: string,
+  domainId: string,
+  action: AccountAction = "read",
+) {
   const domain = await prisma.mailDomain.findFirst({
-    where: { id: domainId, userId },
-    include: { dnsRecords: true },
+    where: { id: domainId, OR: ownedOrTeamWhere(actorId) },
+    include: { dnsRecords: true, user: { select: accountRoleSelect(actorId) } },
   });
-  if (!domain) throw new NotFoundError("Mail domain not found");
+  const role = domain ? accountRole(actorId, domain) : undefined;
+  if (!domain || !role) throw new NotFoundError("Mail domain not found");
+  if (!canAccount(role, action)) {
+    throw new ForbiddenError("Your team role can't change this domain");
+  }
   return domain;
 }
 

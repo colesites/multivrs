@@ -29,7 +29,7 @@ export async function enableDomainDns(
   userId: string,
   domainId: string,
 ): Promise<DomainDnsOverview> {
-  const domain = await getDomainDetail(userId, domainId);
+  const domain = await getDomainDetail(userId, domainId, "manage");
   await createProviderZone(domain.hostname);
   await addProviderRecord(domain.hostname, {
     name: "_multivrs",
@@ -46,7 +46,7 @@ export async function addDomainDnsRecord(
   domainId: string,
   input: RecordInput,
 ): Promise<DomainDnsOverview> {
-  const domain = await getDomainDetail(userId, domainId);
+  const domain = await getDomainDetail(userId, domainId, "manage");
   await addProviderRecord(domain.hostname, input);
   return getProviderDns(domain.hostname);
 }
@@ -56,7 +56,7 @@ export async function updateDomainDnsRecord(
   domainId: string,
   input: UpdateInput,
 ): Promise<DomainDnsOverview> {
-  const domain = await getDomainDetail(userId, domainId);
+  const domain = await getDomainDetail(userId, domainId, "manage");
   await updateProviderRecord(domain.hostname, input.original, input.record);
   return getProviderDns(domain.hostname);
 }
@@ -66,7 +66,7 @@ export async function removeDomainDnsRecord(
   domainId: string,
   input: RecordInput,
 ): Promise<DomainDnsOverview> {
-  const domain = await getDomainDetail(userId, domainId);
+  const domain = await getDomainDetail(userId, domainId, "manage");
   await removeProviderRecord(domain.hostname, input);
   return getProviderDns(domain.hostname);
 }

@@ -88,7 +88,10 @@ export function sanitizeMailHtml(value?: string): string | undefined {
     allowProtocolRelative: false,
     disallowedTagsMode: "discard",
     transformTags: {
-      a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer" }),
+      a: sanitizeHtml.simpleTransform("a", {
+        rel: "noopener noreferrer",
+        target: "_blank",
+      }),
     },
   });
 }

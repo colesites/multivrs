@@ -16,6 +16,7 @@ import { MailDomainVerifyButton } from "@/features/mail/MailDomainVerifyButton";
 import { getServerSession } from "@/lib/auth/session";
 import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
 import { prisma } from "@/lib/prisma";
+import { ownedOrTeamWhere } from "@/lib/services/account-access";
 import { mailDomainDnsMode } from "@/lib/services/mail-domain.service";
 
 export default async function MailDomainDnsPage({
@@ -29,13 +30,14 @@ export default async function MailDomainDnsPage({
   ]);
   if (!session) redirect("/login");
 
+  // Yours, or one on an account whose team you're on.
   const domain = await prisma.mailDomain.findFirst({
-    where: { id: domainId, userId: session.user.id },
+    where: { id: domainId, OR: ownedOrTeamWhere(session.user.id) },
     include: { dnsRecords: { orderBy: [{ purpose: "asc" }, { name: "asc" }] } },
   });
   if (!domain) notFound();
 
-  const dnsMode = await mailDomainDnsMode(session.user.id, domain.domain);
+  const dnsMode = await mailDomainDnsMode(domain.userId, domain.domain);
   const automatic = dnsMode === "automatic";
   const isVerified = isAuthenticatedSendingDomain(domain);
 

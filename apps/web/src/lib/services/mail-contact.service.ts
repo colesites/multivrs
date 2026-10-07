@@ -5,12 +5,14 @@ import type {
   createMailAudienceSchema,
   createMailContactSchema,
 } from "@/lib/schemas/mail-resource.schemas";
+import { mailAccount } from "@/lib/services/mail-access.service";
 
 export async function createContact(
-  userId: string,
+  actorId: string,
   input: z.infer<typeof createMailContactSchema>,
 ) {
-  const { audienceIds, ...contact } = input;
+  const { audienceIds, account: _, ...contact } = input;
+  const { ownerId: userId } = await mailAccount(actorId, input);
   return prisma.$transaction(async (tx) => {
     const [saved, audiences] = await Promise.all([
       tx.mailContact.upsert({
@@ -41,9 +43,11 @@ export async function createContact(
   });
 }
 
-export function createAudience(
-  userId: string,
+export async function createAudience(
+  actorId: string,
   input: z.infer<typeof createMailAudienceSchema>,
 ) {
-  return prisma.mailAudience.create({ data: { ...input, userId } });
+  const { account: _, ...fields } = input;
+  const { ownerId } = await mailAccount(actorId, input);
+  return prisma.mailAudience.create({ data: { ...fields, userId: ownerId } });
 }

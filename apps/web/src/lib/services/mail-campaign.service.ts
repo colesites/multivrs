@@ -1,5 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { NotFoundError } from "@multivrs/error-utils";
 import type { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import type {
@@ -7,13 +8,13 @@ import type {
   createMailBroadcastSchema,
   createMailTemplateSchema,
 } from "@/lib/schemas/mail-resource.schemas";
-import { assertMailProject } from "@/lib/services/mail-access.service";
+import { mailAccount } from "@/lib/services/mail-access.service";
 
 export async function createTemplate(
-  userId: string,
+  actorId: string,
   input: z.infer<typeof createMailTemplateSchema>,
 ) {
-  await assertMailProject(userId, input.projectId);
+  const { ownerId: userId } = await mailAccount(actorId, input);
   return prisma.mailTemplate.create({
     data: {
       name: input.name,
@@ -35,10 +36,27 @@ export async function createTemplate(
 }
 
 export async function createBroadcast(
-  userId: string,
+  actorId: string,
   input: z.infer<typeof createMailBroadcastSchema>,
 ) {
-  await assertMailProject(userId, input.projectId);
+  const { ownerId: userId } = await mailAccount(actorId, input);
+  // The audience and template must be this account's own.
+  const [audience, version] = await Promise.all([
+    prisma.mailAudience.findFirst({
+      where: { id: input.audienceId, userId },
+      select: { id: true },
+    }),
+    input.templateVersionId
+      ? prisma.mailTemplateVersion.findFirst({
+          where: { id: input.templateVersionId, template: { userId } },
+          select: { id: true },
+        })
+      : null,
+  ]);
+  if (!audience) throw new NotFoundError("Audience not found");
+  if (input.templateVersionId && !version) {
+    throw new NotFoundError("Template not found");
+  }
   return prisma.$transaction(async (tx) => {
     let templateVersionId = input.templateVersionId;
     if (!templateVersionId) {
@@ -79,9 +97,12 @@ export async function createBroadcast(
 }
 
 export async function createAutomation(
-  userId: string,
+  actorId: string,
   input: z.infer<typeof createMailAutomationSchema>,
 ) {
-  await assertMailProject(userId, input.projectId);
-  return prisma.mailAutomation.create({ data: { ...input, userId } });
+  const { account: _, ...fields } = input;
+  const { ownerId } = await mailAccount(actorId, input);
+  return prisma.mailAutomation.create({
+    data: { ...fields, userId: ownerId },
+  });
 }

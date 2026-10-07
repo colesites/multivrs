@@ -107,9 +107,11 @@ function resourceItems(
     return data.mailboxes.map((item) => ({
       id: item.id,
       name: item.name,
-      detail: item.address,
+      detail: `${item.address} · ${item.kind}`,
       status: item.status,
       createdAt: "",
+      address: item.address,
+      kind: item.kind,
     }));
   if (view === "logs")
     return Object.values(data.messages)

@@ -15,7 +15,11 @@ export async function assertOrganizationSeat(
   role: string,
 ): Promise<void> {
   if (!isPaidRole(role)) return;
-  const [members, invitations] = await Promise.all([
+  const [workspace, members, invitations] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { accountOwnerId: true },
+    }),
     prisma.member.count({
       where: { organizationId, role: { in: PAID_ROLES } },
     }),
@@ -27,11 +31,13 @@ export async function assertOrganizationSeat(
       },
     }),
   ]);
+  // An account's team uses the account's own plan, whoever sends the invite.
   await assertResourceAvailable({
     current: members + invitations,
-    organizationId,
+    ...(workspace?.accountOwnerId
+      ? { userId: workspace.accountOwnerId }
+      : { organizationId, userId }),
     resource: "developer_seats",
-    userId,
   });
 }
 

@@ -5,7 +5,10 @@ import { isAuthenticatedSendingDomain } from "@/lib/mail/mail-domain-dns";
 import { sanitizeOutboundMailHtml } from "@/lib/mail/sanitize-html";
 import { prisma } from "@/lib/prisma";
 import type { ComposeMailInput } from "@/lib/schemas/mail-message.schemas";
-import { ownedMailbox } from "@/lib/services/mail-access.service";
+import {
+  accessibleMailbox,
+  accessibleMailMessage,
+} from "@/lib/services/mail-access.service";
 import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.service";
 
 function normalizeSubject(subject: string): string {
@@ -15,22 +18,36 @@ function normalizeSubject(subject: string): string {
     .toLowerCase();
 }
 
+/**
+ * Sends from a mailbox. People need to see the mailbox and have a role that
+ * can manage; `asAccount` is for the account itself (API keys, scheduled
+ * broadcasts). The mail is stored under the mailbox's account.
+ */
 export async function composeMail(
-  userId: string,
+  actorId: string,
   input: ComposeMailInput,
   broadcastId?: string,
+  asAccount = false,
 ) {
-  const mailbox = await ownedMailbox(userId, input.mailboxId);
+  const mailbox = await accessibleMailbox(
+    actorId,
+    input.mailboxId,
+    "manage",
+    asAccount,
+  );
+  const userId = mailbox.userId;
   if (!isAuthenticatedSendingDomain(mailbox.domain)) {
     throw new ConflictError(
       "Verify this mailbox's sending domain before sending email",
     );
   }
   const reply = input.replyToMessageId
-    ? await prisma.mailMessage.findFirst({
-        where: { id: input.replyToMessageId, userId },
-        select: { messageId: true, references: true, threadId: true },
-      })
+    ? asAccount
+      ? await prisma.mailMessage.findFirst({
+          where: { id: input.replyToMessageId, userId },
+          select: { messageId: true, references: true, threadId: true },
+        })
+      : await accessibleMailMessage(actorId, input.replyToMessageId, "read")
     : null;
   const scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null;
   const safeHtml = sanitizeOutboundMailHtml(input.html);

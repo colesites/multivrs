@@ -1,5 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { ownedOrTeamWhere } from "@/lib/services/account-access";
+import { projectAccessWhere } from "@/lib/services/project-access";
 
 export interface DashboardDomain {
   id: string;
@@ -18,13 +20,16 @@ export interface DomainProjectOption {
   slug: string;
 }
 
+/** The domains of the account at `username` that the viewer can see. */
 export async function dashboardDomains(
-  userId: string,
+  viewerId: string,
+  username: string,
   projectSlug?: string,
 ): Promise<DashboardDomain[]> {
   const domains = await prisma.domain.findMany({
     where: {
-      userId,
+      user: { username },
+      OR: ownedOrTeamWhere(viewerId),
       ...(projectSlug ? { project: { slug: projectSlug } } : {}),
     },
     include: { project: { select: { name: true } } },
@@ -55,12 +60,18 @@ const dashboardDomainDateFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
+/** Projects of the account at `username` the viewer can connect a domain to. */
 export async function domainProjectOptions(
-  userId: string,
+  viewerId: string,
+  username: string,
   projectSlug?: string,
 ): Promise<DomainProjectOption[]> {
   return prisma.project.findMany({
-    where: { ownerId: userId, ...(projectSlug ? { slug: projectSlug } : {}) },
+    where: {
+      owner: { username },
+      OR: projectAccessWhere(viewerId),
+      ...(projectSlug ? { slug: projectSlug } : {}),
+    },
     select: { id: true, name: true, slug: true },
     orderBy: { name: "asc" },
   });

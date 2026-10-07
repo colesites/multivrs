@@ -19,7 +19,12 @@ export async function POST(request: Request) {
       },
     });
     if (!mailbox) throw new Error("Mailbox is outside this credential scope");
-    const message = await composeMail(credential.userId, input);
+    const message = await composeMail(
+      credential.userId,
+      input,
+      undefined,
+      true,
+    );
     if (credential.mode === "test") {
       await prisma.mailMessage.update({
         where: { id: message.id },

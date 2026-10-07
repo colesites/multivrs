@@ -23,6 +23,7 @@ export async function createImportProject(
 ) {
   const response = await fetch("/api/projects", {
     body: JSON.stringify({
+      account: source.team === "dashboard" ? undefined : source.team,
       framework: config.framework,
       name: config.projectName.trim(),
       repositoryUrl: source.url,

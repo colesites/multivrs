@@ -8,18 +8,24 @@ import type {
   createMailCredentialSchema,
   createMailWebhookSchema,
 } from "@/lib/schemas/mail-resource.schemas";
-import { assertMailProject } from "@/lib/services/mail-access.service";
+import { mailAccount } from "@/lib/services/mail-access.service";
 
 function secret(prefix: string) {
   const value = `${prefix}${randomBytes(32).toString("base64url")}`;
   return { value, hash: createHash("sha256").update(value).digest("hex") };
 }
 
+/** Keys and webhooks act as the whole account, so they need an admin. */
 export async function createCredential(
-  userId: string,
-  input: z.infer<typeof createMailCredentialSchema>,
+  actorId: string,
+  credentialInput: z.infer<typeof createMailCredentialSchema>,
 ) {
-  await assertMailProject(userId, input.projectId);
+  const { account: _, ...input } = credentialInput;
+  const { ownerId: userId } = await mailAccount(
+    actorId,
+    credentialInput,
+    "delete",
+  );
   const prefix = input.kind === "smtp" ? "mlv_smtp_" : `mlv_${input.mode}_`;
   const generated = secret(prefix);
   const credential = await prisma.mailCredential.create({
@@ -55,10 +61,15 @@ export async function createCredential(
 }
 
 export async function createWebhook(
-  userId: string,
-  input: z.infer<typeof createMailWebhookSchema>,
+  actorId: string,
+  webhookInput: z.infer<typeof createMailWebhookSchema>,
 ) {
-  await assertMailProject(userId, input.projectId);
+  const { account: _, ...input } = webhookInput;
+  const { ownerId: userId } = await mailAccount(
+    actorId,
+    webhookInput,
+    "delete",
+  );
   await assertPublicWebhookUrl(input.url);
   const id = randomUUID();
   const value = mailWebhookSecret(id);

@@ -19,6 +19,11 @@ import type { Project as ProjectRow } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { recordAuditEvent } from "@/lib/services/audit-event.service";
 import { assertResourceAvailable } from "@/lib/services/billing-entitlement.service";
+import {
+  projectAccessWhere,
+  projectRole,
+  projectRoleInclude,
+} from "@/lib/services/project-access";
 import { slugify } from "@/lib/services/slug";
 
 function toProject(row: ProjectRow): Project {
@@ -36,17 +41,52 @@ function toProject(row: ProjectRow): Project {
   });
 }
 
+/**
+ * Who owns a new project: the account it's created in. A team member
+ * creating one in someone else's account needs a role that can create.
+ */
+async function accountOwnerFor(
+  creatorId: string,
+  account: string | undefined,
+): Promise<string> {
+  if (!account) return creatorId;
+  const owner = await prisma.user.findUnique({
+    where: { username: account },
+    select: {
+      id: true,
+      accountTeam: {
+        select: {
+          members: {
+            where: { userId: creatorId },
+            select: { role: true },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+  if (!owner || owner.id === creatorId) return creatorId;
+  const role = owner.accountTeam?.members[0]?.role;
+  if (!role || !canProject(role, "create")) {
+    throw new ForbiddenError("Your team role cannot create projects here");
+  }
+  return owner.id;
+}
+
 export async function createProject(
-  ownerId: string,
+  creatorId: string,
   input: CreateProjectInput,
 ): Promise<Project> {
+  const ownerId = input.organizationId
+    ? creatorId
+    : await accountOwnerFor(creatorId, input.account);
   const slug = input.slug ?? slugify(input.name);
   if (input.organizationId) {
     const member = await prisma.member.findUnique({
       where: {
         organizationId_userId: {
           organizationId: input.organizationId,
-          userId: ownerId,
+          userId: creatorId,
         },
       },
       select: { role: true },
@@ -93,19 +133,14 @@ export async function createProject(
     entityId: row.id,
     entityType: "project",
     projectId: row.id,
-    userId: ownerId,
+    userId: creatorId,
   });
   return toProject(row);
 }
 
 export async function listProjects(ownerId: string): Promise<Project[]> {
   const rows = await prisma.project.findMany({
-    where: {
-      OR: [
-        { ownerId },
-        { organization: { members: { some: { userId: ownerId } } } },
-      ],
-    },
+    where: { OR: projectAccessWhere(ownerId) },
     orderBy: { createdAt: "desc" },
   });
   return rows.map(toProject);
@@ -118,19 +153,9 @@ export async function getProject(
 ): Promise<Project> {
   const row = await prisma.project.findUnique({
     where: { id },
-    include: {
-      organization: {
-        select: {
-          members: {
-            where: { userId: ownerId },
-            select: { role: true },
-            take: 1,
-          },
-        },
-      },
-    },
+    include: projectRoleInclude(ownerId),
   });
-  const memberRole = row?.organization?.members[0]?.role;
+  const memberRole = row ? projectRole(row) : undefined;
   if (
     !row ||
     (row.ownerId !== ownerId &&

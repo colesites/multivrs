@@ -6,10 +6,12 @@ import {
   type CreateEmailIdentityCommandOutput,
   CreateTenantResourceAssociationCommand,
   DeleteEmailIdentityCommand,
+  DeleteTenantResourceAssociationCommand,
   GetEmailIdentityCommand,
   PutEmailIdentityDkimAttributesCommand,
   PutEmailIdentityMailFromAttributesCommand,
 } from "@aws-sdk/client-sesv2";
+import { ConflictError } from "@multivrs/error-utils";
 import { sesClient } from "@/lib/email/client";
 import {
   MAIL_FROM_SUBDOMAIN,
@@ -144,24 +146,44 @@ export async function getSesDomain(
   return verifyCustomDomain(domainName);
 }
 
+const isNotFound = (error: unknown) =>
+  error instanceof Error &&
+  (error.name === "NotFoundException" ||
+    /not found|does not exist/i.test(error.message));
+
 /**
- * Deletes an email identity from AWS SES v2.
+ * Deletes an email identity from AWS SES v2, unlinking it from the
+ * customer's tenant first. AWS's own reason is passed on if it refuses.
  */
-export async function deleteCustomDomain(domainName: string): Promise<void> {
-  try {
-    const command = new DeleteEmailIdentityCommand({
-      EmailIdentity: domainName,
-    });
-    await sesClient.send(command);
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.name === "NotFoundException" ||
-        /not found|does not exist/i.test(error.message))
-    ) {
-      return;
+export async function deleteCustomDomain(
+  domainName: string,
+  tenantName?: string,
+): Promise<void> {
+  if (tenantName) {
+    try {
+      await sesClient.send(
+        new DeleteTenantResourceAssociationCommand({
+          TenantName: tenantName,
+          ResourceArn: emailIdentityArn(domainName),
+        }),
+      );
+    } catch (error) {
+      // Not linked (or never was): deleting the identity still works.
+      if (!isNotFound(error)) {
+        logError("ses.tenant.unlink_failed", error, { domain: domainName });
+      }
     }
-    throw error;
+  }
+  try {
+    await sesClient.send(
+      new DeleteEmailIdentityCommand({ EmailIdentity: domainName }),
+    );
+  } catch (error) {
+    if (isNotFound(error)) return;
+    logError("ses.identity.delete_failed", error, { domain: domainName });
+    throw new ConflictError(
+      `AWS couldn't remove ${domainName}: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
   }
 }
 

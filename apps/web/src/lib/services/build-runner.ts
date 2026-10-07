@@ -16,6 +16,7 @@ import {
   issueProjectOidcToken,
   oidcConfigured,
 } from "@/lib/services/oidc.service";
+import { projectAccessWhere } from "@/lib/services/project-access";
 
 interface BackgroundDeploymentOptions {
   apiUrl: string;
@@ -44,8 +45,9 @@ async function executeDeployment(
       throw new Error("A repository URL is required for a remote build.");
     }
 
+    // The route already checked the deploy permission; this only reads the project.
     const project = await prisma.project.findFirst({
-      where: { id: projectId, ownerId: userId },
+      where: { id: projectId, OR: projectAccessWhere(userId) },
       select: { framework: true },
     });
     if (!project) {

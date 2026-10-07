@@ -2,7 +2,7 @@ import "server-only";
 import { sanitizeMailHtml } from "@/lib/mail/sanitize-html";
 import { prisma } from "@/lib/prisma";
 import type { InboundMailInput } from "@/lib/schemas/mail-message.schemas";
-import { ownedMailMessage } from "@/lib/services/mail-access.service";
+import { accessibleMailMessage } from "@/lib/services/mail-access.service";
 import { repairInboundBody } from "@/lib/services/mail-inbound-repair.service";
 import { enqueueMailWebhooks } from "@/lib/services/mail-webhook-delivery.service";
 import { publishBillingMeterEvents } from "@/lib/services/stripe-meter.service";
@@ -23,15 +23,21 @@ const ACTIONS = {
   restore: { folder: "inbox" },
 } as const;
 
+/** Read and unread are open to every role; moving mail needs one that can manage. */
 export async function updateMailMessage(
-  userId: string,
+  actorId: string,
   messageId: string,
   action: keyof typeof ACTIONS,
 ) {
-  const message = await ownedMailMessage(userId, messageId);
-  if (action === "read" || action === "unread") {
+  const readOnly = action === "read" || action === "unread";
+  const message = await accessibleMailMessage(
+    actorId,
+    messageId,
+    readOnly ? "read" : "manage",
+  );
+  if (readOnly) {
     return prisma.mailMessage.updateMany({
-      where: { userId, threadId: message.threadId },
+      where: { threadId: message.threadId },
       data: ACTIONS[action],
     });
   }

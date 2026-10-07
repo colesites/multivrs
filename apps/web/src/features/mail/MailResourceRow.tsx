@@ -4,16 +4,20 @@ import {
   CheckCircle2,
   CircleDashed,
   MoreHorizontal,
+  Pencil,
   RefreshCw,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
+import { ConfirmDialog, responseError } from "@/components/ConfirmDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MailboxEditDialog } from "@/features/mail/MailboxEditDialog";
 import type { MailResourceItem } from "@/features/mail/mail.types";
 import type { MailView } from "@/features/mail/mail-navigation";
 
@@ -26,6 +30,10 @@ export function MailResourceRow({
 }) {
   const router = useRouter();
   const params = useParams() as { username?: string; scope?: string };
+  const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const noun = view.slice(0, -1);
 
   async function verify(e: React.MouseEvent) {
     e.stopPropagation();
@@ -40,21 +48,20 @@ export function MailResourceRow({
     router.refresh();
   }
 
-  async function deleteItem(e: React.MouseEvent) {
-    e.stopPropagation();
-    const question =
-      view === "domains"
-        ? `Remove ${item.name}? You can add it again to get new DKIM records, then replace the old ones at your DNS provider.`
-        : `Are you sure you want to delete this ${view.slice(0, -1)}?`;
-    if (!confirm(question)) return;
+  async function deleteItem() {
+    setDeleting(true);
     const response = await fetch(`/api/mail/${view}/${item.id}`, {
       method: "DELETE",
-    });
-    if (!response.ok) {
-      toast.error(`Failed to delete ${view.slice(0, -1)}`);
+    }).catch(() => null);
+    setDeleting(false);
+    if (!response?.ok) {
+      toast.error(
+        await responseError(response, `Couldn't delete this ${noun}.`),
+      );
       return;
     }
-    toast.success(`${view.slice(0, -1)} deleted`);
+    setConfirming(false);
+    toast.success(`${item.name} deleted`);
     router.refresh();
   }
 
@@ -129,9 +136,15 @@ export function MailResourceRow({
               Check DNS now
             </DropdownMenuItem>
           )}
+          {view === "mailboxes" && (
+            <DropdownMenuItem onClick={() => setEditing(true)}>
+              <Pencil className="size-3.5" />
+              Edit
+            </DropdownMenuItem>
+          )}
           {(view === "mailboxes" || view === "domains") && (
             <DropdownMenuItem
-              onClick={deleteItem}
+              onClick={() => setConfirming(true)}
               className="text-red-400 focus:text-red-400 focus:bg-red-400/10"
             >
               Delete
@@ -139,6 +152,30 @@ export function MailResourceRow({
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+      {view === "mailboxes" && (
+        <MailboxEditDialog
+          mailbox={{
+            id: item.id,
+            name: item.name,
+            address: item.address ?? item.detail,
+            kind: item.kind ?? "shared",
+          }}
+          onOpenChange={setEditing}
+          open={editing}
+        />
+      )}
+      <ConfirmDialog
+        busy={deleting}
+        description={
+          view === "domains"
+            ? "This removes it from Multivrs and AWS. You can add it again to get new DKIM records, then replace the old ones at your DNS provider."
+            : `This permanently deletes this ${noun}.`
+        }
+        onConfirm={() => void deleteItem()}
+        onOpenChange={setConfirming}
+        open={confirming}
+        title={`Delete ${item.name}?`}
+      />
     </div>
   );
 }
