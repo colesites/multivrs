@@ -44,6 +44,10 @@ model Plan {
   trialDays   Int           @default(0) @map("trial_days")
   /// Feature key → true (boolean) or a number (limit).
   features    Json          @default("{}")
+  /// Image URLs, marketing feature list ([{ name }]) and metadata, as on Stripe.
+  images            Json      @default("[]")
+  marketingFeatures Json      @default("[]") @map("marketing_features")
+  metadata          Json      @default("{}")
   active      Boolean       @default(true)
   /// Config syncs only touch config products, never ones made in the dashboard.
   source      ProductSource @default(config)

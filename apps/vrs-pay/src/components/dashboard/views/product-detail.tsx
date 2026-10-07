@@ -13,6 +13,9 @@ import {
   TableRow,
 } from "../ui";
 import { AddPriceForm, ProductDetailsForm } from "./product-edit";
+import { ProductPageForm, TrialFeaturesForm } from "./product-extras";
+import { MetadataForm } from "./product-metadata";
+import { configSummary } from "./product-summary";
 
 /** One product: its prices (add, archive, sell with a link) and its details. */
 export function ProductDetail({
@@ -74,6 +77,7 @@ export function ProductDetail({
         <Card className="text-sm text-ink-soft">
           This product comes from your vrs-pay.config.ts. Change it there and
           sync.
+          <p className="mt-2 text-mute">{configSummary(product)}</p>
         </Card>
       )}
       <Table head={["Price", "Billing", "Status", "Created", ""]}>
@@ -124,6 +128,9 @@ export function ProductDetail({
         <>
           <AddPriceForm productId={product.id} onAdded={onChanged} />
           <ProductDetailsForm product={product} onSaved={onChanged} />
+          <TrialFeaturesForm product={product} onSaved={onChanged} />
+          <ProductPageForm product={product} onSaved={onChanged} />
+          <MetadataForm product={product} onSaved={onChanged} />
         </>
       )}
     </div>

@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const MAX_FEATURES = 200;
 const MAX_PLANS = 100;
-const MAX_TRIAL_DAYS = 365;
+export const MAX_TRIAL_DAYS = 365;
 
 export const CatalogKeySchema = z
   .string()

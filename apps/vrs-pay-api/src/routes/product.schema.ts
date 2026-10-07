@@ -1,8 +1,13 @@
 import { CurrencyCodeSchema } from "@vrs-pay/core";
 import { z } from "zod";
 import { MAX_INTERVAL_COUNT } from "../services/billing-period";
+import { CatalogKeySchema, MAX_TRIAL_DAYS } from "./billing-config.schema";
+import { HTTP_URL, MetadataMap } from "./metadata.schema";
 
 const MAX_PRICES = 10;
+const MAX_FEATURES = 50;
+const MAX_IMAGES = 8;
+const MAX_MARKETING_FEATURES = 15;
 const Name = z.string().trim().min(1).max(100);
 const Description = z.string().trim().max(500);
 
@@ -33,19 +38,46 @@ function checkPeriod(
 /** One price: an amount in minor units, charged once or every N days, weeks, months or years. */
 export const PriceDataSchema = PriceFields.superRefine(checkPeriod);
 
+/** What subscribers get: feature key → true, or a limit like 5 seats. */
+const Features = z
+  .record(CatalogKeySchema, z.union([z.boolean(), z.int().min(0)]))
+  .refine((f) => Object.keys(f).length <= MAX_FEATURES, `At most ${MAX_FEATURES} features`);
+
+/** Trials, features and the extras Stripe products have. */
+const ProductExtras = {
+  /** Free days before the first charge on new subscriptions. */
+  trial_days: z.int().min(0).max(MAX_TRIAL_DAYS),
+  features: Features,
+  images: z.array(HTTP_URL).max(MAX_IMAGES),
+  marketing_features: z
+    .array(z.strictObject({ name: z.string().trim().min(1).max(80) }))
+    .max(MAX_MARKETING_FEATURES),
+  metadata: MetadataMap,
+};
+
 /** `POST /v1/products` — what you sell, with at least one price. */
 export const CreateProductSchema = z.strictObject({
   name: Name,
   description: Description.optional(),
   prices: z.array(PriceDataSchema).min(1).max(MAX_PRICES),
+  trial_days: ProductExtras.trial_days.default(0),
+  features: ProductExtras.features.default({}),
+  images: ProductExtras.images.default([]),
+  marketing_features: ProductExtras.marketing_features.default([]),
+  metadata: ProductExtras.metadata.default({}),
 });
 
-/** `POST /v1/products/:id` — `active: false` archives it. */
+/** `POST /v1/products/:id` — `active: false` archives it. Lists and maps are replaced whole. */
 export const UpdateProductSchema = z
   .strictObject({
     name: Name.optional(),
     description: Description.nullable().optional(),
     active: z.boolean().optional(),
+    trial_days: ProductExtras.trial_days.optional(),
+    features: ProductExtras.features.optional(),
+    images: ProductExtras.images.optional(),
+    marketing_features: ProductExtras.marketing_features.optional(),
+    metadata: ProductExtras.metadata.optional(),
   })
   .refine((v) => Object.keys(v).length > 0, "Send at least one field to change");
 

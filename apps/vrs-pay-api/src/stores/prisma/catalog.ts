@@ -6,7 +6,7 @@ import type {
   Price as PriceRow,
 } from "../../generated/prisma/client";
 import type { Feature, Plan, Price } from "../../services/catalog.types";
-import { toFeatureValues } from "../../services/feature-values";
+import { toFeatureValues, toPlanExtras } from "../../services/feature-values";
 import type { CatalogStore } from "../catalog.store";
 
 function featureFromRow(row: FeatureRow): Feature {
@@ -48,6 +48,7 @@ function planFromRow(row: PlanRow & { prices: PriceRow[] }): Plan {
     payer: row.payer,
     trial_days: row.trialDays,
     features: toFeatureValues(row.features),
+    ...toPlanExtras(row),
     active: row.active,
     source: row.source,
     prices: row.prices.map(priceFromRow),
@@ -89,6 +90,9 @@ export function createPrismaCatalogStore(db: Db): CatalogStore {
             payer: p.payer,
             trialDays: p.trial_days,
             features: p.features,
+            images: p.images,
+            marketingFeatures: p.marketing_features.map(({ name }) => ({ name })),
+            metadata: p.metadata,
             active: p.active,
             source: p.source,
           };

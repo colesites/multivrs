@@ -17,9 +17,41 @@ export function toProductPrice({ plan, ...price }: Price): ProductPrice {
 }
 
 export function toProduct(plan: Plan): Product {
-  const { id, livemode, name, description, active, source, created } = plan;
-  const prices = plan.prices.map(toProductPrice);
-  return { id, object: "product", livemode, name, description, active, source, prices, created };
+  const { id, livemode, name, description, active, trial_days, features, source, created } = plan;
+  const { images, marketing_features, metadata } = plan;
+  return {
+    id,
+    object: "product",
+    livemode,
+    name,
+    description,
+    active,
+    trial_days,
+    features,
+    images,
+    marketing_features,
+    metadata,
+    source,
+    prices: plan.prices.map(toProductPrice),
+    created,
+  };
+}
+
+/** A feature declared in the billing config keeps its type: true/false or a limit. */
+async function assertFeatureTypes(
+  deps: AppDeps,
+  merchant: MerchantContext,
+  features: Plan["features"] | undefined,
+) {
+  if (!features) return;
+  const declared = (await deps.catalog.load(scopeOf(merchant))).features;
+  for (const [key, value] of Object.entries(features)) {
+    const feature = declared.find((f) => f.key === key);
+    if (feature && (feature.type === "boolean") !== (typeof value === "boolean")) {
+      const expected = feature.type === "boolean" ? "true or false" : "a number";
+      throw invalidRequest("feature_type_mismatch", `${key} takes ${expected}.`, `features.${key}`);
+    }
+  }
 }
 
 export async function loadPlans(deps: AppDeps, merchant: MerchantContext) {
@@ -77,14 +109,18 @@ export async function createProduct(
     name: input.name,
     description: input.description || null,
     payer: "user",
-    trial_days: 0,
-    features: {},
+    trial_days: input.trial_days,
+    features: input.features,
+    images: input.images,
+    marketing_features: input.marketing_features,
+    metadata: input.metadata,
     active: true,
     source: "dashboard",
     prices: [],
     created: now,
   };
   for (const price of input.prices) assertChargeable(deps, price.currency);
+  await assertFeatureTypes(deps, merchant, input.features);
   const prices = input.prices.map((p) => newPrice(id, p, livemode, now));
   await deps.catalog.apply(
     scopeOf(merchant),
@@ -100,11 +136,17 @@ export async function updateProduct(
   input: UpdateProductInput,
 ): Promise<Product> {
   const plan = editable(await findPlan(deps, merchant, id));
+  await assertFeatureTypes(deps, merchant, input.features);
   const next: Plan = {
     ...plan,
     name: input.name ?? plan.name,
     description: input.description === undefined ? plan.description : input.description || null,
     active: input.active ?? plan.active,
+    trial_days: input.trial_days ?? plan.trial_days,
+    features: input.features ?? plan.features,
+    images: input.images ?? plan.images,
+    marketing_features: input.marketing_features ?? plan.marketing_features,
+    metadata: input.metadata ?? plan.metadata,
   };
   await deps.catalog.apply(scopeOf(merchant), catalogChanges({ upsertPlans: [next] }));
   return toProduct(next);

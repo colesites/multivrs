@@ -6,7 +6,7 @@ import { PriceFields, readPrice } from "./price-fields";
 import { Field } from "./section-form";
 
 /** A titled card with a form and one button; `submit` returns an error message, if any. */
-function EditCard({
+export function EditCard({
   title,
   description,
   button,

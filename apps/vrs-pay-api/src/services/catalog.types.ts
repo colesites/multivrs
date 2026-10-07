@@ -45,11 +45,26 @@ export interface Plan {
   payer: PlanPayer;
   trial_days: number;
   features: Record<string, FeatureValue>;
+  /** Image URLs for checkout and pricing pages, as on Stripe. */
+  images: string[];
+  /** Selling points for a pricing page ("Unlimited projects"). */
+  marketing_features: MarketingFeature[];
+  metadata: Record<string, string>;
   active: boolean;
   source: ProductSource;
   prices: Price[];
   created: number;
 }
+
+export interface MarketingFeature {
+  name: string;
+}
+
+/** What a new plan starts with: no trial, features or extras. */
+export const NO_EXTRAS = { images: [], marketing_features: [], metadata: {} } satisfies Pick<
+  Plan,
+  "images" | "marketing_features" | "metadata"
+>;
 
 /** A merchant's whole catalog in one mode, inactive plans and prices included. */
 export interface Catalog {

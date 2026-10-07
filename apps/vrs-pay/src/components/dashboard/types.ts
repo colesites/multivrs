@@ -176,6 +176,13 @@ export interface Product {
   name: string;
   description: string | null;
   active: boolean;
+  /** Free days before the first charge on new subscriptions. */
+  trial_days: number;
+  /** What subscribers get: feature key → true, or a limit. */
+  features: Record<string, boolean | number>;
+  images: string[];
+  marketing_features: Array<{ name: string }>;
+  metadata: Record<string, string>;
   /** `config` products come from vrs-pay.config.ts and are read-only here. */
   source: "config" | "dashboard";
   prices: ProductPrice[];
