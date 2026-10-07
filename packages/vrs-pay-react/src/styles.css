@@ -1,0 +1,197 @@
+/*
+ * Optional styles for @vrs-pay/react. Import once:
+ *   import "@vrs-pay/react/styles.css";
+ * Change the look by setting these variables on any parent element.
+ */
+:root {
+  --vrs-font: inherit;
+  --vrs-text: #111827;
+  --vrs-muted: #6b7280;
+  --vrs-surface: #ffffff;
+  --vrs-border: #e5e7eb;
+  --vrs-accent: #6d28d9;
+  --vrs-accent-text: #ffffff;
+  --vrs-danger: #b91c1c;
+  --vrs-radius: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vrs-text: #f3f4f6;
+    --vrs-muted: #9ca3af;
+    --vrs-surface: #111113;
+    --vrs-border: #27272a;
+    --vrs-accent: #8b5cf6;
+    --vrs-danger: #f87171;
+  }
+}
+
+.vrs-pricing,
+.vrs-portal {
+  font-family: var(--vrs-font);
+  color: var(--vrs-text);
+}
+
+.vrs-pricing-periods {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 20px;
+  border: 1px solid var(--vrs-border);
+  border-radius: 999px;
+}
+
+.vrs-pricing-period {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--vrs-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.vrs-pricing-period[aria-selected="true"] {
+  background: var(--vrs-accent);
+  color: var(--vrs-accent-text);
+}
+
+.vrs-pricing-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.vrs-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border: 1px solid var(--vrs-border);
+  border-radius: var(--vrs-radius);
+  background: var(--vrs-surface);
+}
+
+.vrs-plan-image {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.vrs-plan-name {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.vrs-plan-description,
+.vrs-plan-trial,
+.vrs-muted {
+  margin: 0;
+  color: var(--vrs-muted);
+  font-size: 0.875rem;
+}
+
+.vrs-plan-price {
+  margin: 4px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.vrs-plan-features {
+  flex: 1;
+  margin: 8px 0;
+  padding-left: 18px;
+  font-size: 0.875rem;
+}
+
+.vrs-button {
+  padding: 10px 16px;
+  border: 1px solid var(--vrs-accent);
+  border-radius: 8px;
+  background: var(--vrs-accent);
+  color: var(--vrs-accent-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.vrs-button-quiet {
+  border-color: var(--vrs-border);
+  background: transparent;
+  color: var(--vrs-text);
+}
+
+.vrs-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.vrs-error {
+  color: var(--vrs-danger);
+  font-size: 0.875rem;
+}
+
+.vrs-portal-section {
+  margin-bottom: 24px;
+}
+
+.vrs-portal-heading {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.vrs-subscription {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--vrs-border);
+  border-radius: var(--vrs-radius);
+  background: var(--vrs-surface);
+}
+
+.vrs-subscription-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.vrs-status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--vrs-border);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.vrs-status-past_due,
+.vrs-status-open,
+.vrs-status-uncollectible {
+  color: var(--vrs-danger);
+}
+
+.vrs-invoices {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--vrs-border);
+  border-radius: var(--vrs-radius);
+}
+
+.vrs-invoice {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 0.875rem;
+}
+
+.vrs-invoice + .vrs-invoice {
+  border-top: 1px solid var(--vrs-border);
+}
