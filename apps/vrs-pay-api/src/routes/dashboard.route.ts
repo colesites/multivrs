@@ -7,6 +7,7 @@ import { readJson } from "../lib/read-json";
 import { overview } from "../services/analytics.service";
 import { merchantBalance } from "../services/balance.service";
 import { setupWithIdentity, verifyIdentity } from "../services/identity.service";
+import { copyProductToLive } from "../services/product-copy.service";
 import { chargeableCurrencies } from "../services/platform";
 import { accountSetup } from "../services/setup.service";
 import { updateSetup } from "../services/setup-update.service";
@@ -64,6 +65,9 @@ export function dashboardRoutes(deps: AppDeps): Hono<AppEnv> {
       const data = idTypesFor(country).map(({ id, label, hint }) => ({ id, label, hint }));
       return c.json({ object: "list", data });
     })
+    .post("/products/:id/copy-to-live", async (c) =>
+      c.json(await copyProductToLive(deps, c.get("merchant"), c.req.param("id"))),
+    )
     .get("/keys", async (c) => {
       const { id, mode } = c.get("merchant");
       return c.json({ object: "list", data: await deps.merchants.listKeys(id, mode) });

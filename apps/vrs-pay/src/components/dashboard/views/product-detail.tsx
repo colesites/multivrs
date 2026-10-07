@@ -12,6 +12,7 @@ import {
   TableCell,
   TableRow,
 } from "../ui";
+import { CopyToLiveButton } from "./copy-to-live";
 import { PriceLabelsForm } from "./price-labels-form";
 import { PriceSummary } from "./price-summary";
 import { AddPriceForm, ProductDetailsForm } from "./product-edit";
@@ -59,16 +60,19 @@ export function ProductDetail({
         description={product.description ?? undefined}
         action={
           editable && (
-            <Button
-              type="button"
-              disabled={pending}
-              onClick={() =>
-                setActive(`/v1/products/${product.id}`, !product.active)
-              }
-              variant="outline"
-            >
-              {product.active ? "Archive product" : "Restore product"}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <CopyToLiveButton product={product} />
+              <Button
+                type="button"
+                disabled={pending}
+                onClick={() =>
+                  setActive(`/v1/products/${product.id}`, !product.active)
+                }
+                variant="outline"
+              >
+                {product.active ? "Archive product" : "Restore product"}
+              </Button>
+            </div>
           )
         }
       />
