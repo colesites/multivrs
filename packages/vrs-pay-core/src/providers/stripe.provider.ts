@@ -3,18 +3,9 @@ import { PROVIDER_CAPABILITIES } from "./capabilities";
 import type { PaymentProvider } from "./provider.types";
 
 /**
- * Stripe adapter — Connect direct charges on the merchant's connected
- * account, with an application fee. Implementation notes:
- *
- * - createCheckout → `stripe.checkout.sessions.create({ mode: "payment",
- *   line_items, success_url, cancel_url, metadata, payment_intent_data:
- *   { application_fee_amount: platformFee } }, { stripeAccount:
- *   merchantAccountId, idempotencyKey })`
- * - refund → `stripe.refunds.create({ payment_intent }, { stripeAccount,
- *   idempotencyKey })`
- * - parseWebhook → `stripe.webhooks.constructEventAsync(rawBody,
- *   headers.get("stripe-signature"), connectWebhookSecret)`, then map
- *   `checkout.session.completed` / `charge.refunded` → VRS event types.
+ * Placeholder used when no Stripe client is configured. The API supplies
+ * the real adapter (it owns the Stripe SDK and secrets) through
+ * `createProviderRegistry({ stripe })`.
  */
 export function createStripeProvider(): PaymentProvider {
   return {
@@ -28,6 +19,12 @@ export function createStripeProvider(): PaymentProvider {
     },
     async parseWebhook() {
       throw providerNotImplemented("stripe", "parseWebhook");
+    },
+    async ensureCustomer() {
+      throw providerNotImplemented("stripe", "ensureCustomer");
+    },
+    async chargeSaved() {
+      throw providerNotImplemented("stripe", "chargeSaved");
     },
   };
 }

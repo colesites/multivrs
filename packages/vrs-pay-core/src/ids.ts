@@ -10,6 +10,16 @@ export const ID_KINDS = [
   "request",
   "ledgerTransaction",
   "webhookEndpoint",
+  "apiKey",
+  "feature",
+  "product",
+  "plan",
+  "price",
+  "subscription",
+  "invoice",
+  "paymentMethod",
+  "customerSession",
+  "paymentLink",
 ] as const;
 
 export type IdKind = (typeof ID_KINDS)[number];
@@ -25,6 +35,16 @@ export const ID_PREFIXES: Record<IdKind, string> = {
   request: "req",
   ledgerTransaction: "ltx",
   webhookEndpoint: "we",
+  apiKey: "key",
+  feature: "feat",
+  product: "prod",
+  plan: "plan",
+  price: "price",
+  subscription: "sub",
+  invoice: "in",
+  paymentMethod: "pm",
+  customerSession: "sess",
+  paymentLink: "plink",
 };
 
 const ID_BODY_LENGTH = 24;

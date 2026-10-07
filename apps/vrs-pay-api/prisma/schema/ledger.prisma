@@ -1,0 +1,32 @@
+/// Append-only double-entry ledger. Each transaction is balanced per
+/// currency, and posted once per source (payment or refund).
+model LedgerTransaction {
+  id          String   @id
+  mode        Mode
+  sourceType  String   @map("source_type")
+  sourceId    String   @map("source_id")
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  entries LedgerEntry[]
+
+  @@unique([sourceType, sourceId])
+  @@map("ledger_transactions")
+}
+
+model LedgerEntry {
+  id            BigInt @id @default(autoincrement())
+  transactionId String @map("transaction_id")
+  mode          Mode
+  accountKind   String @map("account_kind")
+  accountOwner  String @map("account_owner")
+  direction     String
+  amount        BigInt
+  currency      String @db.Char(3)
+
+  transaction LedgerTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId])
+  @@index([accountKind, accountOwner, mode, currency])
+  @@map("ledger_entries")
+}

@@ -1,23 +1,16 @@
-import type { ApiKeyMode } from "@vrs-pay/core";
+import type { ApiKeyMode, ProviderId } from "@vrs-pay/core";
 import type { CheckoutSession, StoredCheckoutSession } from "../services/checkout-session.types";
+import type { Effects } from "../services/event.types";
 
-/** Checkout sessions, always scoped to merchant + mode. */
+/** Checkout sessions. API reads are always scoped to merchant + mode. */
 export interface CheckoutSessionStore {
   save(record: StoredCheckoutSession): Promise<void>;
   get(merchantId: string, mode: ApiKeyMode, id: string): Promise<CheckoutSession | null>;
-}
-
-/** In-memory store for tests and local dev. */
-export function createMemoryCheckoutSessionStore(): CheckoutSessionStore {
-  const records = new Map<string, StoredCheckoutSession>();
-  return {
-    async save(record) {
-      records.set(record.session.id, record);
-    },
-    async get(merchantId, mode, id) {
-      const record = records.get(id);
-      if (!record || record.merchantId !== merchantId || record.mode !== mode) return null;
-      return record.session;
-    },
-  };
+  /** Webhook lookup by the provider's checkout id. */
+  findByReference(provider: ProviderId, reference: string): Promise<StoredCheckoutSession | null>;
+  /** Marks an open session expired; returns it, or null if it wasn't open. */
+  expire(
+    id: string,
+    effects: (session: StoredCheckoutSession) => Effects,
+  ): Promise<StoredCheckoutSession | null>;
 }

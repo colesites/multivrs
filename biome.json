@@ -9,7 +9,8 @@
       "!**/.turbo",
       "!**/.wrangler",
       "!**/.multivrs-output",
-      "!!packages/backend/convex/_generated"
+      "!!packages/backend/convex/_generated",
+      "!!apps/vrs-pay-api/src/generated"
     ]
   },
   "css": {

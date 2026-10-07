@@ -10,6 +10,8 @@ export const LEDGER_ACCOUNT_KINDS = [
   "platform_fees",
   /** Processing fees charged by the provider. */
   "provider_fees",
+  /** Tax collected on sales, owed to tax authorities. */
+  "tax_payable",
 ] as const;
 
 export type LedgerAccountKind = (typeof LEDGER_ACCOUNT_KINDS)[number];

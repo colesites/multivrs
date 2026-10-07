@@ -1,0 +1,91 @@
+enum SubscriptionStatus {
+  incomplete
+  trialing
+  active
+  past_due
+  canceled
+}
+
+model Subscription {
+  id                 String             @id
+  merchantId         String             @map("merchant_id")
+  mode               Mode
+  customerId         String             @map("customer_id")
+  planId             String             @map("plan_id")
+  priceId            String             @map("price_id")
+  provider           Provider
+  status             SubscriptionStatus @default(incomplete)
+  /// Seats for org plans; 1 otherwise.
+  quantity           Int                @default(1)
+  currentPeriodStart DateTime?          @map("current_period_start")
+  currentPeriodEnd   DateTime?          @map("current_period_end")
+  trialEnd           DateTime?          @map("trial_end")
+  cancelAtPeriodEnd  Boolean            @default(false) @map("cancel_at_period_end")
+  canceledAt         DateTime?          @map("canceled_at")
+  /// A downgrade waiting for the period to end.
+  pendingPriceId     String?            @map("pending_price_id")
+  pendingQuantity    Int?               @map("pending_quantity")
+  /// Bumped on every write; updates only apply to the version they read.
+  version            Int                @default(0)
+  paymentMethodId    String?            @map("payment_method_id")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  customer      Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  plan          Plan           @relation(fields: [planId], references: [id])
+  price         Price          @relation(fields: [priceId], references: [id])
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  invoices      Invoice[]
+
+  @@index([customerId])
+  @@index([status, currentPeriodEnd])
+  @@map("subscriptions")
+}
+
+enum InvoiceReason {
+  subscription_create
+  subscription_cycle
+  subscription_update
+}
+
+enum InvoiceStatus {
+  draft
+  open
+  paid
+  void
+  uncollectible
+}
+
+model Invoice {
+  id             String        @id
+  merchantId     String        @map("merchant_id")
+  mode           Mode
+  customerId     String        @map("customer_id")
+  subscriptionId String?       @map("subscription_id")
+  status         InvoiceStatus @default(draft)
+  billingReason  InvoiceReason @default(subscription_cycle) @map("billing_reason")
+  currency       String        @db.Char(3)
+  subtotal       BigInt        @default(0)
+  tax            BigInt        @default(0)
+  total          BigInt
+  /// Line items: [{ description, amount, quantity, period }].
+  lines          Json          @default("[]")
+  periodStart    DateTime      @map("period_start")
+  periodEnd      DateTime      @map("period_end")
+  attemptCount   Int           @default(0) @map("attempt_count")
+  nextAttemptAt  DateTime?     @map("next_attempt_at")
+  paymentId      String?       @unique @map("payment_id")
+  paidAt         DateTime?     @map("paid_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  merchant     Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  /// One invoice per subscription period and reason: a renewal can never charge twice.
+  @@unique([subscriptionId, periodStart, billingReason])
+  @@index([status, nextAttemptAt])
+  @@map("invoices")
+}

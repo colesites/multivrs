@@ -1,5 +1,11 @@
 import type { CurrencyCode } from "../money/currency";
 import type { Money } from "../money/money.types";
+import type {
+  ChargeSavedInput,
+  ChargeSavedResult,
+  ProviderCustomerInput,
+} from "./provider-billing.types";
+import type { ProviderRefundStatus, ProviderWebhookEvent } from "./provider-events.types";
 
 export const PROVIDER_IDS = ["stripe", "paystack", "flutterwave"] as const;
 export type ProviderId = (typeof PROVIDER_IDS)[number];
@@ -21,11 +27,15 @@ export interface ProviderCapabilities {
 }
 
 export interface ProviderCheckoutInput {
-  /** Stripe connected account (`acct_…`) or Paystack/Flutterwave subaccount. */
-  merchantAccountId: string;
+  /** A merchant's own provider account, or null to charge on the platform account. */
+  merchantAccountId: string | null;
+  /** Shown on the customer's statement after the platform's prefix (merchant name). */
+  statementDescriptor?: string;
   sessionId: string;
   amount: Money;
   method: PaymentMethod;
+  /** What the customer sees on the payment page. */
+  description?: string;
   /** VRS Pay's application fee, taken by the provider at charge time. */
   platformFee: Money;
   successUrl: string;
@@ -34,6 +44,12 @@ export interface ProviderCheckoutInput {
   metadata: Record<string, string>;
   /** Forwarded so provider calls are idempotent too. */
   idempotencyKey: string;
+  /** `setup` saves a card without charging (e.g. to start a trial). */
+  mode?: "payment" | "setup";
+  /** The provider-side customer the saved card is attached to. */
+  providerCustomer?: string;
+  /** Save the card for later off-session charges (subscriptions). */
+  saveMethod?: boolean;
 }
 
 export interface ProviderCheckout {
@@ -45,26 +61,22 @@ export interface ProviderCheckout {
 }
 
 export interface ProviderRefundInput {
-  merchantAccountId: string;
+  merchantAccountId: string | null;
   paymentReference: string;
   amount: Money;
+  /** Our `re_…` id, sent as metadata so webhooks can be matched back. */
+  refundId: string;
+  reason?: RefundReason;
   idempotencyKey: string;
 }
+
+export const REFUND_REASONS = ["duplicate", "fraudulent", "requested_by_customer"] as const;
+export type RefundReason = (typeof REFUND_REASONS)[number];
 
 export interface ProviderRefund {
   provider: ProviderId;
   reference: string;
-  status: "pending" | "succeeded" | "failed";
-}
-
-/** A provider webhook normalized into VRS terms (e.g. `payment.succeeded`). */
-export interface ProviderWebhookEvent {
-  provider: ProviderId;
-  /** Provider's event id — used to de-duplicate deliveries. */
-  id: string;
-  type: string;
-  occurredAt: number;
-  data: Record<string, unknown>;
+  status: ProviderRefundStatus;
 }
 
 /**
@@ -77,6 +89,10 @@ export interface PaymentProvider {
   createCheckout(input: ProviderCheckoutInput): Promise<ProviderCheckout>;
   refund(input: ProviderRefundInput): Promise<ProviderRefund>;
   parseWebhook(input: { rawBody: string; headers: Headers }): Promise<ProviderWebhookEvent>;
+  /** Creates the customer's record on the merchant's account; returns its id. */
+  ensureCustomer(input: ProviderCustomerInput): Promise<{ reference: string }>;
+  /** Charges a saved method with nobody present (renewals, upgrades). */
+  chargeSaved(input: ChargeSavedInput): Promise<ChargeSavedResult>;
 }
 
 export type ProviderRegistry = Readonly<Record<ProviderId, PaymentProvider>>;

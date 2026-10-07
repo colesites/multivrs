@@ -9,6 +9,7 @@ export type ErrorType =
   | "authentication_error"
   | "idempotency_error"
   | "provider_error"
+  | "card_error"
   | "api_error";
 
 export interface VrsPayErrorInit {
@@ -85,4 +86,32 @@ export function resourceMissing(resource: string, id: string): VrsPayError {
     status: 404,
     param: "id",
   });
+}
+
+/**
+ * A provider rejected or failed a call; `message` is safe to show the
+ * merchant. `retryable` marks network/outage failures where the provider
+ * may still have acted on the request.
+ */
+export function providerRequestFailed(
+  provider: string,
+  operation: string,
+  message: string,
+  retryable = false,
+): VrsPayError {
+  return new VrsPayError({
+    type: "provider_error",
+    code: "provider_request_failed",
+    message: `${provider} ${operation} failed: ${message}`,
+    status: 502,
+    details: { provider, operation, retryable },
+  });
+}
+
+/** The customer's card was declined or needs them to authenticate (402). */
+export function cardError(
+  code: "card_declined" | "authentication_required",
+  message: string,
+): VrsPayError {
+  return new VrsPayError({ type: "card_error", code, message, status: 402 });
 }

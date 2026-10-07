@@ -19,12 +19,14 @@ describe("POST /v1/checkout/sessions", () => {
       currency: "gbp",
       payment_method: "card",
       provider: "stripe",
-      platform_fee: 73,
+      platform_fee: 285,
     });
     expect(session.id).toMatch(/^cs_/);
     expect(session.url).toBe(`https://pay.test/stripe/${session.id}`);
-    expect(stripe.calls[0]?.merchantAccountId).toBe("acct_1");
-    expect(stripe.calls[0]?.platformFee).toEqual({ amount: 73, currency: "GBP" });
+    // Charged on the platform account, with the merchant's name on the statement.
+    expect(stripe.calls[0]?.merchantAccountId).toBeNull();
+    expect(stripe.calls[0]?.statementDescriptor).toBe("Acme Ltd");
+    expect(stripe.calls[0]?.platformFee).toEqual({ amount: 285, currency: "GBP" });
   });
 
   test("naira bank transfers route to Paystack", async () => {

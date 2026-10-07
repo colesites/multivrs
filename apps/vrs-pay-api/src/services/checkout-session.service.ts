@@ -1,44 +1,34 @@
-import {
-  calculatePlatformFee,
-  invalidRequest,
-  money,
-  newId,
-  resourceMissing,
-  routePayment,
-} from "@vrs-pay/core";
+import { money, newId, resourceMissing } from "@vrs-pay/core";
 import type { AppDeps, MerchantContext } from "../app.types";
 import type { CreateCheckoutSessionInput } from "../routes/checkout-session.schema";
 import type { CheckoutSession } from "./checkout-session.types";
+import { assertCanCharge } from "./live-gate";
+import { feeFor, providersFor, routeOnPlatform } from "./platform";
 
 /**
- * Creates a hosted checkout: route to the best connected provider, take our
- * fee, ask the provider for a payment page, store the session.
+ * Creates a hosted checkout on the platform's provider account: route to
+ * the best provider for the currency and method, work out our fee, ask the
+ * provider for a payment page, store the session.
  */
 export async function createCheckoutSession(
   deps: AppDeps,
   merchant: MerchantContext,
   input: CreateCheckoutSessionInput,
   idempotencyKey?: string,
+  paymentLinkId: string | null = null,
 ): Promise<CheckoutSession> {
+  await assertCanCharge(deps, merchant);
   const amount = money(input.amount, input.currency);
-  const connected = merchant.enabledProviders.filter((p) => merchant.providerAccounts[p]);
-  const route = routePayment({
-    currency: input.currency,
-    method: input.payment_method,
-    enabledProviders: connected,
-  });
-  const merchantAccountId = merchant.providerAccounts[route.provider];
-  if (!merchantAccountId) {
-    throw invalidRequest("provider_account_missing", `Not connected to ${route.provider}.`);
-  }
-
+  const route = routeOnPlatform(deps, merchant.mode, input.currency, input.payment_method);
   const id = newId("checkoutSession");
-  const platformFee = calculatePlatformFee(amount, merchant.platformFeeBps);
-  const checkout = await deps.providers[route.provider].createCheckout({
-    merchantAccountId,
+  const platformFee = feeFor(merchant, amount);
+  const checkout = await providersFor(deps, merchant.mode)[route.provider].createCheckout({
+    merchantAccountId: null,
+    statementDescriptor: merchant.name,
     sessionId: id,
     amount,
     method: input.payment_method,
+    description: input.description,
     platformFee,
     successUrl: input.success_url,
     cancelUrl: input.cancel_url,
@@ -52,9 +42,14 @@ export async function createCheckoutSession(
     object: "checkout.session",
     livemode: merchant.mode === "live",
     status: "open",
+    mode: "payment",
+    customer: null,
+    subscription: null,
+    payment_link: paymentLinkId,
     amount: amount.amount,
     currency: amount.currency.toLowerCase(),
     payment_method: input.payment_method,
+    description: input.description ?? null,
     provider: checkout.provider,
     provider_reference: checkout.reference,
     url: checkout.url,

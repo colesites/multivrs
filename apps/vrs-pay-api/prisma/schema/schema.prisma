@@ -1,0 +1,26 @@
+// The VRS Pay database (its own Supabase project). Amounts are BigInt minor
+// units; currencies are uppercase ISO 4217 codes.
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Generated into src/generated so it can't collide with apps/web's
+// @prisma/client output.
+generator client {
+  provider     = "prisma-client"
+  output       = "../../src/generated/prisma"
+  runtime      = "bun"
+  moduleFormat = "esm"
+}
+
+enum Mode {
+  test
+  live
+}
+
+enum Provider {
+  stripe
+  paystack
+  flutterwave
+}
