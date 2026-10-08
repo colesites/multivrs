@@ -6,9 +6,10 @@ export function formatMoney(amount: number, currency: string): string {
   const code = currency.toLowerCase();
   const value = ZERO_DECIMAL.has(code) ? amount : amount / 100;
   try {
-    return new Intl.NumberFormat("en-GB", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: code.toUpperCase(),
+      currencyDisplay: "narrowSymbol",
     }).format(value);
   } catch {
     return `${value.toFixed(2)} ${code.toUpperCase()}`;

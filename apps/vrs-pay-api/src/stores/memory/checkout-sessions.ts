@@ -26,5 +26,16 @@ export function createMemoryCheckoutSessionStore(state: MemoryState): CheckoutSe
       if (updated) applyEffects(state, effects(updated));
       return updated;
     },
+    async metrics(merchantId, mode, since) {
+      const records = [...state.sessions.values()].filter(
+        (r) =>
+          r.merchantId === merchantId &&
+          r.mode === mode &&
+          (!since || r.session.created >= since),
+      );
+      const total = records.length;
+      const completed = records.filter((r) => r.session.status === "complete").length;
+      return { total, completed };
+    },
   };
 }

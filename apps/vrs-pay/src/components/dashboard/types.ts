@@ -93,9 +93,26 @@ export interface AccountSetup {
   };
 }
 
+export interface IncomingScheduleItem {
+  date: string;
+  display_date: string;
+  amount: number;
+  count: number;
+}
+
+export interface CurrencyBalance {
+  currency: string;
+  available: number;
+  pending: number;
+  incoming_schedule?: IncomingScheduleItem[];
+}
+
 export interface Balance {
   hold_days: number;
-  data: Array<{ currency: string; available: number; pending: number }>;
+  speed_label?: string;
+  category?: "domestic_accelerated" | "standard" | "cross_border";
+  description?: string;
+  data: CurrencyBalance[];
 }
 
 export interface List<T> {
@@ -123,6 +140,7 @@ export interface Customer {
   type: "user" | "org";
   email: string | null;
   name: string | null;
+  metadata?: Record<string, string>;
   created: number;
 }
 
@@ -218,6 +236,12 @@ export interface Overview {
     trialing: number;
     past_due: number;
     canceled_30d: number;
+  };
+  orders?: number;
+  checkouts?: {
+    total: number;
+    completed: number;
+    conversion_rate: number;
   };
   customers: { total: number; new_30d: number };
   recent_payments: Payment[];

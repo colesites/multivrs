@@ -25,6 +25,8 @@ export interface CheckoutCompletedData {
   /** Zero when the provider settled in another currency or hasn't reported it yet. */
   providerFee: Money;
   customerEmail: string | null;
+  customerName?: string | null;
+  customerCountry?: string | null;
   /** Set when the checkout saved the card for later charges. */
   savedMethod: SavedMethod | null;
   providerCustomer: string | null;
@@ -34,6 +36,9 @@ export interface CheckoutCompletedData {
 export interface CheckoutSetupData {
   sessionReference: string;
   sessionId: string | null;
+  customerEmail?: string | null;
+  customerName?: string | null;
+  customerCountry?: string | null;
   providerCustomer: string | null;
   savedMethod: SavedMethod;
 }

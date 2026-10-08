@@ -13,4 +13,10 @@ export interface CheckoutSessionStore {
     id: string,
     effects: (session: StoredCheckoutSession) => Effects,
   ): Promise<StoredCheckoutSession | null>;
+  /** Metrics for conversion rate calculation. */
+  metrics(
+    merchantId: string,
+    mode: ApiKeyMode,
+    since?: number,
+  ): Promise<{ total: number; completed: number }>;
 }

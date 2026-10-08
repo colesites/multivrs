@@ -32,18 +32,20 @@ export function DashboardTopbar({
   const mailStore = useGlobalMailStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-2.5 border-b border-(--hairline) bg-(--ink)/80 px-5 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 flex h-14 w-full min-w-0 max-w-full items-center gap-2 sm:gap-2.5 border-b border-(--hairline) bg-(--ink)/80 px-3 sm:px-5 backdrop-blur-xl">
       {mobileNavigation}
-      {projects ? (
-        <ProjectScopeSwitcher projects={projects} />
-      ) : (
-        <ProjectScopeSwitcher />
-      )}
-      <ChevronRight className="size-3.5 text-muted-foreground/40" />
-      <span className="text-[13px] font-medium text-foreground">{section}</span>
+      <div className="flex min-w-0 items-center gap-1.5 sm:gap-2.5">
+        {projects ? (
+          <ProjectScopeSwitcher projects={projects} />
+        ) : (
+          <ProjectScopeSwitcher />
+        )}
+        <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/40" />
+        <span className="truncate text-[13px] font-medium text-foreground">{section}</span>
+      </div>
 
       {activeSlug === "emails" && mailStore ? (
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <DashboardSearchInput
             aria-label="Search mail"
             containerClassName="hidden w-full max-w-xs sm:flex"
@@ -53,7 +55,7 @@ export function DashboardTopbar({
             value={mailStore.query}
           />
           <Button
-            className="flex h-8 w-8 px-0 sm:w-auto sm:px-3 bg-foreground text-background hover:bg-foreground/90"
+            className="flex h-8 w-8 px-0 sm:w-auto sm:px-3 bg-foreground text-background hover:bg-foreground/90 shrink-0"
             onClick={mailStore.openCompose}
             size="sm"
           >

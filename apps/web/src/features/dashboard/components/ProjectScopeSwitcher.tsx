@@ -56,10 +56,10 @@ export function ProjectScopeSwitcher({
           type="button"
           className="flex h-8 items-center gap-2 rounded-lg border border-[var(--hairline)] bg-white/[0.02] px-2.5 text-[13px] font-medium text-foreground transition-colors hover:border-[var(--hairline-strong)] hover:bg-white/[0.04]"
         >
-          <span className="max-w-[180px] truncate">
+          <span className="max-w-[110px] sm:max-w-[180px] truncate">
             {isAllProjects ? "All Projects" : scope}
           </span>
-          <ChevronsUpDown className="size-3.5 text-muted-foreground/70" />
+          <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground/70" />
         </button>
       </DropdownMenuTrigger>
       <ProjectScopeMenu

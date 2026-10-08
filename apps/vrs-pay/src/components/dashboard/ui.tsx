@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card as UiCard } from "@/components/ui/card";
 import {
@@ -17,6 +17,14 @@ import {
 
 /** The dashboard's building blocks, all swift-rust ui underneath. */
 export { Button } from "@/components/ui/button";
+export {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 export { Input } from "@/components/ui/input";
 export { NativeSelect } from "@/components/ui/native-select";
 export { TableCell, TableRow } from "@/components/ui/table";
@@ -52,14 +60,13 @@ export function PageHeader({
 export function Card({
   children,
   className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+  ...props
+}: ComponentProps<typeof UiCard>) {
   return (
     // swift-rust's Card is a flex column; ours default to block and set their own layout.
     <UiCard
       className={`block flex-row rounded-2xl p-5 shadow-none ${className}`}
+      {...props}
     >
       {children}
     </UiCard>

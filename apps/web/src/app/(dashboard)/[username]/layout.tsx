@@ -49,9 +49,9 @@ export default async function AccountLayout({
         }}
         workspaceName={username}
       />
-      <div className="lg:pl-67">
+      <div className="lg:pl-67 min-w-0 max-w-full">
         <div className="h-14" aria-hidden="true" />
-        <main className="min-h-[calc(100vh-3.5rem)]">{children}</main>
+        <main className="min-h-[calc(100vh-3.5rem)] min-w-0 max-w-full">{children}</main>
       </div>
       <Suspense fallback={null}>
         <UpgradeSheet

@@ -47,14 +47,14 @@ export function MailResourcePage({
   if (view === "analytics") return <MailAnalytics data={data} />;
   if (view === "settings") return <MailSettings />;
   return (
-    <div className="w-full space-y-6 px-5 py-8 lg:px-8">
+    <div className="w-full min-w-0 max-w-full space-y-6 px-4 py-6 sm:px-5 sm:py-8 lg:px-8">
       <header className="flex items-end justify-between gap-5">
         <p className="max-w-2xl text-sm leading-6 text-black/60 dark:text-white/60">
           {descriptions[view]}
         </p>
         {isCreateMailView(view) ? (
           <Button
-            className="bg-foreground text-background hover:bg-foreground/90"
+            className="bg-foreground text-background hover:bg-foreground/90 shrink-0"
             onClick={() => setCreating(true)}
           >
             <Plus />
@@ -62,16 +62,18 @@ export function MailResourcePage({
           </Button>
         ) : null}
       </header>
-      <section className="overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black">
-        <div className="grid grid-cols-[1.4fr_.9fr_.45fr_32px] border-b border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-4 py-2.5 font-mono text-[9px] uppercase tracking-[0.13em] text-black/80 dark:text-white/80">
-          <span>Name</span>
-          <span>Detail</span>
-          <span>Status</span>
-          <span />
+      <section className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black">
+        <div className="min-w-[480px]">
+          <div className="grid grid-cols-[1.4fr_.9fr_.45fr_32px] border-b border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-4 py-2.5 font-mono text-[9px] uppercase tracking-[0.13em] text-black/80 dark:text-white/80">
+            <span>Name</span>
+            <span>Detail</span>
+            <span>Status</span>
+            <span />
+          </div>
+          {items.map((item) => (
+            <MailResourceRow item={item} key={item.id} view={view} />
+          ))}
         </div>
-        {items.map((item) => (
-          <MailResourceRow item={item} key={item.id} view={view} />
-        ))}
         {!items.length ? (
           <div className="grid min-h-64 place-items-center text-center">
             <div>

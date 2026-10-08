@@ -29,7 +29,18 @@ async function handle(
       const session = await ownedSession(deps, owner, provider, event.data.sessionReference);
       if (!session) return "ignored";
       if (session.session.mode !== "subscription") {
-        return recordCheckoutPayment(deps, session, provider, account, event.data);
+        const outcome = await recordCheckoutPayment(deps, session, provider, account, event.data);
+        if (outcome === "processed") {
+          await fillMissingEmail(
+            deps,
+            session,
+            session.session.customer,
+            event.data.customerEmail,
+            event.data.customerName,
+            event.data.customerCountry,
+          );
+        }
+        return outcome;
       }
       const outcome = await activateSubscription(
         deps,
@@ -39,14 +50,32 @@ async function handle(
         event.data,
       );
       if (outcome === "processed") {
-        await fillMissingEmail(deps, session, session.session.customer, event.data.customerEmail);
+        await fillMissingEmail(
+          deps,
+          session,
+          session.session.customer,
+          event.data.customerEmail,
+          event.data.customerName,
+          event.data.customerCountry,
+        );
       }
       return outcome;
     }
     case "checkout.setup_completed": {
       const session = await ownedSession(deps, owner, provider, event.data.sessionReference);
       if (session?.session.mode !== "subscription") return "ignored";
-      return activateSubscription(deps, session, account, event.data.savedMethod, null);
+      const outcome = await activateSubscription(deps, session, account, event.data.savedMethod, null);
+      if (outcome === "processed") {
+        await fillMissingEmail(
+          deps,
+          session,
+          session.session.customer,
+          event.data.customerEmail,
+          event.data.customerName,
+          event.data.customerCountry,
+        );
+      }
+      return outcome;
     }
     case "refund.updated":
       return syncRefund(deps, owner, provider, event.data);

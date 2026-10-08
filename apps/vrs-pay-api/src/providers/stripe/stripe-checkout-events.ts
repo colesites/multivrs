@@ -41,6 +41,9 @@ async function setupCompleted(
     data: {
       sessionReference: session.id,
       sessionId: sessionIdOf(session),
+      customerEmail: session.customer_details?.email ?? null,
+      customerName: session.customer_details?.name ?? null,
+      customerCountry: session.customer_details?.address?.country ?? null,
       providerCustomer: idOf(session.customer),
       savedMethod,
     },
@@ -73,6 +76,8 @@ export async function checkoutCompleted(
       platformFee: details.platformFee,
       providerFee: details.providerFee,
       customerEmail: session.customer_details?.email ?? null,
+      customerName: session.customer_details?.name ?? null,
+      customerCountry: session.customer_details?.address?.country ?? null,
       savedMethod: details.savedMethod,
       providerCustomer: idOf(session.customer),
     },

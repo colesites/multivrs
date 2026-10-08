@@ -55,19 +55,20 @@ export async function overview(deps: AppDeps, merchant: MerchantContext) {
   const now = Math.floor(Date.now() / 1000);
   const since = now - WINDOW_DAYS * DAY;
   const scope = { merchantId: merchant.id, mode: merchant.mode };
-  const [payments, refunds, subscriptions, customers, catalog] = await Promise.all([
+  const [payments, refunds, subscriptions, customers, catalog, checkoutMetrics] = await Promise.all([
     deps.payments.list(merchant.id, merchant.mode, SAMPLE),
     deps.refunds.list(merchant.id, merchant.mode, SAMPLE),
     deps.billing.listSubscriptions(scope),
     deps.customers.list(merchant.id, merchant.mode, SAMPLE),
     deps.catalog.load(scope),
+    deps.checkoutSessions.metrics(merchant.id, merchant.mode, since),
   ]);
   const recent = payments.map((p) => p.payment).filter((p) => p.created >= since);
   const totals = totalsByCurrency(
     recent,
     refunds.map((r) => r.refund).filter((r) => r.created >= since),
   );
-  const primary = totals[0]?.currency ?? "gbp";
+  const primary = totals[0]?.currency ?? "usd";
 
   // Calendar days (UTC) ending today, so today's payments land on today's label.
   const today = now - (now % DAY);
@@ -97,6 +98,12 @@ export async function overview(deps: AppDeps, merchant: MerchantContext) {
     mrr.set(s.currency, (mrr.get(s.currency) ?? 0) + monthly);
   }
 
+  const successfulRecentPayments = recent.filter((p) => p.status === "succeeded");
+  const completed = Math.max(checkoutMetrics.completed, successfulRecentPayments.length);
+  const totalCheckouts = Math.max(checkoutMetrics.total, completed);
+  const conversionRate = totalCheckouts > 0 ? Math.round((completed / totalCheckouts) * 100) : 0;
+  const orders = successfulRecentPayments.length;
+
   return {
     object: "overview" as const,
     window_days: WINDOW_DAYS,
@@ -105,6 +112,12 @@ export async function overview(deps: AppDeps, merchant: MerchantContext) {
     daily,
     mrr: [...mrr.entries()].map(([currency, amount]) => ({ currency, amount })),
     subscriptions: counts,
+    orders,
+    checkouts: {
+      total: totalCheckouts,
+      completed,
+      conversion_rate: conversionRate,
+    },
     customers: {
       total: customers.length,
       new_30d: customers.filter((c) => c.customer.created >= since).length,

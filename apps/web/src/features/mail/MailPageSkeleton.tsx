@@ -3,20 +3,20 @@ export function MailPageSkeleton() {
     <div
       aria-label="Loading mail"
       role="status"
-      className="w-full animate-pulse space-y-8 px-5 py-8 lg:px-8"
+      className="w-full min-w-0 max-w-full animate-pulse space-y-6 sm:space-y-8 px-4 py-6 sm:px-5 sm:py-8 lg:px-8"
     >
-      <section className="h-53 w-full rounded-2xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5" />
-      <section className="grid gap-px overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-black/10 dark:bg-white/10 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="h-53 w-full min-w-0 max-w-full rounded-2xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5" />
+      <section className="grid grid-cols-2 lg:grid-cols-4 min-w-0 max-w-full gap-px overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-black/10 dark:bg-white/10">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-white dark:bg-black p-5">
+          <div key={i} className="bg-white dark:bg-black p-4 sm:p-5 min-w-0">
             <div className="size-4 rounded bg-black/5 dark:bg-white/5" />
-            <div className="mt-5 h-8 w-24 rounded bg-black/5 dark:bg-white/5" />
+            <div className="mt-3 sm:mt-5 h-8 w-24 rounded bg-black/5 dark:bg-white/5" />
             <div className="mt-2 h-3 w-16 rounded bg-black/5 dark:bg-white/5" />
           </div>
         ))}
       </section>
-      <section className="grid gap-4 md:grid-cols-[1.35fr_.65fr]">
-        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black">
+      <section className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px] lg:grid-cols-[minmax(0,1fr)_320px] gap-4 min-w-0 max-w-full">
+        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black min-w-0 max-w-full overflow-hidden">
           <div className="border-b border-black/10 dark:border-white/10 p-4">
             <div className="h-5 w-40 rounded bg-black/5 dark:bg-white/5" />
             <div className="mt-2 h-3 w-56 rounded bg-black/5 dark:bg-white/5" />
@@ -34,13 +34,13 @@ export function MailPageSkeleton() {
             </div>
           ))}
         </div>
-        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-5">
+        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-4 sm:p-5 min-w-0 max-w-full">
           <div className="h-3 w-24 rounded bg-black/5 dark:bg-white/5" />
           <div className="mt-6 space-y-5">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-3"
+                className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-3 gap-3 min-w-0"
               >
                 <div className="h-3 w-28 rounded bg-black/5 dark:bg-white/5" />
                 <div className="h-3 w-10 rounded bg-black/5 dark:bg-white/5" />

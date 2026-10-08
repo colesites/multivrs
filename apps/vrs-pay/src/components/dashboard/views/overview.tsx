@@ -39,13 +39,17 @@ function OverviewBody({ data }: { data: Overview }) {
   const main = data.totals[0];
   const currency = data.currency;
   const mrr = data.mrr.find((m) => m.currency === currency) ?? data.mrr[0];
+  const orders = data.orders ?? main?.payments ?? 0;
+  const totalCheckouts = data.checkouts?.total ?? orders;
+  const completedCheckouts = data.checkouts?.completed ?? orders;
+  const conversionRate = data.checkouts?.conversion_rate ?? (totalCheckouts > 0 ? Math.round((completedCheckouts / totalCheckouts) * 100) : 0);
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Stat
           label="Gross volume"
           value={formatMoney(main?.gross ?? 0, currency)}
-          hint={`${main?.payments ?? 0} payments`}
+          hint={`${orders} orders`}
         />
         <Stat
           label="Net revenue"
@@ -53,14 +57,24 @@ function OverviewBody({ data }: { data: Overview }) {
           hint="After refunds and fees"
         />
         <Stat
-          label="MRR"
+          label="Monthly Recurring Revenue (MRR)"
           value={formatMoney(mrr?.amount ?? 0, mrr?.currency ?? currency)}
           hint={`${data.subscriptions.active} active subscriptions`}
         />
         <Stat
-          label="Customers"
-          value={String(data.customers.total)}
-          hint={`${data.customers.new_30d} new this month`}
+          label="Active subscriptions"
+          value={String(data.subscriptions.active)}
+          hint={`${data.subscriptions.trialing} trialing · ${data.subscriptions.past_due} past due`}
+        />
+        <Stat
+          label="Orders"
+          value={String(orders)}
+          hint="Completed payments"
+        />
+        <Stat
+          label="Checkouts conversion rate"
+          value={`${conversionRate}%`}
+          hint={totalCheckouts > 0 ? `${completedCheckouts} of ${totalCheckouts} completed` : "No checkout visits yet"}
         />
       </div>
       <Card>

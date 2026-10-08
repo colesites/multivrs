@@ -45,7 +45,7 @@ async function AuthenticatedDashboard({
 
   return (
     <div
-      className={`${hankenGrotesk.variable} ${geistMono.variable} dashboard-shell`}
+      className={`${hankenGrotesk.variable} ${geistMono.variable} dashboard-shell min-w-0 max-w-full overflow-x-clip`}
     >
       {/* TODO: dashboard nav / team switcher goes here */}
       {children}

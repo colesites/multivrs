@@ -55,5 +55,17 @@ export function createPrismaCheckoutSessionStore(db: Db): CheckoutSessionStore {
         return updated;
       });
     },
+    async metrics(merchantId, mode, since) {
+      const where = {
+        merchantId,
+        mode,
+        ...(since ? { createdAt: { gte: new Date(since * 1000) } } : {}),
+      };
+      const [total, completed] = await Promise.all([
+        db.checkoutSession.count({ where }),
+        db.checkoutSession.count({ where: { ...where, status: "complete" } }),
+      ]);
+      return { total, completed };
+    },
   };
 }

@@ -1,3 +1,4 @@
+import { resourceMissing } from "@vrs-pay/core";
 import { Hono } from "hono";
 import type { AppDeps, AppEnv } from "../app.types";
 import { listLimit } from "../lib/list-limit";
@@ -37,6 +38,13 @@ export function customerRoutes(deps: AppDeps): Hono<AppEnv> {
     .post("/:id", async (c) => {
       const patch = UpdateCustomerSchema.parse(await readJson(c));
       return c.json(await updateCustomer(deps, c.get("merchant"), c.req.param("id"), patch));
+    })
+    .delete("/:id", async (c) => {
+      const merchant = c.get("merchant");
+      const id = c.req.param("id");
+      const removed = await deps.customers.remove(merchant.id, merchant.mode, id);
+      if (!removed) throw resourceMissing("customer", id);
+      return c.json({ id, object: "customer" as const, deleted: true });
     });
 }
 

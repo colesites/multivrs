@@ -61,19 +61,30 @@ export async function findCustomer(deps: AppDeps, merchant: MerchantContext, ext
   return record.customer;
 }
 
-/** Customers made by a payment link start without an email; their checkout fills it in. */
-export async function fillMissingEmail(
+/** Customers made by a payment link start without an email or name; their checkout fills it in. */
+export async function fillMissingCustomerDetails(
   deps: AppDeps,
   scope: { merchantId: string; mode: MerchantContext["mode"] },
   customerId: string | null,
   email: string | null,
+  name?: string | null,
+  country?: string | null,
 ) {
-  if (!customerId || !email) return;
+  if (!customerId) return;
   const record = await deps.customers.get(scope.merchantId, scope.mode, customerId);
-  if (record && !record.customer.email) {
-    await deps.customers.update(scope.merchantId, scope.mode, customerId, { email });
+  if (!record) return;
+  const patch: CustomerPatch = {};
+  if (email && !record.customer.email) patch.email = email;
+  if (name && !record.customer.name) patch.name = name;
+  if (country && !record.customer.metadata?.country) {
+    patch.metadata = { ...(record.customer.metadata ?? {}), country };
+  }
+  if (Object.keys(patch).length > 0) {
+    await deps.customers.update(scope.merchantId, scope.mode, customerId, patch);
   }
 }
+
+export const fillMissingEmail = fillMissingCustomerDetails;
 
 export async function updateCustomer(
   deps: AppDeps,
