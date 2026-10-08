@@ -78,6 +78,7 @@ export function MailOverview({
               <div className="flex w-full min-w-0 max-w-full items-center gap-3">
                 <SenderAvatar
                   address={thread.correspondent}
+                  name={thread.correspondentName}
                   size="md"
                   className="hidden sm:grid shrink-0"
                 />

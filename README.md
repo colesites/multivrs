@@ -39,7 +39,6 @@ multivrs/
 ├── apps/
 │   ├── build-worker/     # Compiles and optimizes user projects
 │   ├── compute-worker/   # Runs edge compute workloads
-│   ├── mail-inbound/     # Webhook handler for incoming mail (Resend)
 │   ├── mail-smtp/        # Outbound SMTP service
 │   ├── mail-worker/      # Mail delivery worker queue
 │   ├── serve-worker/     # Serves apps, sites, and static assets

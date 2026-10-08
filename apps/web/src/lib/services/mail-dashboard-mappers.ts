@@ -1,3 +1,4 @@
+import { sanitizeMailHtml } from "@/lib/mail/sanitize-html";
 import type {
   MailMessageDetail,
   MailResourceItem,
@@ -12,6 +13,7 @@ interface ThreadRow {
   lastMessageAt: Date;
   assignedTo: { name: string } | null;
   messages: Array<{
+    fromName?: string | null;
     fromAddress: string;
     textBody: string | null;
     isRead: boolean;
@@ -32,6 +34,7 @@ export function mapThread(row: ThreadRow): MailThreadSummary {
     starred: latest?.isStarred ?? false,
     preview: latest?.textBody?.slice(0, 180) ?? "No message preview",
     correspondent: latest?.fromAddress ?? "Unknown sender",
+    correspondentName: latest?.fromName ?? undefined,
   };
 }
 
@@ -48,6 +51,7 @@ export function mapMessage(row: {
   subject: string;
   textBody: string | null;
   sanitizedHtml: string | null;
+  htmlBody?: string | null;
   sentAt: Date | null;
   receivedAt: Date | null;
   createdAt: Date;
@@ -57,8 +61,15 @@ export function mapMessage(row: {
     contentType: string;
     size: number;
     contentBase64: string | null;
+    inline?: boolean;
+    contentId?: string | null;
   }>;
 }): [string, MailMessageDetail] {
+  const renderedHtml =
+    (row.htmlBody ? sanitizeMailHtml(row.htmlBody) : undefined) ??
+    row.sanitizedHtml ??
+    undefined;
+
   return [
     row.threadId,
     {
@@ -72,13 +83,15 @@ export function mapMessage(row: {
       cc: row.ccAddresses,
       subject: row.subject,
       text: row.textBody ?? undefined,
-      html: row.sanitizedHtml ?? undefined,
+      html: renderedHtml,
       attachments: row.attachments?.map((att) => ({
         id: att.id,
         filename: att.filename,
         contentType: att.contentType,
         size: att.size,
         contentBase64: att.contentBase64 ?? undefined,
+        inline: att.inline,
+        contentId: att.contentId ?? undefined,
       })),
       sentAt: row.sentAt?.toISOString(),
       receivedAt: row.receivedAt?.toISOString(),

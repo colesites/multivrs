@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { MailReader } from "@/features/mail/MailReader";
@@ -52,49 +52,130 @@ export function MailboxView({
         ? thread.starred
         : !folder || messages.some((message) => message.folder === folder);
     const matchesQuery =
-      `${thread.subject} ${thread.correspondent} ${thread.preview}`
+      `${thread.subject} ${thread.correspondent} ${thread.correspondentName || ""} ${thread.preview}`
         .toLowerCase()
         .includes(query.toLowerCase());
     if (matchesFolder && matchesQuery) matches.push(thread);
     return matches;
   }, []);
+
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [confirmEmpty, setConfirmEmpty] = useState(false);
   const params = useParams<{ username?: string }>();
   const selected = threads.find((thread) => thread.id === selectedId);
-  const action = async (
-    messageId: string,
-    mailAction: string,
-    quiet = false,
-  ) => {
-    try {
-      await updateMessage(messageId, mailAction);
-      if (!quiet) toast.success("Conversation updated");
-      router.refresh();
-    } catch {
-      toast.error("Email action failed");
-    }
-  };
-  const openThread = (threadId: string) => {
-    setSelectedId(threadId);
-    const thread = threads.find((item) => item.id === threadId);
-    const threadMessages = data.messages[threadId];
-    const latest = threadMessages?.[threadMessages.length - 1];
-    if (!thread?.unread || !latest) return;
-    setLocallyReadThreadIds((current) => {
-      const next = new Set(current);
-      next.add(threadId);
-      return next;
-    });
-    void updateMessage(latest.id, "read").catch(() => {
+
+  const currentIndex = selected
+    ? threads.findIndex((t) => t.id === selected.id)
+    : -1;
+
+  const action = useCallback(
+    async (
+      messageId: string,
+      mailAction: string,
+      quiet = false,
+    ) => {
+      try {
+        await updateMessage(messageId, mailAction);
+        if (!quiet) toast.success("Conversation updated");
+        router.refresh();
+      } catch {
+        toast.error("Email action failed");
+      }
+    },
+    [router],
+  );
+
+  const openThread = useCallback(
+    (threadId: string) => {
+      setSelectedId(threadId);
+      const thread = threads.find((item) => item.id === threadId);
+      const threadMessages = data.messages[threadId];
+      const latest = threadMessages?.[threadMessages.length - 1];
+      if (!thread?.unread || !latest) return;
       setLocallyReadThreadIds((current) => {
         const next = new Set(current);
-        next.delete(threadId);
+        next.add(threadId);
         return next;
       });
-      toast.error("Email action failed");
-    });
-  };
+      void updateMessage(latest.id, "read").catch(() => {
+        setLocallyReadThreadIds((current) => {
+          const next = new Set(current);
+          next.delete(threadId);
+          return next;
+        });
+        toast.error("Email action failed");
+      });
+    },
+    [data.messages, threads],
+  );
+
+  const handleNavigate = useCallback(
+    (delta: -1 | 1) => {
+      if (!threads.length) return;
+      if (currentIndex === -1) {
+        if (threads[0]) openThread(threads[0].id);
+        return;
+      }
+      const nextThread = threads[currentIndex + delta];
+      if (nextThread) {
+        openThread(nextThread.id);
+      }
+    },
+    [currentIndex, openThread, threads],
+  );
+
+  const handleToggleStar = useCallback(
+    async (threadId: string) => {
+      const threadMessages = data.messages[threadId];
+      const latest = threadMessages?.[threadMessages.length - 1];
+      if (!latest) return;
+      await action(latest.id, "star");
+    },
+    [action, data.messages],
+  );
+
+  // Keyboard shortcuts (J: next, K: prev, E: archive, R: reply)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeTag = (document.activeElement?.tagName || "").toLowerCase();
+      if (
+        activeTag === "input" ||
+        activeTag === "textarea" ||
+        (document.activeElement as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.key === "j" || e.key === "J") {
+        e.preventDefault();
+        handleNavigate(1);
+      } else if (e.key === "k" || e.key === "K") {
+        e.preventDefault();
+        handleNavigate(-1);
+      } else if (e.key === "r" || e.key === "R") {
+        if (selected) {
+          const threadMessages = data.messages[selected.id];
+          const latest = threadMessages?.[threadMessages.length - 1];
+          if (latest) {
+            e.preventDefault();
+            onReply(latest);
+          }
+        }
+      } else if (e.key === "e" || e.key === "E") {
+        if (selected) {
+          const threadMessages = data.messages[selected.id];
+          const latest = threadMessages?.[threadMessages.length - 1];
+          if (latest) {
+            e.preventDefault();
+            void action(latest.id, "archive");
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [action, data.messages, handleNavigate, onReply, selected]);
 
   async function emptyTrash() {
     setConfirmEmpty(false);
@@ -116,8 +197,15 @@ export function MailboxView({
     toast.success("Trash emptied");
     router.refresh();
   }
+
   return (
-    <div className="flex h-[calc(100dvh-3.5rem)] min-h-0 overflow-hidden">
+    <div
+      className="flex h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)] min-h-0 w-full overflow-hidden bg-background dark:bg-[#07080a]"
+      style={{
+        height: "calc(100vh - 3.5rem)",
+        maxHeight: "calc(100vh - 3.5rem)",
+      }}
+    >
       <MailThreadList
         className={selectedId ? "hidden md:flex" : "flex"}
         onEmptyTrash={
@@ -127,8 +215,10 @@ export function MailboxView({
         }
         onRefresh={() => router.refresh()}
         onSelect={openThread}
+        onToggleStar={handleToggleStar}
         selectedId={selected?.id}
         threads={threads}
+        view={view}
       />
       <MailReader
         className={
@@ -136,12 +226,16 @@ export function MailboxView({
             ? "flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background dark:bg-[#07080a]"
             : "hidden md:flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background dark:bg-[#07080a]"
         }
-        onClose={() => setSelectedId(undefined)}
+        currentIndex={currentIndex}
         messages={selected ? (data.messages[selected.id] ?? []) : []}
         onAction={action}
+        onClose={() => setSelectedId(undefined)}
         onForward={onForward}
+        onNavigate={handleNavigate}
         onReply={onReply}
         thread={selected}
+        totalThreads={threads.length}
+        view={view}
       />
       <ConfirmDialog
         confirmLabel="Empty Trash"
@@ -154,6 +248,7 @@ export function MailboxView({
     </div>
   );
 }
+
 async function updateMessage(messageId: string, mailAction: string) {
   const response = await fetch(`/api/mail/messages/${messageId}`, {
     method: "PATCH",

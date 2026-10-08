@@ -48,7 +48,7 @@ export function DashboardTopbar({
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <DashboardSearchInput
             aria-label="Search mail"
-            containerClassName="hidden w-full max-w-xs sm:flex"
+            containerClassName="hidden sm:flex sm:w-72 md:w-96 lg:w-[420px]"
             onValueChange={mailStore.setQuery}
             placeholder="Search mail and resources"
             size="sm"

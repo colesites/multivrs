@@ -6,8 +6,10 @@ import {
   type Dispatch,
   type ReactNode,
   type SetStateAction,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -75,26 +77,26 @@ export function MailProvider({
     undefined,
   );
 
-  const openCompose = () => {
+  const openCompose = useCallback(() => {
     setReply(undefined);
     setForward(undefined);
     setComposeOpenState(true);
-  };
+  }, []);
   const [query, setQuery] = useState("");
-  const setComposeOpen = (open: boolean) => {
+  const setComposeOpen = useCallback((open: boolean) => {
     setComposeOpenState(open);
     if (!open) {
       const url = new URL(window.location.href);
       url.searchParams.delete("compose");
       window.history.replaceState(null, "", url);
     }
-  };
-  const setView = (nextView: MailView) => {
+  }, []);
+  const setView = useCallback((nextView: MailView) => {
     setViewState(nextView);
     const url = new URL(window.location.href);
     url.searchParams.set("view", nextView);
     window.history.pushState(null, "", url);
-  };
+  }, []);
 
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -118,28 +120,42 @@ export function MailProvider({
     return () => window.removeEventListener("popstate", syncView);
   }, []);
 
-  const value = {
-    data,
-    projectId,
-    view,
-    setView,
-    composeOpen,
-    setComposeOpen,
-    reply,
-    setReply,
-    forward,
-    setForward,
-    openCompose,
-    query,
-    setQuery,
-  };
+  const value = useMemo(
+    () => ({
+      data,
+      projectId,
+      view,
+      setView,
+      composeOpen,
+      setComposeOpen,
+      reply,
+      setReply,
+      forward,
+      setForward,
+      openCompose,
+      query,
+      setQuery,
+    }),
+    [
+      data,
+      projectId,
+      view,
+      setView,
+      composeOpen,
+      setComposeOpen,
+      reply,
+      forward,
+      openCompose,
+      query,
+    ],
+  );
 
   useEffect(() => {
     globalMailCtx = value;
     listeners.forEach((l) => {
       l();
     });
-  });
+  }, [value]);
 
   useEffect(() => {
     return () => {

@@ -6,6 +6,8 @@ export function sanitizeMailHtml(value?: string): string | undefined {
     allowedTags: [
       ...sanitizeHtml.defaults.allowedTags,
       "img",
+      "picture",
+      "source",
       "style",
       "span",
       "center",
@@ -26,7 +28,21 @@ export function sanitizeMailHtml(value?: string): string | undefined {
       "figure",
       "figcaption",
       "svg",
+      "g",
       "path",
+      "circle",
+      "rect",
+      "polygon",
+      "polyline",
+      "ellipse",
+      "line",
+      "defs",
+      "use",
+      "linearGradient",
+      "radialGradient",
+      "stop",
+      "clipPath",
+      "mask",
       "u",
       "s",
       "strike",
@@ -49,9 +65,33 @@ export function sanitizeMailHtml(value?: string): string | undefined {
         "color",
         "width",
         "height",
+        "role",
+        "aria-hidden",
+        "aria-label",
       ],
-      a: ["href", "name", "target", "rel"],
-      img: ["alt", "height", "width", "src", "style", "border"],
+      a: ["href", "name", "target", "rel", "title"],
+      img: [
+        "alt",
+        "height",
+        "width",
+        "src",
+        "srcset",
+        "sizes",
+        "loading",
+        "decoding",
+        "data-src",
+        "data-original",
+        "data-url",
+        "data-lazy-src",
+        "data-srcset",
+        "data-image",
+        "style",
+        "border",
+        "align",
+        "hspace",
+        "vspace",
+      ],
+      source: ["srcset", "sizes", "media", "type"],
       table: [
         "border",
         "cellpadding",
@@ -60,6 +100,7 @@ export function sanitizeMailHtml(value?: string): string | undefined {
         "height",
         "align",
         "bgcolor",
+        "background",
         "style",
       ],
       td: [
@@ -70,6 +111,7 @@ export function sanitizeMailHtml(value?: string): string | undefined {
         "align",
         "valign",
         "bgcolor",
+        "background",
         "style",
       ],
       th: [
@@ -80,18 +122,81 @@ export function sanitizeMailHtml(value?: string): string | undefined {
         "align",
         "valign",
         "bgcolor",
+        "background",
         "style",
       ],
       font: ["color", "face", "size"],
+      svg: [
+        "viewBox",
+        "xmlns",
+        "fill",
+        "stroke",
+        "width",
+        "height",
+        "style",
+        "class",
+        "aria-hidden",
+        "role",
+        "preserveAspectRatio",
+      ],
+      path: [
+        "d",
+        "fill",
+        "fill-rule",
+        "clip-rule",
+        "stroke",
+        "stroke-width",
+        "stroke-linecap",
+        "stroke-linejoin",
+        "opacity",
+        "transform",
+      ],
+      circle: ["cx", "cy", "r", "fill", "stroke", "stroke-width", "opacity", "transform"],
+      rect: ["x", "y", "width", "height", "rx", "ry", "fill", "stroke", "stroke-width", "opacity", "transform"],
+      polygon: ["points", "fill", "stroke", "stroke-width", "opacity", "transform"],
+      polyline: ["points", "fill", "stroke", "stroke-width", "opacity", "transform"],
+      line: ["x1", "y1", "x2", "y2", "stroke", "stroke-width", "opacity"],
+      ellipse: ["cx", "cy", "rx", "ry", "fill", "stroke", "stroke-width", "opacity", "transform"],
+      g: ["fill", "stroke", "opacity", "transform"],
+      use: ["href", "xlink:href", "x", "y", "width", "height"],
+      linearGradient: ["id", "x1", "y1", "x2", "y2", "gradientUnits", "gradientTransform"],
+      radialGradient: ["id", "cx", "cy", "r", "fx", "fy", "gradientUnits", "gradientTransform"],
+      stop: ["offset", "stop-color", "stop-opacity", "style"],
     },
     allowedSchemes: ["https", "http", "mailto", "cid", "data"],
-    allowProtocolRelative: false,
+    allowProtocolRelative: true,
     disallowedTagsMode: "discard",
     transformTags: {
       a: sanitizeHtml.simpleTransform("a", {
         rel: "noopener noreferrer",
         target: "_blank",
       }),
+      img: (tagName, attribs) => {
+        // Promote lazy-loaded image sources if src is missing or a transparent spacer
+        const realSrc =
+          attribs["data-src"] ||
+          attribs["data-original"] ||
+          attribs["data-url"] ||
+          attribs["data-lazy-src"];
+        const currentSrc = attribs.src?.trim();
+        const isSpacer =
+          !currentSrc ||
+          currentSrc.startsWith("data:image/gif") ||
+          currentSrc.startsWith("data:image/svg") ||
+          currentSrc.includes("spacer") ||
+          currentSrc.includes("blank.gif");
+
+        if (realSrc && isSpacer) {
+          attribs.src = realSrc;
+        }
+
+        // Always use eager loading in mail reader so images aren't skipped by iframe virtualization
+        if (attribs.loading === "lazy") {
+          attribs.loading = "eager";
+        }
+
+        return { tagName, attribs };
+      },
     },
   });
 }

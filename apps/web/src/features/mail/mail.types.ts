@@ -17,6 +17,7 @@ export interface MailThreadSummary {
   starred: boolean;
   preview: string;
   correspondent: string;
+  correspondentName?: string;
 }
 
 export interface MailAttachmentItem {
@@ -25,6 +26,8 @@ export interface MailAttachmentItem {
   contentType: string;
   size: number;
   contentBase64?: string;
+  inline?: boolean;
+  contentId?: string;
 }
 
 export interface MailMessageDetail {
