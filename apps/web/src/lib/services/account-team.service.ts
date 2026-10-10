@@ -107,6 +107,21 @@ export async function adoptWorkspaceAsTeam(
   });
 }
 
+/** The account whose team an invitation is for, so the invitee lands on it after accepting. */
+export async function invitationAccount(
+  invitationId: string,
+): Promise<string | null> {
+  const invitation = await prisma.invitation.findUnique({
+    where: { id: invitationId },
+    select: {
+      organization: {
+        select: { accountOwner: { select: { username: true } } },
+      },
+    },
+  });
+  return invitation?.organization.accountOwner?.username ?? null;
+}
+
 /** Other people's teams you're on, with the account to open. */
 export async function teamsJoined(userId: string) {
   const memberships = await prisma.member.findMany({

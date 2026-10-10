@@ -3,6 +3,7 @@ import { ProjectsGrid } from "@/features/dashboard/components/ProjectsGrid";
 import { getServerSession } from "@/lib/auth/session";
 import { getAccountUsage } from "@/lib/services/account-usage.service";
 import { dashboardProjects } from "@/lib/services/dashboard.service";
+import { canAccessDashboardWorkspace } from "@/lib/services/dashboard-scope.service";
 
 /**
  * Account overview (all-projects scope) — served at /[username].
@@ -30,21 +31,27 @@ async function resolveUsername(params: Promise<{ username: string }>) {
 }
 
 async function loadProjects(params: Promise<{ username: string }>) {
-  const [{ username }, session] = await Promise.all([
-    params,
-    getServerSession(),
-  ]);
-  if (!session) redirect("/login");
-  if (session.user.username !== username) notFound();
-  return dashboardProjects(username, session.user.id);
+  const { username, userId } = await viewer(params);
+  return dashboardProjects(username, userId);
 }
 
 async function loadUsage(params: Promise<{ username: string }>) {
+  const { username, userId } = await viewer(params);
+  return getAccountUsage(userId, username);
+}
+
+/** The account's owner or someone on its team; anyone else gets a 404, as in the layout. */
+async function viewer(params: Promise<{ username: string }>) {
   const [{ username }, session] = await Promise.all([
     params,
     getServerSession(),
   ]);
   if (!session) redirect("/login");
-  if (session.user.username !== username) notFound();
-  return getAccountUsage(session.user.id, username);
+  if (
+    session.user.username !== username &&
+    !(await canAccessDashboardWorkspace(session.user.id, username))
+  ) {
+    notFound();
+  }
+  return { username, userId: session.user.id };
 }

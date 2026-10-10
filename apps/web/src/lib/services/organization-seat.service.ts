@@ -28,6 +28,8 @@ export async function assertOrganizationSeat(
         organizationId,
         role: { in: PAID_ROLES },
         status: "pending",
+        // An expired invitation can't be accepted, so it doesn't hold a seat.
+        expiresAt: { gt: new Date() },
       },
     }),
   ]);

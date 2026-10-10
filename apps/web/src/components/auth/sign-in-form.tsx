@@ -174,7 +174,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
       <p className="text-center text-sm text-white/40">
         Don&apos;t have an account?{" "}
         <Link
-          href="/signup"
+          href={`/signup?from=${encodeURIComponent(returnTo)}`}
           className="font-medium text-white transition-colors hover:text-[#A855F7]"
         >
           Sign up
