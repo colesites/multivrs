@@ -163,20 +163,3 @@ export const sesEventPayloadSchema = z.object({
 });
 
 export type SesEventPayload = z.infer<typeof sesEventPayloadSchema>;
-
-export const resendDomainEventSchema = z.object({
-  type: z.enum(["domain.created", "domain.updated", "domain.deleted"]),
-  data: z.object({
-    id: z.string().min(1),
-    name: z.string().min(1),
-    status: z.enum([
-      "not_started",
-      "pending",
-      "verified",
-      "partially_verified",
-      "partially_failed",
-      "failed",
-      "temporary_failure",
-    ]),
-  }),
-});

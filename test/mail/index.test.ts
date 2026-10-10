@@ -20,10 +20,7 @@ import {
   composeMailSchema,
   inboundMailSchema,
 } from "../../apps/web/src/lib/schemas/mail-message.schemas";
-import {
-  mailProviderEventSchema,
-  resendDomainEventSchema,
-} from "../../apps/web/src/lib/schemas/mail-provider.schemas";
+import { mailProviderEventSchema } from "../../apps/web/src/lib/schemas/mail-provider.schemas";
 import {
   createMailDomainSchema,
   createMailWebhookSchema,
@@ -82,16 +79,6 @@ describe("Multivrs Mail boundaries", () => {
         to: ["support@example.com"],
       }).success,
     ).toBe(true);
-    expect(
-      resendDomainEventSchema.parse({
-        type: "domain.updated",
-        data: {
-          id: "domain_123",
-          name: "mail.example.com",
-          status: "verified",
-        },
-      }).data.status,
-    ).toBe("verified");
   });
 
   test("serializes scheduled compose form values to ISO", () => {
@@ -172,7 +159,7 @@ describe("Multivrs Mail boundaries", () => {
         providerDomainId: "domain_123",
         status: "verified",
       }),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       isAuthenticatedSendingDomain({
         provider: null,
@@ -241,7 +228,10 @@ describe("Multivrs Mail boundaries", () => {
     // BCC: the address is on the envelope only.
     expect(
       inboundRecipients(
-        { receipt: { recipients: ["hidden@acme.com"] }, mail: { destination: ["someone@gmail.com"] } },
+        {
+          receipt: { recipients: ["hidden@acme.com"] },
+          mail: { destination: ["someone@gmail.com"] },
+        },
         ["someone@gmail.com"],
       ),
     ).toEqual(["hidden@acme.com"]);
@@ -253,6 +243,9 @@ describe("Multivrs Mail boundaries", () => {
       ),
     ).toEqual(["a@acme.com", "b@acme.com"]);
     // No envelope at all: fall back to the headers.
-    expect(inboundRecipients({ mail: {} }, headers)).toEqual(["someone@gmail.com", "team@acme.com"]);
+    expect(inboundRecipients({ mail: {} }, headers)).toEqual([
+      "someone@gmail.com",
+      "team@acme.com",
+    ]);
   });
 });

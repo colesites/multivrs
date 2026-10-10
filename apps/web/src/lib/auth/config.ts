@@ -220,7 +220,7 @@ export const authConfig = {
         });
       },
     }),
-    // Email verification via 6-digit OTP, delivered through Resend.
+    // Email verification via 6-digit OTP, delivered through AWS SES.
     // `sendVerificationOnSignUp` auto-emails a code right after registration.
     // NOTE: that auto-send hook only fires when `overrideDefaultEmailVerification`
     // is falsy, so we leave it off — verification is enforced at the dashboard

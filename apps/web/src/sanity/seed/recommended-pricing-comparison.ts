@@ -957,7 +957,7 @@ const comparison = {
               text("100 / month", "hard limit"),
               text(
                 "500 / month included",
-                `then ${dollars(rate.resendMessages.retailPriceUsd)} per 1K`,
+                `then ${dollars(rate.sesMessages.retailPriceUsd)} per 1K`,
               ),
               CUSTOM,
             ),
