@@ -10,6 +10,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { normalizeAuthReturnPath } from "@/lib/auth/return-path";
 import { authClient } from "@/lib/auth-client";
 
 const OTP_LENGTH = 6;
@@ -22,6 +23,9 @@ export function VerifyEmailForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
+  const returnTo = normalizeAuthReturnPath(
+    searchParams.get("from") ?? undefined,
+  );
 
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -43,7 +47,7 @@ export function VerifyEmailForm() {
           return;
         }
         toast.success("Email verified.");
-        router.push("/dashboard");
+        router.push(returnTo);
       })
       .catch(() => toast.error("Email verification failed. Try again."))
       .finally(() => setIsVerifying(false));

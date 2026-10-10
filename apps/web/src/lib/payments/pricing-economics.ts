@@ -60,8 +60,11 @@ export const RECOMMENDED_METER_RATES = {
     retailPriceUsd: 1,
     unit: "1M operations",
   },
-  resendMessages: {
-    providerCostUsd: 0.9,
+  // Amazon SES, reviewed 2026-10-10: receiving is $0.10/1K plus $0.09/1K
+  // 256 KB chunks; sending is $0.16/1K on the Essentials plan new accounts
+  // start on, plus $0.005/1K for tenants. $0.20 covers the dearer of the two.
+  sesMessages: {
+    providerCostUsd: 0.2,
     retailPriceUsd: 2,
     unit: "1K sent or received emails",
   },
@@ -120,10 +123,8 @@ const proAllowanceCosts = {
     RECOMMENDED_METER_RATES.imageTransformations.providerCostUsd,
   kvReads: RECOMMENDED_METER_RATES.kvReads.providerCostUsd,
   kvWrites: RECOMMENDED_METER_RATES.kvWrites.providerCostUsd * 0.01,
-  // Resend Pro averages $0.40/1K across its included 50K allowance. Multivrs
-  // includes 500 email units in Pro and prices additional units at the
-  // conservative Resend overage floor above.
-  mailMessages: 0.2,
+  // Pro includes 500 email units; additional units are metered.
+  mailMessages: RECOMMENDED_METER_RATES.sesMessages.providerCostUsd * 0.5,
   queueOperations:
     RECOMMENDED_METER_RATES.queueOperations.providerCostUsd * 0.3,
   r2ClassA: RECOMMENDED_METER_RATES.r2ClassA.providerCostUsd * 0.1,
@@ -137,7 +138,7 @@ const proAllowanceCosts = {
 const RECOMMENDED_MAIL_ADD_ON_ECONOMICS = {
   includedMessages: 5_000,
   monthlyPriceUsd: 10,
-  providerCostUsd: RECOMMENDED_METER_RATES.resendMessages.providerCostUsd * 5,
+  providerCostUsd: RECOMMENDED_METER_RATES.sesMessages.providerCostUsd * 5,
 } as const;
 
 const RECOMMENDED_PRO_ECONOMICS = {

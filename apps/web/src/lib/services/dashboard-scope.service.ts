@@ -1,5 +1,6 @@
 import "server-only";
 import { NotFoundError } from "@multivrs/error-utils";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { projectAccessWhere } from "@/lib/services/project-access";
 
@@ -10,25 +11,27 @@ export interface ScopedProject {
 }
 
 /** Another account's dashboard: open to its team, and to members of its workspaces' projects. */
-export async function canAccessDashboardWorkspace(
-  userId: string,
-  username: string,
-): Promise<boolean> {
-  const [teamMember, project] = await Promise.all([
-    prisma.member.findFirst({
-      where: { userId, organization: { accountOwner: { username } } },
-      select: { id: true },
-    }),
-    prisma.project.findFirst({
-      where: {
-        owner: { username },
-        organization: { members: { some: { userId } } },
-      },
-      select: { id: true },
-    }),
-  ]);
-  return Boolean(teamMember ?? project);
-}
+export const canAccessDashboardWorkspace = cache(
+  async function canAccessDashboardWorkspace(
+    userId: string,
+    username: string,
+  ): Promise<boolean> {
+    const [teamMember, project] = await Promise.all([
+      prisma.member.findFirst({
+        where: { userId, organization: { accountOwner: { username } } },
+        select: { id: true },
+      }),
+      prisma.project.findFirst({
+        where: {
+          owner: { username },
+          organization: { members: { some: { userId } } },
+        },
+        select: { id: true },
+      }),
+    ]);
+    return Boolean(teamMember ?? project);
+  },
+);
 
 export async function getScopedProject(
   userId: string,

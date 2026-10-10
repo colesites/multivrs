@@ -35,7 +35,7 @@ export function isAuthenticatedSendingDomain(
 ): boolean {
   return Boolean(
     domain?.status === "verified" &&
-      (domain.provider === "ses" || domain.provider === "resend") &&
+      domain.provider === "ses" &&
       domain.providerDomainId,
   );
 }

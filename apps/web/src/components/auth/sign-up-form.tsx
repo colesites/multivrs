@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { buildSignInHref } from "@/lib/auth/return-path";
 import { authClient } from "@/lib/auth-client";
 import { type SignUpInput, signUpSchema } from "@/validators/auth.validators";
 
@@ -20,7 +21,7 @@ const inputClass =
  * Sign-up form: username, email, password, confirm password — plus
  * Google/GitHub OAuth. Mono + purple (#A855F7) styling, no gradients.
  */
-export function SignUpForm() {
+export function SignUpForm({ returnTo }: { returnTo: string }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -64,7 +65,7 @@ export function SignUpForm() {
         password: formData.password,
         name: formData.username,
         username: formData.username,
-        callbackURL: "/dashboard",
+        callbackURL: returnTo,
       })
       .then((result) => {
         if (result.error) {
@@ -72,9 +73,9 @@ export function SignUpForm() {
           return;
         }
         toast.success("Account created. Check your email to verify.");
-        router.push(
-          `/verify-email?email=${encodeURIComponent(formData.email)}`,
-        );
+        const params = new URLSearchParams({ email: formData.email });
+        if (returnTo !== "/dashboard") params.set("from", returnTo);
+        router.push(`/verify-email?${params.toString()}`);
       })
       .catch(() =>
         toast.error("An unexpected error occurred. Please try again."),
@@ -93,7 +94,7 @@ export function SignUpForm() {
         </p>
       </div>
 
-      <OAuthButtons callbackURL="/dashboard" />
+      <OAuthButtons callbackURL={returnTo} />
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
@@ -227,7 +228,7 @@ export function SignUpForm() {
       <p className="text-center text-sm text-white/40">
         Already have an account?{" "}
         <Link
-          href="/login"
+          href={buildSignInHref(returnTo)}
           className="font-medium text-white transition-colors hover:text-[#A855F7]"
         >
           Sign in

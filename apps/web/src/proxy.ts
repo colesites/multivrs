@@ -27,6 +27,8 @@ const publicPrefixes = [
   "/forgot-password",
   "/reset-password",
   "/verify-email",
+  // Shows its own sign-in / sign-up choice that keeps the invitation id.
+  "/accept-invitation",
   "/contact",
   // Product pages linked from the header mega-menu.
   "/agent",
@@ -97,7 +99,7 @@ export default async function proxy(req: NextRequest) {
   // dashboard at /[username] and its sub-routes).
   if (!isPublic && !hasSession) {
     const signInUrl = new URL("/login", req.url);
-    signInUrl.searchParams.set("from", path);
+    signInUrl.searchParams.set("from", `${path}${req.nextUrl.search}`);
     return NextResponse.redirect(signInUrl);
   }
 
