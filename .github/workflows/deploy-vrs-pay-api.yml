@@ -1,0 +1,28 @@
+name: Deploy VRS Pay API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/vrs-pay-api/**
+      - packages/vrs-pay-core/**
+      - packages/typescript-config/**
+      - package.json
+      - bun.lock
+      - .github/workflows/deploy-vrs-pay-api.yml
+  workflow_dispatch:
+
+# One deploy at a time, and never cancel one mid-migration.
+concurrency:
+  group: deploy-vrs-pay-api
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --config apps/vrs-pay-api/fly.toml --remote-only --ha=false
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
