@@ -13,6 +13,7 @@ export function paymentRow({ merchantId, mode, providerAccountId, payment }: Sto
     status: payment.status,
     amount: BigInt(payment.amount),
     amountRefunded: BigInt(payment.amount_refunded),
+    amountTax: BigInt(payment.amount_tax),
     currency: payment.currency.toUpperCase(),
     platformFee: BigInt(payment.platform_fee),
     providerFee: BigInt(payment.provider_fee),

@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import type { AppDeps, AppEnv } from "../app.types";
 import { listLimit } from "../lib/list-limit";
 import { paymentsToCsv } from "../lib/payments-csv";
+import { merchantNet } from "../services/payment-net";
 import { paymentsAnalytics } from "../services/payments-analytics.service";
 
 /** `/v1/payments` — payments from checkouts, renewals and upgrades. */
@@ -52,10 +53,8 @@ export function paymentRoutes(deps: AppDeps): Hono<AppEnv> {
       const stored = await deps.payments.get(merchantId, mode, id);
       if (!stored) throw resourceMissing("payment", id);
       const allRefunds = await deps.refunds.list(merchantId, mode, 100);
-      const paymentRefunds = allRefunds
-        .filter((r) => r.refund.payment === id)
-        .map((r) => r.refund);
-      const net = stored.payment.amount - stored.payment.provider_fee - stored.payment.platform_fee;
+      const paymentRefunds = allRefunds.filter((r) => r.refund.payment === id).map((r) => r.refund);
+      const net = merchantNet(stored.payment);
       return c.json({
         ...stored.payment,
         net,

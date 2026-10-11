@@ -2,7 +2,7 @@ import { CurrencyCodeSchema, cardError, idempotencyError, money } from "@vrs-pay
 import type { AppDeps, MerchantContext } from "../app.types";
 import { entitlementsFor } from "./entitlements.service";
 import { buildEvent } from "./events";
-import { openInvoice, paidInvoice } from "./invoice-builder";
+import { openInvoice, paidInvoice, withTax } from "./invoice-builder";
 import { capturedPayment } from "./payment-builder";
 import { feeFor, PLATFORM_ACCOUNT, providersFor } from "./platform";
 import type { StoredSubscription, Subscription } from "./subscription.types";
@@ -40,6 +40,7 @@ export async function chargeUpgrade(
     description: `${planName}: prorated upgrade`,
     metadata: { vrs_subscription_id: s.id },
     idempotencyKey: `${s.id}-change-${sub.version}`,
+    addTax: deps.modes[sub.mode].tax === true,
   });
   if (result.status !== "succeeded") {
     throw cardError(
@@ -49,15 +50,17 @@ export async function chargeUpgrade(
   }
 
   const { merchantId, mode } = sub;
+  const tax = result.tax?.amount ?? 0;
   const { payment, posting } = capturedPayment({
     merchantId,
     mode,
     provider: sub.provider,
     providerAccountId: PLATFORM_ACCOUNT,
     providerReference: result.reference,
-    amount,
+    amount: money(amount.amount + tax, amount.currency),
     platformFee: fee,
     providerFee: result.providerFee,
+    tax: result.tax,
     checkoutSession: null,
     customerEmail: null,
     metadata: { vrs_subscription_id: s.id },
@@ -72,17 +75,20 @@ export async function chargeUpgrade(
     period_end: end,
   };
   const invoice = paidInvoice(
-    openInvoice({
-      reason: "subscription_update",
-      merchantId,
-      mode,
-      customer: s.customer,
-      subscription: s.id,
-      total: amount,
-      lines: [line],
-      periodStart: now,
-      periodEnd: end,
-    }),
+    withTax(
+      openInvoice({
+        reason: "subscription_update",
+        merchantId,
+        mode,
+        customer: s.customer,
+        subscription: s.id,
+        total: amount,
+        lines: [line],
+        periodStart: now,
+        periodEnd: end,
+      }),
+      tax,
+    ),
     payment.payment.id,
   );
   const record = { ...sub, version: sub.version + 1, subscription: next };

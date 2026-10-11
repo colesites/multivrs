@@ -31,6 +31,7 @@ export async function recordCheckoutPayment(
     // The fee we set when creating the session (charged on the platform, it isn't a separate Stripe fee).
     platformFee: money(session.platform_fee, data.amount.currency),
     providerFee: data.providerFee,
+    tax: data.tax,
     checkoutSession: session.id,
     customerEmail: data.customerEmail ?? session.customer_email,
     metadata: session.metadata,

@@ -44,6 +44,24 @@ export function openInvoice(draft: InvoiceDraft): StoredInvoice {
   };
 }
 
+/** The invoice with `tax` added on top of its subtotal, as a "tax" line. */
+export function withTax(stored: StoredInvoice, tax: number): StoredInvoice {
+  if (tax <= 0) return stored;
+  const { invoice } = stored;
+  const line: InvoiceLine = {
+    kind: "tax",
+    description: "Tax",
+    quantity: 1,
+    amount: tax,
+    period_start: invoice.period_start,
+    period_end: invoice.period_end,
+  };
+  return {
+    ...stored,
+    invoice: { ...invoice, tax, total: invoice.subtotal + tax, lines: [...invoice.lines, line] },
+  };
+}
+
 /** The same invoice, paid by `paymentId`. */
 export function paidInvoice(stored: StoredInvoice, paymentId: string): StoredInvoice {
   const now = nowSeconds();

@@ -1,11 +1,17 @@
 import { resourceMissing } from "@vrs-pay/core";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import type { AppDeps, AppEnv } from "../app.types";
 import { listLimit } from "../lib/list-limit";
 import { readJson } from "../lib/read-json";
+import { applyCheckoutTax } from "../services/checkout-tax.service";
 import { createPaymentLink, publicLink } from "../services/payment-link.service";
 import { openPaymentLink } from "../services/payment-link-open.service";
-import { CreatePaymentLinkSchema, UpdatePaymentLinkSchema } from "./payment-link.schema";
+import {
+  CheckoutTaxSchema,
+  CreatePaymentLinkSchema,
+  UpdatePaymentLinkSchema,
+} from "./payment-link.schema";
 import { paymentLinkPage } from "./payment-link-page";
 
 /** `/v1/payment_links` — no-code links to a hosted checkout. */
@@ -46,53 +52,74 @@ export function paymentLinkRoutes(deps: AppDeps): Hono<AppEnv> {
  * the payer to it.
  */
 export function paymentLinkRedirect(deps: AppDeps): Hono<AppEnv> {
-  return new Hono<AppEnv>()
-    .get("/:id", async (c) => {
-      const stored = await deps.paymentLinks.find(c.req.param("id"));
-      if (!stored) throw resourceMissing("payment link", c.req.param("id"));
-      return c.html(paymentLinkPage(stored.link));
-    })
-    .post("/:id", async (c) => c.redirect(await openPaymentLink(deps, c.req.param("id")), 303))
-    .get("/session/:id", async (c) => {
-      const stored = await deps.checkoutSessions.findById(c.req.param("id"));
-      if (!stored) throw resourceMissing("checkout session", c.req.param("id"));
-      const { session } = stored;
-      let clientSecret = session.client_secret;
-      if (!clientSecret && session.provider === "stripe" && session.provider_reference) {
-        try {
-          const stripeKey = process.env.STRIPE_SECRET_KEY;
-          if (stripeKey) {
-            const { createStripeClient } = await import("../providers/stripe/stripe-client");
-            const stripe = createStripeClient(stripeKey);
-            if (session.provider_reference.startsWith("pi_")) {
-              const pi = await stripe.paymentIntents.retrieve(session.provider_reference);
-              clientSecret = pi.client_secret ?? null;
-            } else if (session.provider_reference.startsWith("seti_")) {
-              const si = await stripe.setupIntents.retrieve(session.provider_reference);
-              clientSecret = si.client_secret ?? null;
+  return (
+    new Hono<AppEnv>()
+      .get("/:id", async (c) => {
+        const stored = await deps.paymentLinks.find(c.req.param("id"));
+        if (!stored) throw resourceMissing("payment link", c.req.param("id"));
+        return c.html(paymentLinkPage(stored.link));
+      })
+      .post("/:id", async (c) => c.redirect(await openPaymentLink(deps, c.req.param("id")), 303))
+      // The site's checkout page calls these from the buyer's browser.
+      .use("/session/*", cors({ origin: deps.urls.site }))
+      .post("/session/:id/tax", async (c) => {
+        const { address } = CheckoutTaxSchema.parse(await readJson(c));
+        return c.json(
+          await applyCheckoutTax(deps, c.req.param("id"), {
+            country: address.country,
+            postalCode: address.postal_code,
+            state: address.state,
+            city: address.city,
+            line1: address.line1,
+            line2: address.line2,
+          }),
+        );
+      })
+      .get("/session/:id", async (c) => {
+        const stored = await deps.checkoutSessions.findById(c.req.param("id"));
+        if (!stored) throw resourceMissing("checkout session", c.req.param("id"));
+        const { session } = stored;
+        let clientSecret = session.client_secret;
+        if (!clientSecret && session.provider === "stripe" && session.provider_reference) {
+          try {
+            const stripeKey = process.env.STRIPE_SECRET_KEY;
+            if (stripeKey) {
+              const { createStripeClient } = await import("../providers/stripe/stripe-client");
+              const stripe = createStripeClient(stripeKey);
+              if (session.provider_reference.startsWith("pi_")) {
+                const pi = await stripe.paymentIntents.retrieve(session.provider_reference);
+                clientSecret = pi.client_secret ?? null;
+              } else if (session.provider_reference.startsWith("seti_")) {
+                const si = await stripe.setupIntents.retrieve(session.provider_reference);
+                clientSecret = si.client_secret ?? null;
+              }
             }
+          } catch {
+            // ignore lookup errors
           }
-        } catch {
-          // ignore lookup errors
         }
-      }
-      const profile = await deps.providerAccounts.merchantProfile(stored.merchantId, stored.mode);
-      return c.json({
-        id: session.id,
-        merchant_name: profile?.name ?? null,
-        amount: session.amount,
-        currency: session.currency,
-        description: session.description,
-        client_secret: clientSecret,
-        status: session.status,
-        provider: session.provider,
-        publishable_key:
-          process.env.STRIPE_PUBLISHABLE_KEY ??
-          process.env.STRIPE_TEST_PUBLISHABLE_KEY ??
-          process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ??
-          null,
-        success_url: session.success_url,
-        cancel_url: session.cancel_url,
-      });
-    });
+        const profile = await deps.providerAccounts.merchantProfile(stored.merchantId, stored.mode);
+        return c.json({
+          id: session.id,
+          merchant_name: profile?.name ?? null,
+          amount: session.amount,
+          currency: session.currency,
+          description: session.description,
+          client_secret: clientSecret,
+          status: session.status,
+          provider: session.provider,
+          publishable_key:
+            process.env.STRIPE_PUBLISHABLE_KEY ??
+            process.env.STRIPE_TEST_PUBLISHABLE_KEY ??
+            process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ??
+            null,
+          success_url: session.success_url,
+          cancel_url: session.cancel_url,
+          // When on, the page asks for an address and adds tax before payment.
+          tax_enabled:
+            deps.modes[stored.mode].tax === true &&
+            Boolean(deps.modes[stored.mode].providers[session.provider].applyTax),
+        });
+      })
+  );
 }

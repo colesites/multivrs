@@ -36,6 +36,7 @@ export function createPrismaRefundStore(db: Db): RefundStore {
             providerReference: refund.provider_reference,
             status: refund.status,
             amount: BigInt(refund.amount),
+            amountTax: BigInt(refund.amount_tax),
             currency: refund.currency.toUpperCase(),
             reason: refund.reason,
             metadata: refund.metadata,

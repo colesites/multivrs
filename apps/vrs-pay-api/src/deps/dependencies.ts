@@ -6,7 +6,7 @@ import { identityFromEnv } from "../identity/identity-router";
 import { createSealer } from "../lib/sealer";
 import { createPrismaStores } from "../stores/prisma";
 import { createMemoryDependencies } from "./memory-dependencies";
-import { stripeModes } from "./stripe-modes";
+import { stripeModes, withStripeTax } from "./stripe-modes";
 
 type Env = Record<string, string | undefined>;
 
@@ -17,7 +17,7 @@ type Env = Record<string, string | undefined>;
  * checks come from identityFromEnv.
  */
 export async function createDependencies(env: Env): Promise<{ deps: AppDeps; db: Db | null }> {
-  const modes = stripeModes(env);
+  const modes = withStripeTax(stripeModes(env), env.STRIPE_TAX);
   const urls = {
     api: (env.BETTER_AUTH_URL ?? `http://localhost:${env.PORT ?? 4300}`).replace(/\/+$/, ""),
     site: (env.VRS_DASHBOARD_URL ?? "https://vrs-pay.multivrs.space").replace(/\/+$/, ""),

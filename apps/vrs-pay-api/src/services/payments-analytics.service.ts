@@ -112,13 +112,21 @@ export async function paymentsAnalytics(
     .filter((r) => r.currency === currency && r.status === "succeeded")
     .reduce((s, r) => s + r.amount, 0);
 
-  const currProviderFee = currAcceptedPayments.reduce((s, p) => s + p.provider_fee, 0);
-  const prevProviderFee = prevAcceptedPayments.reduce((s, p) => s + p.provider_fee, 0);
   const currPlatformFee = currAcceptedPayments.reduce((s, p) => s + p.platform_fee, 0);
   const prevPlatformFee = prevAcceptedPayments.reduce((s, p) => s + p.platform_fee, 0);
+  // Tax isn't the merchant's: take out what was collected, add back what refunds returned.
+  const currTax = currAcceptedPayments.reduce((s, p) => s + p.amount_tax, 0);
+  const prevTax = prevAcceptedPayments.reduce((s, p) => s + p.amount_tax, 0);
+  const currRefundedTax = currentRefunds
+    .filter((r) => r.currency === currency && r.status === "succeeded")
+    .reduce((s, r) => s + r.amount_tax, 0);
+  const prevRefundedTax = previousRefunds
+    .filter((r) => r.currency === currency && r.status === "succeeded")
+    .reduce((s, r) => s + r.amount_tax, 0);
 
-  const currNet = currGross - currRefunded - currProviderFee - currPlatformFee;
-  const prevNet = prevGross - prevRefunded - prevProviderFee - prevPlatformFee;
+  // The provider's fee is the platform's cost, so it doesn't come out of the merchant's net.
+  const currNet = currGross - currTax - currPlatformFee - (currRefunded - currRefundedTax);
+  const prevNet = prevGross - prevTax - prevPlatformFee - (prevRefunded - prevRefundedTax);
 
   // Success rate
   const currTotalSessions = Math.max(checkoutMetrics.total, currInCur.length);
@@ -142,13 +150,16 @@ export async function paymentsAnalytics(
     const succeededInBucket = inBucket.filter((p) => p.status === "succeeded");
 
     const acceptedVolume = succeededInBucket.reduce((sum, p) => sum + p.amount, 0);
-    const providerFees = succeededInBucket.reduce((sum, p) => sum + p.provider_fee, 0);
     const platformFees = succeededInBucket.reduce((sum, p) => sum + p.platform_fee, 0);
-    const refundedInBucket = currentRefunds
-      .filter((r) => r.currency === currency && r.created >= bucketStart && r.created < bucketEnd)
-      .reduce((sum, r) => sum + r.amount, 0);
+    const taxInBucket = succeededInBucket.reduce((sum, p) => sum + p.amount_tax, 0);
+    const refundsInBucket = currentRefunds.filter(
+      (r) => r.currency === currency && r.created >= bucketStart && r.created < bucketEnd,
+    );
+    const refundedInBucket = refundsInBucket.reduce((sum, r) => sum + r.amount, 0);
+    const refundedTaxInBucket = refundsInBucket.reduce((sum, r) => sum + r.amount_tax, 0);
 
-    const netVolume = acceptedVolume - refundedInBucket - providerFees - platformFees;
+    const netVolume =
+      acceptedVolume - taxInBucket - platformFees - (refundedInBucket - refundedTaxInBucket);
     const successRate =
       inBucket.length > 0
         ? Number(((succeededInBucket.length / inBucket.length) * 100).toFixed(1))

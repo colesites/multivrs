@@ -6,7 +6,7 @@ import type { EventOutcome } from "./capture.service";
 import type { StoredCheckoutSession } from "./checkout-session.types";
 import { entitlementsFor } from "./entitlements.service";
 import { buildEvent, nowSeconds } from "./events";
-import { openInvoice, paidInvoice, subscriptionLine } from "./invoice-builder";
+import { openInvoice, paidInvoice, subscriptionLine, withTax } from "./invoice-builder";
 import { capturedPayment } from "./payment-builder";
 import { PLATFORM_ACCOUNT } from "./platform";
 import type { PaymentMethodRecord, StoredSubscription } from "./subscription.types";
@@ -106,6 +106,7 @@ export async function activateSubscription(
     amount: data.amount,
     platformFee: money(session.platform_fee, data.amount.currency),
     providerFee: data.providerFee,
+    tax: data.tax,
     checkoutSession: session.id,
     customerEmail: data.customerEmail,
     metadata: session.metadata,
@@ -117,18 +118,23 @@ export async function activateSubscription(
     now,
     periodEnd,
   );
+  // The invoice's subtotal is the price; tax, when charged, is its own line.
+  const tax = data.tax?.amount ?? 0;
   const invoice = paidInvoice(
-    openInvoice({
-      reason: "subscription_create",
-      merchantId,
-      mode,
-      customer: current.subscription.customer,
-      subscription: current.subscription.id,
-      total: data.amount,
-      lines: [line],
-      periodStart: now,
-      periodEnd,
-    }),
+    withTax(
+      openInvoice({
+        reason: "subscription_create",
+        merchantId,
+        mode,
+        customer: current.subscription.customer,
+        subscription: current.subscription.id,
+        total: money(data.amount.amount - tax, data.amount.currency),
+        lines: [line],
+        periodStart: now,
+        periodEnd,
+      }),
+      tax,
+    ),
     payment.payment.id,
   );
   const committed = await deps.billing.commit({

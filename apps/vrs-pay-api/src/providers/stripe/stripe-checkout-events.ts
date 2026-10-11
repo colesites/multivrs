@@ -4,6 +4,7 @@ import type { StripeApi } from "./stripe-api.types";
 import { SESSION_METADATA_KEY } from "./stripe-checkout";
 import { fetchChargeDetails, savedMethodFrom } from "./stripe-fees";
 import { requestOptions } from "./stripe-options";
+import { commitTax, TAX_CALCULATION_KEY, TAX_TRANSACTION_KEY, taxOnIntent } from "./stripe-tax";
 
 export type EventBase = Pick<ProviderWebhookEvent, "provider" | "id" | "account" | "occurredAt">;
 
@@ -65,6 +66,7 @@ export async function checkoutCompleted(
     return ignored(base, type);
   }
   const details = await fetchChargeDetails(api, base.account, paymentIntent, currency.data);
+  const tax = session.total_details?.amount_tax ?? 0;
   return {
     ...base,
     type: "checkout.completed",
@@ -73,6 +75,7 @@ export async function checkoutCompleted(
       sessionId: sessionIdOf(session),
       paymentReference: paymentIntent,
       amount: money(session.amount_total, currency.data),
+      ...(tax > 0 ? { tax: money(tax, currency.data) } : {}),
       platformFee: details.platformFee,
       providerFee: details.providerFee,
       customerEmail: session.customer_details?.email ?? null,
@@ -96,6 +99,12 @@ export async function paymentIntentSucceeded(
     return ignored(base, type);
   }
   const details = await fetchChargeDetails(api, base.account, intent.id, currency.data);
+  // Taxed at checkout: record it with Stripe Tax once (redeliveries skip this).
+  const calculation = intent.metadata?.[TAX_CALCULATION_KEY];
+  if (calculation && !intent.metadata?.[TAX_TRANSACTION_KEY]) {
+    await commitTax(api, base.account, intent.id, calculation);
+  }
+  const tax = taxOnIntent(intent);
   const charge = typeof intent.latest_charge === "object" ? intent.latest_charge : null;
   const billing = charge?.billing_details;
   return {
@@ -106,6 +115,7 @@ export async function paymentIntentSucceeded(
       sessionId: intent.metadata?.[SESSION_METADATA_KEY] ?? null,
       paymentReference: intent.id,
       amount: money(intent.amount, currency.data),
+      ...(tax > 0 ? { tax: money(tax, currency.data) } : {}),
       platformFee: details.platformFee,
       providerFee: details.providerFee,
       customerEmail: intent.receipt_email ?? billing?.email ?? null,

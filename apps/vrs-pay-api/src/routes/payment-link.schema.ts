@@ -36,3 +36,26 @@ export const CreatePaymentLinkSchema = z
 export const UpdatePaymentLinkSchema = z.strictObject({ active: z.boolean() });
 
 export type CreatePaymentLinkInput = z.infer<typeof CreatePaymentLinkSchema>;
+
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .transform((v) => v || undefined);
+
+/** `POST /l/session/:id/tax` body: where the buyer is. */
+export const CheckoutTaxSchema = z.strictObject({
+  address: z.strictObject({
+    country: z
+      .string()
+      .regex(/^[A-Za-z]{2}$/, "Use a two-letter country code.")
+      .transform((v) => v.toUpperCase()),
+    postal_code: optionalText(20),
+    state: optionalText(60),
+    city: optionalText(100),
+    line1: optionalText(200),
+    line2: optionalText(200),
+  }),
+});

@@ -47,6 +47,30 @@ describe("ledger", () => {
     expect(creditBalance(balances, merchant, "GBP")).toBe(-2500);
   });
 
+  test("a refund's tax share comes out of tax owed, the rest from the merchant", () => {
+    const entries = refundPosting({
+      merchantId: "mer_test",
+      provider: "stripe",
+      amount: money(1200, "GBP"),
+      tax: money(200, "GBP"),
+    });
+    const balances = computeBalances([createLedgerTransaction({ description: "refund", entries })]);
+    const taxOwed = { kind: "tax_payable", owner: PLATFORM_OWNER } as const;
+    expect(creditBalance(balances, merchant, "GBP")).toBe(-1000);
+    expect(creditBalance(balances, taxOwed, "GBP")).toBe(-200);
+    expect(creditBalance(balances, stripeReceivable, "GBP")).toBe(1200);
+    expect(
+      thrown(() =>
+        refundPosting({
+          merchantId: "mer_test",
+          provider: "stripe",
+          amount: money(100, "GBP"),
+          tax: money(150, "GBP"),
+        }),
+      ).code,
+    ).toBe("tax_invalid");
+  });
+
   test("rejects unbalanced or non-positive entries", () => {
     const unbalanced = thrown(() =>
       createLedgerTransaction({

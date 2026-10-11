@@ -29,6 +29,8 @@ export interface ChargeSavedInput {
   description: string;
   metadata: Record<string, string>;
   idempotencyKey: string;
+  /** Add tax on top of `amount`, at the address saved on the provider customer. */
+  addTax?: boolean;
 }
 
 /**
@@ -37,5 +39,12 @@ export interface ChargeSavedInput {
  * means we don't know — retrying with the same idempotency key is safe.
  */
 export type ChargeSavedResult =
-  | { status: "succeeded"; reference: string; platformFee: Money; providerFee: Money }
+  | {
+      status: "succeeded";
+      reference: string;
+      platformFee: Money;
+      providerFee: Money;
+      /** Tax charged on top of the amount; absent or zero when none applied. */
+      tax?: Money;
+    }
   | { status: "declined" | "requires_action" | "error"; reference: string | null; message: string };
