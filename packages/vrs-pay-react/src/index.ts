@@ -5,5 +5,23 @@ export { CustomerPortalView, type CustomerPortalViewProps } from "./customer-por
 export { Gate, type GateProps } from "./gate";
 export { type Loaded, useCustomer, useEntitlements, useFeature, usePricing } from "./hooks";
 export { type PeriodKey, periodLabel, periodsOf, priceFor } from "./price-choice";
-export { PricingTable, type PricingTableProps } from "./pricing-table";
-export { PricingTableView, type PricingTableViewProps } from "./pricing-table-view";
+export { type VrsAppearance, appearanceToStyle } from "./appearance";
+export {
+  PricingTable,
+  type PricingTableProps,
+} from "./pricing-table";
+export {
+  PricingTableView,
+  type PricingTableViewProps,
+  type PricingTableClassNames,
+} from "./pricing-table-view";
+export { PricingComparisonTable, type PricingComparisonTableProps } from "./pricing-comparison-table";
+export {
+  PricingComparisonTableView,
+  type PricingComparisonTableViewProps,
+  type PricingComparisonTableClassNames,
+  type ComparisonPlan,
+  type ComparisonSection,
+  type ComparisonFeatureRow,
+} from "./pricing-comparison-table-view";
+

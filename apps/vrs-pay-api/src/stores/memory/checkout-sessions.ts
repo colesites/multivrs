@@ -11,6 +11,9 @@ export function createMemoryCheckoutSessionStore(state: MemoryState): CheckoutSe
       if (!record || record.merchantId !== merchantId || record.mode !== mode) return null;
       return record.session;
     },
+    async findById(id) {
+      return state.sessions.get(id) ?? null;
+    },
     async findByReference(provider, reference) {
       for (const record of state.sessions.values()) {
         const { session } = record;

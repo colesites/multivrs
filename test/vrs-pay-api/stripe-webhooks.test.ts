@@ -6,7 +6,12 @@ import { describe, expect, test } from "bun:test";
 import { isVrsPayError } from "@vrs-pay/core";
 import { createStripeProvider } from "../../apps/vrs-pay-api/src/providers/stripe/stripe.provider";
 import { fakeStripeApi, WEBHOOK_SECRET } from "./stripe-fakes";
-import { checkoutCompleted, signedStripeRequest, stripeEvent } from "./stripe-fixtures";
+import {
+  checkoutCompleted,
+  paymentIntentCompleted,
+  signedStripeRequest,
+  stripeEvent,
+} from "./stripe-fixtures";
 
 async function parse(event: object, secrets = [WEBHOOK_SECRET]) {
   const { api } = fakeStripeApi();
@@ -16,6 +21,28 @@ async function parse(event: object, secrets = [WEBHOOK_SECRET]) {
 }
 
 describe("Stripe webhook parsing", () => {
+  test("payment_intent.succeeded maps to checkout.completed with fees and customer details", async () => {
+    const event = await parse(
+      stripeEvent(
+        "payment_intent.succeeded",
+        paymentIntentCompleted("pi_test_1", "cs_vrs123", 4900),
+      ),
+    );
+    expect(event).toMatchObject({
+      type: "checkout.completed",
+      account: null,
+      data: {
+        sessionReference: "pi_test_1",
+        sessionId: "cs_vrs123",
+        paymentReference: "pi_test_1",
+        amount: { amount: 4900, currency: "GBP" },
+        platformFee: { amount: 73, currency: "GBP" },
+        providerFee: { amount: 94, currency: "GBP" },
+        customerEmail: "buyer@shop.test",
+      },
+    });
+  });
+
   test("a paid checkout maps to checkout.completed with the fees Stripe took", async () => {
     const event = await parse(
       stripeEvent("checkout.session.completed", checkoutCompleted("cs_test_1", "cs_vrs123")),

@@ -7,7 +7,14 @@ import {
 import type Stripe from "stripe";
 import { IDENTITY_MERCHANT_METADATA_KEY } from "../../identity/stripe-identity";
 import type { StripeApi } from "./stripe-api.types";
-import { checkoutCompleted, type EventBase, idOf, ignored } from "./stripe-checkout-events";
+import {
+  checkoutCompleted,
+  type EventBase,
+  idOf,
+  ignored,
+  paymentIntentSucceeded,
+  setupIntentSucceeded,
+} from "./stripe-checkout-events";
 
 export const REFUND_METADATA_KEY = "vrs_refund_id";
 
@@ -50,10 +57,15 @@ export async function toProviderEvent(
     occurredAt: event.created,
   };
   switch (event.type) {
+    case "payment_intent.succeeded":
+      return paymentIntentSucceeded(api, base, event.type, event.data.object as Stripe.PaymentIntent);
+    case "setup_intent.succeeded":
+      return setupIntentSucceeded(api, base, event.type, event.data.object as Stripe.SetupIntent);
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded":
-      return checkoutCompleted(api, base, event.type, event.data.object);
+      return checkoutCompleted(api, base, event.type, event.data.object as Stripe.Checkout.Session);
     case "checkout.session.expired":
+    case "payment_intent.canceled":
       return {
         ...base,
         type: "checkout.expired",

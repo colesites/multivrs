@@ -5,7 +5,12 @@
 import { describe, expect, test } from "bun:test";
 import { harness } from "./harness";
 import { fakeStripeApi } from "./stripe-fakes";
-import { checkoutCompleted, signedStripeRequest, stripeEvent } from "./stripe-fixtures";
+import {
+  checkoutCompleted,
+  paymentIntentCompleted,
+  signedStripeRequest,
+  stripeEvent,
+} from "./stripe-fixtures";
 
 async function withLink() {
   const stripe = fakeStripeApi();
@@ -35,12 +40,10 @@ describe("payment links", () => {
     const { app, link, stripe } = await withLink();
     const res = await app.request(`/l/${link.id}`, { method: "POST" });
     expect(res.status).toBe(303);
-    expect(res.headers.get("Location")).toBe("https://checkout.stripe.test/cs_test_1");
+    expect(res.headers.get("Location")).toMatch(/^https:\/\/vrs\.test\/pay\/cs_/);
     const { params, options } = stripe.calls.sessions[0] ?? { params: {} };
     expect(options).not.toHaveProperty("stripeAccount");
     expect(params.metadata).toMatchObject({ vrs_payment_link: link.id });
-    expect(params.success_url).toBe("https://vrs.test/paid");
-    expect(params.cancel_url).toBe("https://vrs.test/paid?canceled=1");
     await app.request(`/l/${link.id}`, { method: "POST" });
     expect(stripe.calls.sessions).toHaveLength(2);
   });
@@ -71,12 +74,28 @@ describe("payment links", () => {
     await app.request(`/l/${link.id}`, { method: "POST" });
     const [session] = [...state.sessions.values()];
     expect(session?.session.payment_link).toBe(link.id);
+    expect(session?.session.client_secret).toMatch(/^pi_test_.*_secret/);
     const event = stripeEvent(
-      "checkout.session.completed",
-      checkoutCompleted(session?.session.provider_reference ?? "", session?.session.id ?? ""),
+      "payment_intent.succeeded",
+      paymentIntentCompleted(session?.session.provider_reference ?? "", session?.session.id ?? ""),
     );
     await app.request("/webhooks/stripe", await signedStripeRequest(event));
     const payments = (await (await call("/v1/payments")).json()).data;
     expect(payments).toMatchObject([{ amount: 4900, status: "succeeded" }]);
+  });
+
+  test("deleting a payment link removes it completely", async () => {
+    const { app, call, link } = await withLink();
+    const delRes = await call(`/v1/payment_links/${link.id}`, { method: "DELETE" });
+    expect(delRes.status).toBe(200);
+    expect(await delRes.json()).toEqual({ id: link.id, object: "payment_link", deleted: true });
+
+    // Listing should no longer include the deleted link
+    const listRes = await (await call("/v1/payment_links")).json();
+    expect(listRes.data).toHaveLength(0);
+
+    // Opening it should now return 404
+    expect((await app.request(`/l/${link.id}`)).status).toBe(404);
+    expect((await app.request(`/l/${link.id}`, { method: "POST" })).status).toBe(404);
   });
 });

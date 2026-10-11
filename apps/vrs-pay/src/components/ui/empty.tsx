@@ -1,7 +1,26 @@
-import * as React from "react";
+import type * as React from "react";
 import { cn } from "@/lib/utils";
 
-export function Empty({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function Empty({
+  title,
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement> & { title?: string }) {
+  if (title) {
+    return (
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-12 text-center",
+          className,
+        )}
+        {...props}
+      >
+        <EmptyTitle className="text-sm font-medium text-ink">{title}</EmptyTitle>
+        {children && <EmptyDescription>{children}</EmptyDescription>}
+      </div>
+    );
+  }
   return (
     <div
       className={cn(
@@ -9,7 +28,9 @@ export function Empty({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+    </div>
   );
 }
 

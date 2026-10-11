@@ -1,24 +1,37 @@
 {
   "name": "@vrs-pay/react",
-  "version": "0.1.0",
-  "description": "VRS Pay for React: a pricing table, a customer portal and feature gates.",
+  "version": "0.1.2",
+  "description": "Full-stack billing UI and access control: pricing tables, feature comparison matrices, customer billing portal, and feature gates.",
   "type": "module",
   "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
     "./styles.css": "./src/styles.css"
   },
   "files": [
+    "dist",
     "src"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --external react --external react-dom --external @vrs-pay/js && tsc --emitDeclarationOnly --declaration --outDir ./dist",
+    "prepublishOnly": "bun run build",
     "lint": "biome check .",
     "format": "biome check --fix .",
     "check-types": "tsc --noEmit",
     "test": "bun test"
   },
   "dependencies": {
-    "@vrs-pay/js": "0.1.0"
+    "@vrs-pay/js": "^0.1.2"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0"

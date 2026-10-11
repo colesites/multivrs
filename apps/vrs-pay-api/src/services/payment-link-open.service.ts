@@ -58,9 +58,14 @@ export async function openPaymentLink(deps: AppDeps, id: string): Promise<string
   if (!profile) throw resourceMissing("payment link", id);
   const merchant = { ...profile, mode: stored.mode };
   const { link } = stored;
-  const thanks = link.after_payment_url ?? `${deps.urls.site}/paid`;
+  const defaultThanks = `${deps.urls.site}/paid?merchant=${encodeURIComponent(merchant.name)}`;
+  const thanks = link.after_payment_url ?? defaultThanks;
   const canceled = new URL(thanks);
   canceled.searchParams.set("canceled", "1");
+  if (!link.after_payment_url) {
+    canceled.searchParams.set("merchant", merchant.name);
+    canceled.searchParams.set("link", `${deps.urls.api}/l/${id}`);
+  }
   const urls = { success_url: thanks, cancel_url: canceled.toString() };
   // Archiving the product or price stops its links too; renames show up at checkout.
   const sale = link.price ? await priceForSale(deps, merchant, link.price, link.currency) : null;

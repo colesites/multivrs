@@ -83,3 +83,65 @@ export async function checkoutCompleted(
     },
   };
 }
+
+/** A PaymentIntent completed: read fees, customer, and saved payment method. */
+export async function paymentIntentSucceeded(
+  api: StripeApi,
+  base: EventBase,
+  type: string,
+  intent: Stripe.PaymentIntent,
+): Promise<ProviderWebhookEvent> {
+  const currency = CurrencyCodeSchema.safeParse(intent.currency);
+  if (!currency.success || intent.amount === null || intent.status !== "succeeded") {
+    return ignored(base, type);
+  }
+  const details = await fetchChargeDetails(api, base.account, intent.id, currency.data);
+  const charge = typeof intent.latest_charge === "object" ? intent.latest_charge : null;
+  const billing = charge?.billing_details;
+  return {
+    ...base,
+    type: "checkout.completed",
+    data: {
+      sessionReference: intent.id,
+      sessionId: intent.metadata?.[SESSION_METADATA_KEY] ?? null,
+      paymentReference: intent.id,
+      amount: money(intent.amount, currency.data),
+      platformFee: details.platformFee,
+      providerFee: details.providerFee,
+      customerEmail: intent.receipt_email ?? billing?.email ?? null,
+      customerName: billing?.name ?? null,
+      customerCountry: billing?.address?.country ?? null,
+      savedMethod: details.savedMethod,
+      providerCustomer: idOf(intent.customer),
+    },
+  };
+}
+
+/** A SetupIntent completed: read the saved card. */
+export async function setupIntentSucceeded(
+  api: StripeApi,
+  base: EventBase,
+  type: string,
+  intent: Stripe.SetupIntent,
+): Promise<ProviderWebhookEvent> {
+  const retrieved = await api.setupIntents.retrieve(
+    intent.id,
+    { expand: ["payment_method"] },
+    requestOptions(base.account),
+  );
+  const savedMethod = savedMethodFrom(retrieved.payment_method);
+  if (retrieved.status !== "succeeded" || !savedMethod) return ignored(base, type);
+  return {
+    ...base,
+    type: "checkout.setup_completed",
+    data: {
+      sessionReference: intent.id,
+      sessionId: intent.metadata?.[SESSION_METADATA_KEY] ?? null,
+      customerEmail: null,
+      customerName: null,
+      customerCountry: null,
+      providerCustomer: idOf(intent.customer),
+      savedMethod,
+    },
+  };
+}

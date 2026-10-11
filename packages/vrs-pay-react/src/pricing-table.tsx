@@ -2,10 +2,11 @@
 
 import type { PricingPrice, PricingProduct } from "@vrs-pay/js";
 import { useState } from "react";
+import type { VrsAppearance } from "./appearance";
 import { useVrsPay } from "./context";
 import { usePricing } from "./hooks";
 import { type PeriodKey, periodsOf } from "./price-choice";
-import { PricingTableView } from "./pricing-table-view";
+import { type PricingTableClassNames, PricingTableView } from "./pricing-table-view";
 
 export interface PricingTableProps {
   /** Show prices in one of their currencies; each price's own by default. */
@@ -17,6 +18,14 @@ export interface PricingTableProps {
    * Without it, choosing a plan opens checkout for the signed-in customer.
    */
   onSelect?: (price: PricingPrice, product: PricingProduct) => void;
+  /** ID of the product to spotlight / highlight. */
+  highlightedId?: string | null;
+  /** Custom badge text for the highlighted product (e.g. "Most Popular"). */
+  highlightedBadge?: string;
+  /** High-level styling tokens (accent color, radius, theme). */
+  appearance?: VrsAppearance;
+  /** Direct class name overrides for every child slot. */
+  classNames?: PricingTableClassNames;
   className?: string;
 }
 
@@ -58,6 +67,10 @@ export function PricingTable(props: PricingTableProps) {
       currency={props.currency}
       busyPrice={busy}
       error={failure ?? error?.message ?? null}
+      highlightedId={props.highlightedId}
+      highlightedBadge={props.highlightedBadge}
+      appearance={props.appearance}
+      classNames={props.classNames}
       className={props.className}
     />
   );

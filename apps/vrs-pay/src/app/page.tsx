@@ -1,3 +1,4 @@
+import { BillingSection } from "@/components/site/billing-section";
 import { Developers } from "@/components/site/developers";
 import { Features } from "@/components/site/features";
 import { Hero } from "@/components/site/hero";
@@ -15,6 +16,7 @@ export default function Home() {
         <Hero />
         <LogoCloud />
         <Features />
+        <BillingSection />
         <Developers />
         <Platform />
         <Testimonial />

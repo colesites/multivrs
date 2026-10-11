@@ -86,6 +86,7 @@ export async function createSubscriptionCheckout(
   const description = `${plan.name} · ${periodLabel(interval, count)}`;
   const platformFee = upfront ? feeFor(merchant, amount) : money(0, amount.currency);
   const metadata = { ...input.metadata, [SUBSCRIPTION_METADATA_KEY]: subscription.subscription.id };
+  const hostedUrl = `${deps.urls.site}/pay/${id}`;
   const checkout = await providersFor(deps, merchant.mode)[route.provider].createCheckout({
     merchantAccountId: null,
     statementDescriptor: merchant.name,
@@ -101,6 +102,7 @@ export async function createSubscriptionCheckout(
     mode: upfront ? "payment" : "setup",
     providerCustomer,
     saveMethod: true,
+    hostedUrl,
   });
 
   const session: CheckoutSession = {
@@ -118,7 +120,8 @@ export async function createSubscriptionCheckout(
     description,
     provider: checkout.provider,
     provider_reference: checkout.reference,
-    url: checkout.url,
+    url: checkout.url || hostedUrl,
+    client_secret: checkout.clientSecret ?? null,
     platform_fee: platformFee.amount,
     success_url: input.success_url,
     cancel_url: input.cancel_url,

@@ -7,7 +7,7 @@ import {
 import type { StripeApi, StripeProviderConfig } from "./stripe-api.types";
 import { call } from "./stripe-call";
 import { chargeSavedStripe, ensureStripeCustomer } from "./stripe-charges";
-import { checkoutParams } from "./stripe-checkout";
+import { checkoutParams, paymentIntentParams, setupIntentParams } from "./stripe-checkout";
 import { REFUND_METADATA_KEY, refundStatusFrom, toProviderEvent } from "./stripe-events";
 import { requestOptions } from "./stripe-options";
 
@@ -34,15 +34,34 @@ export function createStripeProvider({
     id: "stripe",
     capabilities: PROVIDER_CAPABILITIES.stripe,
     async createCheckout(input) {
-      const session = await call("checkout", () =>
-        api.checkout.sessions.create(
-          checkoutParams(input),
+      if (input.mode === "setup") {
+        const intent = await call("setup_intent", () =>
+          api.setupIntents.create(
+            setupIntentParams(input),
+            requestOptions(input.merchantAccountId, input.idempotencyKey),
+          ),
+        );
+        const url = input.hostedUrl ?? `https://pay.test/stripe/${input.sessionId}`;
+        return {
+          provider: "stripe",
+          reference: intent.id,
+          url,
+          clientSecret: intent.client_secret ?? undefined,
+        };
+      }
+      const intent = await call("payment_intent", () =>
+        api.paymentIntents.create(
+          paymentIntentParams(input),
           requestOptions(input.merchantAccountId, input.idempotencyKey),
         ),
       );
-      if (!session.url)
-        throw providerRequestFailed("stripe", "checkout", "No checkout URL returned.");
-      return { provider: "stripe", reference: session.id, url: session.url };
+      const url = input.hostedUrl ?? `https://pay.test/stripe/${input.sessionId}`;
+      return {
+        provider: "stripe",
+        reference: intent.id,
+        url,
+        clientSecret: intent.client_secret ?? undefined,
+      };
     },
     async refund(input) {
       const refund = await call("refund", () =>

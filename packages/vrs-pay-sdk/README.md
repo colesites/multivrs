@@ -1,6 +1,23 @@
 # @vrs-pay/sdk
 
-VRS Pay for your server. Use it with your secret key (`sk_test_…` or `sk_live_…`). Never ship that key to a browser. For browsers, use `@vrs-pay/js` or `@vrs-pay/react`.
+VRS Pay for your server and backend (swift-rust, Node.js, Bun, Cloudflare Workers). Use it with your secret key (`sk_test_…` or `sk_live_…`). Never ship that key to a browser. For frontend and browser apps, use `@vrs-pay/react` or `@vrs-pay/js`.
+
+---
+
+## Which package should I use?
+
+VRS Pay provides 3 public packages for different parts of your stack:
+
+| Package | Environment | Compatible Frameworks | Purpose & Auth |
+| :--- | :--- | :--- | :--- |
+| **`@vrs-pay/sdk`** *(This package)* | **Server / Backend** | **swift-rust (server)**, Next.js API/actions, Express, Hono, Bun, Node, Cloudflare Workers | Server SDK to create checkout sessions, issue customer tokens, and verify webhooks. Uses your **Secret Key** (`sk_...`). |
+| **`@vrs-pay/react`** | **Browser / Client** | **swift-rust**, React 18 & 19, Next.js, Remix, Vite, Astro | Drop-in UI components (`<PricingTable />`, `<PricingComparisonTable />`, `<CustomerPortal />`, `<Gate />`) and hooks. Uses your **Publishable Key** (`pk_...`). |
+| **`@vrs-pay/js`** | **Browser / Client** | **ANY frontend framework** (Vanilla JS, Vue, Svelte, Angular, Solid, plain HTML) | Lightweight browser client for pricing, checkout redirects, and portal sessions. Uses your **Publishable Key** (`pk_...`). |
+
+> **What about `@vrs-pay/core`?**  
+> `@vrs-pay/core` is an internal private engine used by our payment API service. It is marked `"private": true` and is **never published to npm**. For your applications, only the 3 packages above are used.
+
+---
 
 ```ts
 import { VrsPay } from "@vrs-pay/sdk";

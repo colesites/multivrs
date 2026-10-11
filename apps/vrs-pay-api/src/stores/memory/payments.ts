@@ -24,9 +24,24 @@ export function createMemoryPaymentStore(state: MemoryState): PaymentStore {
       return record;
     },
     findByReference,
-    async list(merchantId, mode, limit) {
+    async list(merchantId, mode, limitOrFilters) {
+      const filters = typeof limitOrFilters === "number" ? { limit: limitOrFilters } : limitOrFilters;
+      const limit = filters.limit ?? 100;
+      const search = filters.search?.toLowerCase().trim();
       return [...state.payments.values()]
-        .filter((r) => r.merchantId === merchantId && r.mode === mode)
+        .filter((r) => {
+          if (r.merchantId !== merchantId || r.mode !== mode) return false;
+          if (filters.status && filters.status !== "all" && r.payment.status !== filters.status) return false;
+          if (filters.customer && r.payment.customer !== filters.customer) return false;
+          if (search) {
+            const matchesId = r.payment.id.toLowerCase().includes(search);
+            const matchesEmail = r.payment.customer_email?.toLowerCase().includes(search);
+            const matchesDesc = r.payment.description?.toLowerCase().includes(search);
+            const matchesRef = r.payment.provider_reference?.toLowerCase().includes(search);
+            if (!matchesId && !matchesEmail && !matchesDesc && !matchesRef) return false;
+          }
+          return true;
+        })
         .sort((a, b) => b.payment.created - a.payment.created)
         .slice(0, limit);
     },

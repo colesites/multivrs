@@ -57,3 +57,17 @@ export function setupCompleted(sessionReference: string, sessionId: string) {
     metadata: { vrs_session_id: sessionId },
   };
 }
+
+/** A succeeded PaymentIntent for custom payment link checkout. */
+export function paymentIntentCompleted(intentId: string, sessionId: string, amount = 4900) {
+  return {
+    id: intentId,
+    object: "payment_intent",
+    status: "succeeded",
+    amount,
+    currency: "gbp",
+    customer: "cus_stripe_1",
+    receipt_email: "buyer@shop.test",
+    metadata: { vrs_session_id: sessionId },
+  };
+}

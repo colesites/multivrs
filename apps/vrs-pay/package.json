@@ -21,7 +21,9 @@
     "postcss": "^8.4.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.6.0",
-    "lucide-react": "^0.460.0"
+    "lucide-react": "^0.460.0",
+    "@vrs-pay/js": "*",
+    "@vrs-pay/react": "*"
   },
   "devDependencies": {
     "typescript": "^6.0.0",

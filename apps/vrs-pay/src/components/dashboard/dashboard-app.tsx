@@ -30,8 +30,8 @@ import { SubscriptionsView } from "./views/subscriptions";
 
 const SCREENS: Record<ViewId, ComponentType> = {
   overview: OverviewView,
+  balances: BalanceView,
   payments: PaymentsView,
-  balance: BalanceView,
   customers: CustomersView,
   subscriptions: SubscriptionsView,
   invoices: InvoicesView,
@@ -45,6 +45,7 @@ const SCREENS: Record<ViewId, ComponentType> = {
 
 function viewFromUrl(): ViewId {
   const view = new URLSearchParams(window.location.search).get("view");
+  if (view === "balance") return "balances";
   return VIEWS.find((v) => v.id === view)?.id ?? "overview";
 }
 
@@ -91,7 +92,8 @@ export function DashboardApp({ apiUrl }: { apiUrl: string }) {
   }, []);
 
   const navigate = useCallback((next: string) => {
-    const id = VIEWS.find((v) => v.id === next)?.id ?? "overview";
+    const target = next === "balance" ? "balances" : next;
+    const id = VIEWS.find((v) => v.id === target)?.id ?? "overview";
     // replaceState: the framework's navigator re-renders on popstate, so we
     // avoid adding history entries for in-dashboard tabs.
     window.history.replaceState(

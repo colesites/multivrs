@@ -77,7 +77,7 @@ describe("browser API", () => {
     const checkout = await (
       await client("/checkout", { body: { price: priceOf("basic"), ...OK } })
     ).json();
-    expect(checkout.url).toMatch(/^https:\/\/checkout\.stripe\.test\//);
+    expect(checkout.url).toMatch(/^https:\/\/vrs\.test\/pay\/cs_/);
     const canceled = await (
       await client(`/subscriptions/${subscription.id}/cancel`, { body: {} })
     ).json();

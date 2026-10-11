@@ -120,6 +120,15 @@ export interface List<T> {
   data: T[];
 }
 
+export interface RefundItem {
+  id: string;
+  amount: number;
+  currency: string;
+  status: "pending" | "succeeded" | "failed";
+  reason: string | null;
+  created: number;
+}
+
 export interface Payment {
   id: string;
   status: "succeeded" | "partially_refunded" | "refunded";
@@ -128,9 +137,14 @@ export interface Payment {
   currency: string;
   platform_fee: number;
   provider_fee: number;
+  net?: number;
   provider: string;
+  provider_reference?: string;
   checkout_session: string | null;
+  customer?: string | null;
   customer_email: string | null;
+  description?: string | null;
+  refunds?: RefundItem[];
   created: number;
 }
 

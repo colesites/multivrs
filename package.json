@@ -38,6 +38,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
+    "@repo/biome-config": "*",
+    "@repo/typescript-config": "*",
     "@multivrs/build-utils": "*",
     "@multivrs/builder-next": "*",
     "@multivrs/builder-runtime": "*",
@@ -54,7 +56,14 @@
     "@multivrs/routing-utils": "*",
     "@multivrs/static-build": "*",
     "@types/bun": "^1.3.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "@vrs-pay/core": "*",
+    "@vrs-pay/js": "*",
+    "@vrs-pay/react": "*",
+    "@vrs-pay/sdk": "*",
     "stripe": "^22.3.2",
     "turbo": "^2.9.18",
     "typescript": "5.9.2"

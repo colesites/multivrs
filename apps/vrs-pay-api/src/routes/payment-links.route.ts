@@ -31,6 +31,12 @@ export function paymentLinkRoutes(deps: AppDeps): Hono<AppEnv> {
       );
       if (!updated) throw resourceMissing("payment link", c.req.param("id"));
       return c.json(publicLink(deps, updated));
+    })
+    .delete("/:id", async (c) => {
+      const { id: merchantId, mode } = c.get("merchant");
+      const deleted = await deps.paymentLinks.delete(merchantId, mode, c.req.param("id"));
+      if (!deleted) throw resourceMissing("payment link", c.req.param("id"));
+      return c.json({ id: c.req.param("id"), object: "payment_link", deleted: true });
     });
 }
 
@@ -46,5 +52,47 @@ export function paymentLinkRedirect(deps: AppDeps): Hono<AppEnv> {
       if (!stored) throw resourceMissing("payment link", c.req.param("id"));
       return c.html(paymentLinkPage(stored.link));
     })
-    .post("/:id", async (c) => c.redirect(await openPaymentLink(deps, c.req.param("id")), 303));
+    .post("/:id", async (c) => c.redirect(await openPaymentLink(deps, c.req.param("id")), 303))
+    .get("/session/:id", async (c) => {
+      const stored = await deps.checkoutSessions.findById(c.req.param("id"));
+      if (!stored) throw resourceMissing("checkout session", c.req.param("id"));
+      const { session } = stored;
+      let clientSecret = session.client_secret;
+      if (!clientSecret && session.provider === "stripe" && session.provider_reference) {
+        try {
+          const stripeKey = process.env.STRIPE_SECRET_KEY;
+          if (stripeKey) {
+            const { createStripeClient } = await import("../providers/stripe/stripe-client");
+            const stripe = createStripeClient(stripeKey);
+            if (session.provider_reference.startsWith("pi_")) {
+              const pi = await stripe.paymentIntents.retrieve(session.provider_reference);
+              clientSecret = pi.client_secret ?? null;
+            } else if (session.provider_reference.startsWith("seti_")) {
+              const si = await stripe.setupIntents.retrieve(session.provider_reference);
+              clientSecret = si.client_secret ?? null;
+            }
+          }
+        } catch {
+          // ignore lookup errors
+        }
+      }
+      const profile = await deps.providerAccounts.merchantProfile(stored.merchantId, stored.mode);
+      return c.json({
+        id: session.id,
+        merchant_name: profile?.name ?? null,
+        amount: session.amount,
+        currency: session.currency,
+        description: session.description,
+        client_secret: clientSecret,
+        status: session.status,
+        provider: session.provider,
+        publishable_key:
+          process.env.STRIPE_PUBLISHABLE_KEY ??
+          process.env.STRIPE_TEST_PUBLISHABLE_KEY ??
+          process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ??
+          null,
+        success_url: session.success_url,
+        cancel_url: session.cancel_url,
+      });
+    });
 }

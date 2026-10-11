@@ -2,9 +2,10 @@ import {
   ArrowUpRight,
   CreditCard,
   FlaskConical,
+  Landmark,
   Receipt,
   Repeat,
-  UserCog,
+  Sparkles,
   Webhook,
 } from "lucide-react";
 import { Fragment } from "react";
@@ -12,27 +13,7 @@ import { Button } from "@/components/ui/button";
 import { highlight } from "@/lib/highlight";
 import { SectionHeading } from "./section-heading";
 
-// Illustrative API surface for the landing page — keep in sync with the SDK
-// once it ships.
 const TABS = [
-  {
-    id: "react",
-    file: "pricing.tsx",
-    code: `import { PricingTable, VrsProvider } from "@vrs-pay/react";
-
-export default function Pricing() {
-  // Drop-in billing UI: theme it or keep the defaults.
-  return (
-    <VrsProvider publishableKey="pk_test_51Hx9...">
-      <PricingTable
-        plans={["starter", "pro", "scale"]}
-        currency="auto"
-        appearance={{ accent: "#6936f5", radius: 12 }}
-      />
-    </VrsProvider>
-  );
-}`,
-  },
   {
     id: "server",
     file: "checkout.ts",
@@ -51,6 +32,23 @@ const session = await vrs.checkout.create({
 });
 
 return Response.redirect(session.url, 303);`,
+  },
+  {
+    id: "react",
+    file: "pricing.tsx",
+    code: `import { PricingTable, VrsProvider } from "@vrs-pay/react";
+
+export default function Pricing() {
+  return (
+    <VrsProvider publishableKey="pk_test_51Hx9...">
+      <PricingTable
+        plans={["starter", "pro", "scale"]}
+        currency="auto"
+        interval="month"
+      />
+    </VrsProvider>
+  );
+}`,
   },
   {
     id: "webhook",
@@ -77,26 +75,29 @@ export async function POST(req: Request) {
   },
 ] as const;
 
-// The two integration styles: Clerk-Billing-like drop-in UI, or
-// Stripe-like full control. Both sit on the same API and account.
 const MODES = [
   {
-    tag: "Drop-in",
+    tag: "Drop-in UI",
     title: "Billing SDK",
-    body: "Pricing table, checkout and customer portal as ready components. Theme them or keep the defaults.",
+    body: "Pricing tables, full comparison tables, and customer portal as ready components.",
   },
   {
     tag: "Full control",
     title: "Payments API",
-    body: "Typed SDKs, idempotent endpoints, embeddable card fields and signed webhooks. Build it your way.",
+    body: "Typed SDKs, idempotent endpoints, embeddable card fields and signed webhooks.",
   },
 ];
 
 const CAPABILITIES = [
   {
+    icon: Sparkles,
+    title: "Pricing Table & Comparison Table",
+    body: "Drop in plan tables or full feature matrix tables in 1 tag.",
+  },
+  {
     icon: CreditCard,
     title: "Checkout & payment links",
-    body: "A hosted page in one call, or no-code links.",
+    body: "Hosted, embedded or fully custom links.",
   },
   {
     icon: Repeat,
@@ -104,9 +105,9 @@ const CAPABILITIES = [
     body: "Seats, metering, trials and proration.",
   },
   {
-    icon: UserCog,
-    title: "Customer portal",
-    body: "Upgrades, cancellations and invoices, prebuilt.",
+    icon: Landmark,
+    title: "Local payouts",
+    body: "Pay sellers in their own currency.",
   },
   {
     icon: Webhook,
@@ -117,11 +118,6 @@ const CAPABILITIES = [
     icon: Receipt,
     title: "Tax & invoicing",
     body: "VAT and GST calculated per market.",
-  },
-  {
-    icon: FlaskConical,
-    title: "Test mode, free forever",
-    body: "Sandbox cards and simulated FX.",
   },
 ];
 
@@ -141,9 +137,9 @@ export function Developers() {
             lead="Ship billing"
             rest="in an afternoon"
           >
-            Two ways in, one platform. Drop in prebuilt billing UI and ship
-            today, or build every screen on the raw API. Same account, same
-            data, and you can mix both.
+            Two ways in, one platform. Drop in a ready-to-use Pricing Table or
+            detailed Pricing Comparison Table, or build your own custom checkout
+            on the typed Payments API.
           </SectionHeading>
 
           <div className="reveal mt-8 grid gap-3 sm:grid-cols-2">
@@ -167,7 +163,7 @@ export function Developers() {
             <span className="text-mute select-none" aria-hidden="true">
               $
             </span>
-            <span className="truncate">bun add @vrs-pay/sdk</span>
+            <span className="truncate">bun add @vrs-pay/react @vrs-pay/sdk</span>
             <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] text-mute ring-1 ring-line">
               typed
             </span>

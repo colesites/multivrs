@@ -36,8 +36,8 @@ export function Mark() {
 
 export const VIEWS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "balances", label: "Balances", icon: Wallet },
   { id: "payments", label: "Payments", icon: CreditCard },
-  { id: "balance", label: "Balance", icon: Wallet },
   { id: "customers", label: "Customers", icon: Users },
   { id: "subscriptions", label: "Subscriptions", icon: Repeat },
   { id: "invoices", label: "Invoices", icon: FileText },

@@ -50,6 +50,8 @@ export interface ProviderCheckoutInput {
   providerCustomer?: string;
   /** Save the card for later off-session charges (subscriptions). */
   saveMethod?: boolean;
+  /** Custom hosted URL on our site where the customer pays. */
+  hostedUrl?: string;
 }
 
 export interface ProviderCheckout {
@@ -58,6 +60,8 @@ export interface ProviderCheckout {
   reference: string;
   /** Where to send the customer (hosted payment page). */
   url: string;
+  /** The client secret for confirming payments with secure fields (Stripe Elements, etc.). */
+  clientSecret?: string;
 }
 
 export interface ProviderRefundInput {
