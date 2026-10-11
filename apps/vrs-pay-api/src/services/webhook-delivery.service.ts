@@ -12,19 +12,26 @@ export interface DeliveryOptions {
   now?: () => Date;
 }
 
-async function send(delivery: DueDelivery, now: Date, doFetch: typeof fetch) {
-  const signature = await signWebhookPayload(
-    delivery.payload,
-    delivery.secret,
-    Math.floor(now.getTime() / 1000),
-  );
-  return doFetch(delivery.url, {
+/** POSTs `payload` to `url`, signed with `secret` — how every webhook goes out. */
+export async function postSignedWebhook(
+  url: string,
+  secret: string,
+  payload: string,
+  now: Date,
+  doFetch: typeof fetch = fetch,
+) {
+  const signature = await signWebhookPayload(payload, secret, Math.floor(now.getTime() / 1000));
+  return doFetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", [SIGNATURE_HEADER]: signature },
-    body: delivery.payload,
+    body: payload,
     redirect: "manual",
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
+}
+
+function send(delivery: DueDelivery, now: Date, doFetch: typeof fetch) {
+  return postSignedWebhook(delivery.url, delivery.secret, delivery.payload, now, doFetch);
 }
 
 /**

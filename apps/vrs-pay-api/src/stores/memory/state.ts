@@ -29,6 +29,8 @@ export interface MemoryDelivery {
   nextAttemptAt: Date;
   lastStatusCode: number | null;
   lastError: string | null;
+  deliveredAt: Date | null;
+  createdAt: Date;
 }
 
 export interface MemoryAccount extends ProviderAccountOwner {
@@ -107,6 +109,8 @@ export function applyEffects(state: MemoryState, effects: Effects): void {
         nextAttemptAt: new Date(0),
         lastStatusCode: null,
         lastError: null,
+        deliveredAt: null,
+        createdAt: new Date(),
       });
     }
   }

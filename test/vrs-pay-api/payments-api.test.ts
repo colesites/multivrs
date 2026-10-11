@@ -31,6 +31,18 @@ describe("GET /v1/payments & /v1/payments/:id", () => {
     expect(noMatchResult.data.length).toBe(0);
   });
 
+  test("search and the customer filter look through the payment's checkout session", async () => {
+    const { call, paymentId, session, state } = await paidPayment();
+    const stored = state.sessions.get(session.id);
+    if (!stored) throw new Error("session missing");
+    stored.session = { ...stored.session, description: "Annual Pro plan", customer: "cus_buyer" };
+    const ids = async (query: string) =>
+      (await (await call(`/v1/payments?${query}`)).json()).data.map((p: { id: string }) => p.id);
+    expect(await ids("search=annual%20pro")).toEqual([paymentId]);
+    expect(await ids("customer=cus_buyer")).toEqual([paymentId]);
+    expect(await ids("customer=cus_someone_else")).toEqual([]);
+  });
+
   test("returns payment details with net calculation and linked refunds", async () => {
     const { call, paymentId } = await paidPayment();
 
@@ -116,5 +128,3 @@ describe("GET /v1/payments & /v1/payments/:id", () => {
     expect(analytics.breakdown.methods.length).toBeGreaterThanOrEqual(1);
   });
 });
-
-

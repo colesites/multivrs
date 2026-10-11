@@ -1,4 +1,5 @@
 import type { Db } from "../../db/client";
+import type { Prisma } from "../../generated/prisma/client";
 import type { PaymentStore } from "../payment.store";
 import { writeEffects } from "./effects";
 import { paymentFromRow } from "./mappers";
@@ -30,21 +31,23 @@ export function createPrismaPaymentStore(db: Db): PaymentStore {
       return row ? paymentFromRow(row) : null;
     },
     async list(merchantId, mode, limitOrFilters) {
-      const filters = typeof limitOrFilters === "number" ? { limit: limitOrFilters } : limitOrFilters;
+      const filters =
+        typeof limitOrFilters === "number" ? { limit: limitOrFilters } : limitOrFilters;
       const limit = filters.limit ?? 100;
-      const where: Record<string, unknown> = { merchantId, mode };
+      const where: Prisma.PaymentWhereInput = { merchantId, mode };
       if (filters.status && filters.status !== "all") {
         where.status = filters.status;
       }
+      // A payment's customer and description live on its checkout session.
       if (filters.customer) {
-        where.customerId = filters.customer;
+        where.checkoutSession = { customerId: filters.customer };
       }
       if (filters.search?.trim()) {
         const q = filters.search.trim();
         where.OR = [
           { id: { contains: q, mode: "insensitive" } },
           { customerEmail: { contains: q, mode: "insensitive" } },
-          { description: { contains: q, mode: "insensitive" } },
+          { checkoutSession: { description: { contains: q, mode: "insensitive" } } },
           { providerReference: { contains: q, mode: "insensitive" } },
         ];
       }

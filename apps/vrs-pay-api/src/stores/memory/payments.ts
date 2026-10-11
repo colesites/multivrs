@@ -25,18 +25,24 @@ export function createMemoryPaymentStore(state: MemoryState): PaymentStore {
     },
     findByReference,
     async list(merchantId, mode, limitOrFilters) {
-      const filters = typeof limitOrFilters === "number" ? { limit: limitOrFilters } : limitOrFilters;
+      const filters =
+        typeof limitOrFilters === "number" ? { limit: limitOrFilters } : limitOrFilters;
       const limit = filters.limit ?? 100;
       const search = filters.search?.toLowerCase().trim();
       return [...state.payments.values()]
         .filter((r) => {
           if (r.merchantId !== merchantId || r.mode !== mode) return false;
-          if (filters.status && filters.status !== "all" && r.payment.status !== filters.status) return false;
-          if (filters.customer && r.payment.customer !== filters.customer) return false;
+          if (filters.status && filters.status !== "all" && r.payment.status !== filters.status)
+            return false;
+          // A payment's customer and description live on its checkout session.
+          const session = r.payment.checkout_session
+            ? state.sessions.get(r.payment.checkout_session)?.session
+            : undefined;
+          if (filters.customer && session?.customer !== filters.customer) return false;
           if (search) {
             const matchesId = r.payment.id.toLowerCase().includes(search);
             const matchesEmail = r.payment.customer_email?.toLowerCase().includes(search);
-            const matchesDesc = r.payment.description?.toLowerCase().includes(search);
+            const matchesDesc = session?.description?.toLowerCase().includes(search);
             const matchesRef = r.payment.provider_reference?.toLowerCase().includes(search);
             if (!matchesId && !matchesEmail && !matchesDesc && !matchesRef) return false;
           }

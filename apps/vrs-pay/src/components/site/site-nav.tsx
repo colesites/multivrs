@@ -28,8 +28,8 @@ const FLOAT_AT = 96;
  *   hidden   — scrolling down hides it; any scroll up brings it back.
  * rAF-throttled and passive; setState bails out when nothing changed.
  */
-function useHeadroom() {
-  const [floating, setFloating] = useState(false);
+function useHeadroom(overHero: boolean) {
+  const [floating, setFloating] = useState(!overHero);
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
@@ -41,7 +41,8 @@ function useHeadroom() {
       const y = Math.max(0, window.scrollY);
       const heroEnd = document.querySelector("[data-hero-end]");
       setFloating(
-        heroEnd ? heroEnd.getBoundingClientRect().top < FLOAT_AT : y > 16,
+        !overHero ||
+          (heroEnd ? heroEnd.getBoundingClientRect().top < FLOAT_AT : y > 16),
       );
       if (y <= REVEAL_ABOVE) {
         setHidden(false);
@@ -65,7 +66,7 @@ function useHeadroom() {
       window.removeEventListener("resize", schedule);
       cancelAnimationFrame(frame);
     };
-  }, []);
+  }, [overHero]);
 
   return { floating, hidden };
 }
@@ -78,9 +79,15 @@ function useHeadroom() {
  * reserves its height with a spacer.
  *
  * The mobile menu is a native popover (light-dismiss, Esc, focus handling).
+ *
+ * Pages without the hero (docs) pass overHero={false}: the header starts as
+ * the pill, since white text would sit on a white page, and section links
+ * point back to the homepage.
  */
-export function SiteNav() {
-  const { floating, hidden } = useHeadroom();
+export function SiteNav({ overHero = true }: { overHero?: boolean }) {
+  const { floating, hidden } = useHeadroom(overHero);
+  const hrefOf = (href: string) =>
+    overHero || !href.startsWith("#") ? href : `/${href}`;
 
   return (
     <header
@@ -106,7 +113,7 @@ export function SiteNav() {
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <a
-                  href={link.href}
+                  href={hrefOf(link.href)}
                   className="block rounded-full px-4 py-1.5 text-[13px] font-medium text-white/90 transition-colors hover:bg-white/15 hover:text-white group-data-[floating=true]/nav:text-ink group-data-[floating=true]/nav:hover:bg-ink/5"
                 >
                   {link.label}
@@ -161,7 +168,7 @@ export function SiteNav() {
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <a
-                  href={link.href}
+                  href={hrefOf(link.href)}
                   className="flex items-center justify-between py-3.5 text-[17px] font-medium tracking-tight"
                 >
                   {link.label}

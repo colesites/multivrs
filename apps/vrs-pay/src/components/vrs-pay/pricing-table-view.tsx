@@ -282,11 +282,9 @@ export function PricingTableView({
                       >
                         {busy
                           ? "Processing..."
-                          : isHighlighted
-                            ? "Get Plus"
-                            : product.amount === 0 || price.amount === 0
-                              ? "Start free"
-                              : `Get ${product.name}`}
+                          : price.amount === 0
+                            ? "Start free"
+                            : `Get ${product.name}`}
                       </button>
                     ))}
                 </div>

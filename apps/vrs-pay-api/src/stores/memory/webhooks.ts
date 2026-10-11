@@ -1,3 +1,4 @@
+import { deliveryView } from "../../services/webhook-delivery-view";
 import type { DeliveryStore, WebhookEndpointStore } from "../webhook.store";
 import type { MemoryState } from "./state";
 
@@ -13,6 +14,22 @@ export function createMemoryWebhookEndpointStore(state: MemoryState): WebhookEnd
       return [...state.endpoints.values()]
         .filter((r) => r.merchantId === merchantId && r.mode === mode)
         .map((r) => r.endpoint);
+    },
+    async get(merchantId, mode, id) {
+      const record = state.endpoints.get(id);
+      return record?.merchantId === merchantId && record.mode === mode ? record : null;
+    },
+    async update(merchantId, mode, id, patch) {
+      const record = state.endpoints.get(id);
+      const owned = record?.merchantId === merchantId && record.mode === mode;
+      if (!record || !owned || record.endpoint.status !== "enabled") return null;
+      const endpoint = {
+        ...record.endpoint,
+        ...(patch.url ? { url: patch.url } : {}),
+        ...(patch.enabledEvents ? { enabled_events: patch.enabledEvents } : {}),
+      };
+      state.endpoints.set(id, { ...record, endpoint });
+      return endpoint;
     },
     async disable(merchantId, mode, id) {
       const record = state.endpoints.get(id);
@@ -47,13 +64,14 @@ export function createMemoryDeliveryStore(state: MemoryState): DeliveryStore {
         ];
       });
     },
-    async markSucceeded(id, statusCode) {
+    async markSucceeded(id, statusCode, now) {
       const d = state.deliveries.get(id);
       if (d)
         Object.assign(d, {
           status: "succeeded",
           attempts: d.attempts + 1,
           lastStatusCode: statusCode,
+          deliveredAt: now,
         });
     },
     async markFailed(id, failure) {
@@ -66,6 +84,22 @@ export function createMemoryDeliveryStore(state: MemoryState): DeliveryStore {
         lastStatusCode: failure.statusCode,
         lastError: failure.error,
       });
+    },
+    async listForEndpoint(endpointId, limit) {
+      return [...state.deliveries.values()]
+        .filter((d) => d.endpointId === endpointId)
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        .slice(0, limit)
+        .map((d) => {
+          const eventType = state.events.find((e) => e.event.id === d.eventId)?.event.type ?? "";
+          return deliveryView({ ...d, eventType });
+        });
+    },
+    async retryNow(endpointId, deliveryId, now) {
+      const d = state.deliveries.get(deliveryId);
+      if (d?.endpointId !== endpointId) return false;
+      Object.assign(d, { status: "pending", nextAttemptAt: now });
+      return true;
     },
   };
 }

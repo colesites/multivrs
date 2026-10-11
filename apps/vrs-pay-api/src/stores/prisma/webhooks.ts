@@ -1,4 +1,5 @@
 import type { Db } from "../../db/client";
+import { deliveryView } from "../../services/webhook-delivery-view";
 import type { DeliveryStore, WebhookEndpointStore } from "../webhook.store";
 import { endpointFromRow } from "./mappers";
 
@@ -33,6 +34,21 @@ export function createPrismaWebhookEndpointStore(db: Db): WebhookEndpointStore {
         orderBy: { createdAt: "desc" },
       });
       return rows.map(endpointFromRow);
+    },
+    async get(merchantId, mode, id) {
+      const row = await db.webhookEndpoint.findFirst({ where: { id, merchantId, mode } });
+      return row ? { merchantId, mode, secret: row.secret, endpoint: endpointFromRow(row) } : null;
+    },
+    async update(merchantId, mode, id, patch) {
+      const { count } = await db.webhookEndpoint.updateMany({
+        where: { id, merchantId, mode, disabledAt: null },
+        data: {
+          ...(patch.url ? { url: patch.url } : {}),
+          ...(patch.enabledEvents ? { enabledEvents: patch.enabledEvents } : {}),
+        },
+      });
+      if (count !== 1) return null;
+      return endpointFromRow(await db.webhookEndpoint.findUniqueOrThrow({ where: { id } }));
     },
     async disable(merchantId, mode, id) {
       const { count } = await db.webhookEndpoint.updateMany({
@@ -106,6 +122,22 @@ export function createPrismaDeliveryStore(db: Db): DeliveryStore {
           lastError: failure.error.slice(0, 500),
         },
       });
+    },
+    async listForEndpoint(endpointId, limit) {
+      const rows = await db.webhookDelivery.findMany({
+        where: { endpointId },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        include: { event: { select: { type: true } } },
+      });
+      return rows.map((row) => deliveryView({ ...row, eventType: row.event.type }));
+    },
+    async retryNow(endpointId, deliveryId, now) {
+      const { count } = await db.webhookDelivery.updateMany({
+        where: { id: deliveryId, endpointId },
+        data: { status: "pending", nextAttemptAt: now },
+      });
+      return count === 1;
     },
   };
 }

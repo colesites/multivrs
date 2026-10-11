@@ -20,6 +20,7 @@ const TONES: Record<string, string> = {
   trialing: "border-brand-200 bg-brand-50 text-brand-700",
   open: "border-brand-200 bg-brand-50 text-brand-700",
   on_hold: "border-transparent bg-red-500/15 text-red-700",
+  failed: "border-transparent bg-red-500/15 text-red-700",
 };
 
 /** A status as a swift-rust badge: green for good, amber for waiting, red for blocked. */

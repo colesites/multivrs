@@ -279,6 +279,25 @@ export interface WebhookEndpoint {
   secret?: string;
 }
 
+export interface WebhookDelivery {
+  id: string;
+  event: string;
+  event_type: string;
+  status: "pending" | "succeeded" | "failed";
+  attempts: number;
+  last_status_code: number | null;
+  last_error: string | null;
+  next_attempt: number | null;
+  delivered: number | null;
+  created: number;
+}
+
+export interface WebhookTestResult {
+  ok: boolean;
+  status_code: number | null;
+  error: string | null;
+}
+
 export interface VrsEvent {
   id: string;
   type: string;
