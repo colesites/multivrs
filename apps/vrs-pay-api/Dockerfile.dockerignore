@@ -1,0 +1,14 @@
+# The build context is the repo root. Send only what the Dockerfile copies.
+*
+!package.json
+!bun.lock
+!apps/*/package.json
+!packages/*/package.json
+!packages/typescript-config
+!packages/vrs-pay-core/src
+!apps/vrs-pay-api/prisma.config.ts
+!apps/vrs-pay-api/prisma
+!apps/vrs-pay-api/src
+apps/vrs-pay-api/src/generated
+**/node_modules
+**/.env*
