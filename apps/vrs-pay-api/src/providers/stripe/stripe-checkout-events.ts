@@ -100,11 +100,12 @@ export async function paymentIntentSucceeded(
   }
   const details = await fetchChargeDetails(api, base.account, intent.id, currency.data);
   // Taxed at checkout: record it with Stripe Tax once (redeliveries skip this).
+  // Zero tax (no registration where the buyer is) isn't recorded: each record is billed.
+  const tax = taxOnIntent(intent);
   const calculation = intent.metadata?.[TAX_CALCULATION_KEY];
-  if (calculation && !intent.metadata?.[TAX_TRANSACTION_KEY]) {
+  if (calculation && tax > 0 && !intent.metadata?.[TAX_TRANSACTION_KEY]) {
     await commitTax(api, base.account, intent.id, calculation);
   }
-  const tax = taxOnIntent(intent);
   const charge = typeof intent.latest_charge === "object" ? intent.latest_charge : null;
   const billing = charge?.billing_details;
   return {

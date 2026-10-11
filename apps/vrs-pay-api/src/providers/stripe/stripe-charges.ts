@@ -85,7 +85,10 @@ export async function chargeSavedStripe(
       };
     }
     const { platformFee, providerFee } = chargeDetails(intent, input.amount.currency);
-    if (calculation?.id) await commitTax(api, input.merchantAccountId, intent.id, calculation.id);
+    // Zero tax isn't recorded with Stripe Tax: each record is billed.
+    if (calculation?.id && tax > 0) {
+      await commitTax(api, input.merchantAccountId, intent.id, calculation.id);
+    }
     return {
       status: "succeeded",
       reference: intent.id,

@@ -93,6 +93,15 @@ describe("tax at checkout", () => {
     ]);
   });
 
+  test("zero tax (no registration there) isn't recorded with Stripe Tax", async () => {
+    const { call, pay, quote, stripe } = await taxedCheckout({ taxRate: 0 });
+    expect((await (await quote()).json()).tax).toBe(0);
+    await pay();
+    const [payment] = (await (await call("/v1/payments")).json()).data;
+    expect(payment).toMatchObject({ amount: 4900, amount_tax: 0 });
+    expect(stripe.calls.taxTransactions).toEqual([]);
+  });
+
   test("refunds give back their share of tax, exactly in total", async () => {
     const { call, pay, quote, stripe, balances, state } = await taxedCheckout();
     await quote();
