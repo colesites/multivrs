@@ -13,7 +13,7 @@ const inter = Inter({
 
 const SITE_DESCRIPTION =
   "MULTIVRS is a modern software ecosystem: cloud deployment, developer tooling, AI workflows, and premium product experiences.";
-const SOCIAL_IMAGE_PATH = "/og.png";
+const SOCIAL_IMAGE_PATH = "/og.jpg";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
         url: SOCIAL_IMAGE_PATH,
         width: 1200,
         height: 630,
-        type: "image/png",
+        type: "image/jpeg",
         alt: `${SITE_NAME} — Build Beyond Limits`,
       },
     ],
