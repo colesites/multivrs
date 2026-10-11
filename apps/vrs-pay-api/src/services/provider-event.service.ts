@@ -64,13 +64,19 @@ async function handle(
     case "checkout.setup_completed": {
       const session = await ownedSession(deps, owner, provider, event.data.sessionReference);
       if (session?.session.mode !== "subscription") return "ignored";
-      const outcome = await activateSubscription(deps, session, account, event.data.savedMethod, null);
+      const outcome = await activateSubscription(
+        deps,
+        session,
+        account,
+        event.data.savedMethod,
+        null,
+      );
       if (outcome === "processed") {
         await fillMissingEmail(
           deps,
           session,
           session.session.customer,
-          event.data.customerEmail,
+          event.data.customerEmail ?? null,
           event.data.customerName,
           event.data.customerCountry,
         );

@@ -14,6 +14,31 @@ export interface WebhookEndpoint {
   secret?: string;
 }
 
+/** One event sent (or being sent) to one endpoint. */
+export interface WebhookDelivery {
+  id: string;
+  object: "webhook_delivery";
+  event: string;
+  event_type: string;
+  status: "pending" | "succeeded" | "failed";
+  attempts: number;
+  last_status_code: number | null;
+  last_error: string | null;
+  /** Unix seconds of the next try; null once it succeeded or gave up. */
+  next_attempt: number | null;
+  /** Unix seconds. */
+  delivered: number | null;
+  created: number;
+}
+
+/** What `POST /v1/webhook_endpoints/:id/test` reports back. */
+export interface WebhookTestResult {
+  object: "webhook_test";
+  ok: boolean;
+  status_code: number | null;
+  error: string | null;
+}
+
 export interface StoredWebhookEndpoint {
   merchantId: string;
   mode: ApiKeyMode;

@@ -5,7 +5,7 @@ import type {
   CreateCustomerSessionInput,
   UpdateCustomerInput,
 } from "../routes/customer.schema";
-import type { Customer, CustomerSession, StoredCustomer } from "./customer.types";
+import type { Customer, CustomerPatch, CustomerSession, StoredCustomer } from "./customer.types";
 import { nowSeconds } from "./events";
 
 export const CUSTOMER_SESSION_TTL_SECONDS = 30 * 60;
