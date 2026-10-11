@@ -27,6 +27,8 @@ export interface ModeProviders {
   providers: ProviderRegistry;
   /** Providers the platform has accounts with in this mode; empty means it can't take payments. */
   platformProviders: readonly ProviderId[];
+  /** Tax is calculated and added on top of prices (Stripe Tax is switched on for this mode). */
+  tax?: boolean;
 }
 
 /** Everything the app needs, injected so tests can swap any piece. */

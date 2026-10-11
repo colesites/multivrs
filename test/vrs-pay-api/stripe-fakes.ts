@@ -32,6 +32,10 @@ export interface FakeStripeOptions {
   charge?: "succeeded" | "declined" | "auth" | "network";
   /** Added to every id, so fakes sharing a real database don't collide. */
   prefix?: string;
+  /** Stripe Tax's rate for every address (default 20%). */
+  taxRate?: number;
+  /** Stripe Tax can't place the address (or the customer has none). */
+  taxLocationInvalid?: boolean;
 }
 
 function intentWithFees(id: string, options: FakeStripeOptions, amount?: number) {
@@ -79,6 +83,19 @@ export function fakeStripeApi(options: FakeStripeOptions = {}) {
       options?: Stripe.RequestOptions;
     }>,
     customers: 0,
+    customerUpdates: [] as Array<{ id: string; params?: Stripe.CustomerUpdateParams }>,
+    intentUpdates: [] as Array<{ id: string; params?: Stripe.PaymentIntentUpdateParams }>,
+    taxCalculations: [] as Stripe.Tax.CalculationCreateParams[],
+    taxTransactions: [] as Stripe.Tax.TransactionCreateFromCalculationParams[],
+    taxReversals: [] as Stripe.Tax.TransactionCreateReversalParams[],
+  };
+  // What updates and charges left on each PaymentIntent, for later retrieves.
+  const intents = new Map<string, { amount?: number; metadata: Record<string, string> }>();
+  const remember = (id: string, amount?: number, metadata: Stripe.MetadataParam = {}) => {
+    const known = intents.get(id) ?? { metadata: {} };
+    const merged = { ...known.metadata };
+    for (const [k, v] of Object.entries(metadata)) if (typeof v === "string") merged[k] = v;
+    intents.set(id, { amount: amount ?? known.amount, metadata: merged });
   };
   const api: StripeApi = {
     checkout: {
@@ -95,7 +112,15 @@ export function fakeStripeApi(options: FakeStripeOptions = {}) {
       },
     },
     paymentIntents: {
-      retrieve: async (id) => intentWithFees(id, options),
+      retrieve: async (id) => ({
+        ...intentWithFees(id, options, intents.get(id)?.amount),
+        metadata: intents.get(id)?.metadata ?? {},
+      }),
+      async update(id, params) {
+        calls.intentUpdates.push({ id, params });
+        remember(id, params?.amount, params?.metadata ?? {});
+        return partial<Stripe.PaymentIntent>({ id, amount: params?.amount });
+      },
       async create(params, requestOptions) {
         if (options.failWith) throw options.failWith;
         if (params.confirm) {
@@ -111,7 +136,11 @@ export function fakeStripeApi(options: FakeStripeOptions = {}) {
           if (options.charge === "network")
             throw stripeError("StripeConnectionError", "socket hang up");
           const id = `pi_renewal_${options.prefix ?? ""}${calls.charges.length}`;
-          return intentWithFees(id, options, params.amount);
+          remember(id, params.amount, params.metadata ?? {});
+          return {
+            ...intentWithFees(id, options, params.amount),
+            metadata: intents.get(id)?.metadata ?? {},
+          };
         }
         calls.sessions.push({
           params: {
@@ -119,9 +148,15 @@ export function fakeStripeApi(options: FakeStripeOptions = {}) {
             customer: params.customer as string | undefined,
             payment_method_types: params.payment_method_types,
             payment_intent_data: {
-              ...(params.setup_future_usage ? { setup_future_usage: params.setup_future_usage } : {}),
-              ...(params.statement_descriptor_suffix ? { statement_descriptor_suffix: params.statement_descriptor_suffix } : {}),
-              ...(params.application_fee_amount ? { application_fee_amount: params.application_fee_amount } : {}),
+              ...(params.setup_future_usage
+                ? { setup_future_usage: params.setup_future_usage }
+                : {}),
+              ...(params.statement_descriptor_suffix
+                ? { statement_descriptor_suffix: params.statement_descriptor_suffix }
+                : {}),
+              ...(params.application_fee_amount
+                ? { application_fee_amount: params.application_fee_amount }
+                : {}),
               metadata: params.metadata,
             },
             metadata: params.metadata,
@@ -177,6 +212,45 @@ export function fakeStripeApi(options: FakeStripeOptions = {}) {
         return partial<Stripe.Customer>({
           id: `cus_stripe_${options.prefix ?? ""}${calls.customers}`,
         });
+      },
+      async update(id, params) {
+        calls.customerUpdates.push({ id, params });
+        return partial<Stripe.Customer>({ id });
+      },
+    },
+    tax: {
+      calculations: {
+        async create(params) {
+          if (options.taxLocationInvalid) {
+            throw stripeError(
+              "StripeInvalidRequestError",
+              "Unable to determine the customer's tax location.",
+              "customer_tax_location_invalid",
+            );
+          }
+          calls.taxCalculations.push(params);
+          const amount = params.line_items.reduce((sum, line) => sum + line.amount, 0);
+          const tax = Math.round(amount * (options.taxRate ?? 0.2));
+          return partial<Stripe.Tax.Calculation>({
+            id: `taxcalc_${options.prefix ?? ""}${calls.taxCalculations.length}`,
+            tax_amount_exclusive: tax,
+            amount_total: amount + tax,
+          });
+        },
+      },
+      transactions: {
+        async createFromCalculation(params) {
+          calls.taxTransactions.push(params);
+          return partial<Stripe.Tax.Transaction>({
+            id: `tax_txn_${options.prefix ?? ""}${calls.taxTransactions.length}`,
+          });
+        },
+        async createReversal(params) {
+          calls.taxReversals.push(params);
+          return partial<Stripe.Tax.Transaction>({
+            id: `tax_rev_${options.prefix ?? ""}${calls.taxReversals.length}`,
+          });
+        },
       },
     },
     refunds: {

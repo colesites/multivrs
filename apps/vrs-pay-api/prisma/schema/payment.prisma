@@ -58,8 +58,11 @@ model Payment {
   /// e.g. Stripe's PaymentIntent id (pi_…).
   providerReference String        @map("provider_reference")
   status            PaymentStatus @default(succeeded)
+  /// What the buyer paid, tax included.
   amount            BigInt
   amountRefunded    BigInt        @default(0) @map("amount_refunded")
+  /// The part of amount that is tax, owed to tax authorities.
+  amountTax         BigInt        @default(0) @map("amount_tax")
   currency          String        @db.Char(3)
   platformFee       BigInt        @map("platform_fee")
   providerFee       BigInt        @map("provider_fee")
@@ -92,6 +95,8 @@ model Refund {
   providerReference String?      @map("provider_reference")
   status            RefundStatus @default(pending)
   amount            BigInt
+  /// The part of amount that is tax returned to the buyer.
+  amountTax         BigInt       @default(0) @map("amount_tax")
   currency          String       @db.Char(3)
   reason            String?
   metadata          Json         @default("{}")

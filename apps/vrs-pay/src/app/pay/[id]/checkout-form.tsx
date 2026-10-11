@@ -21,6 +21,27 @@ interface SessionData {
   publishable_key: string | null;
   success_url: string;
   cancel_url: string;
+  tax_enabled?: boolean;
+}
+
+interface TaxQuote {
+  subtotal: number;
+  tax: number;
+  total: number;
+}
+
+interface StripeAddressChange {
+  complete: boolean;
+  value: {
+    address: {
+      country: string;
+      postal_code?: string | null;
+      state?: string | null;
+      city?: string | null;
+      line1?: string | null;
+      line2?: string | null;
+    };
+  };
 }
 
 let stripeScriptPromise: Promise<void> | null = null;
@@ -46,16 +67,73 @@ function loadStripeScript(): Promise<void> {
   return stripeScriptPromise;
 }
 
-export function CheckoutForm({ session }: { session: SessionData }) {
+export function CheckoutForm({
+  session,
+  apiUrl,
+}: {
+  session: SessionData;
+  apiUrl: string;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const addressRef = useRef<HTMLDivElement>(null);
   const stripeRef = useRef<any>(null);
   const elementsRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [quote, setQuote] = useState<TaxQuote | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  const lastAddress = useRef("");
+  const quoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const quoteRun = useRef(0);
 
   const publishableKey = session.publishable_key;
+  const taxed = session.tax_enabled === true;
+  // A SetupIntent saves the card for a trial; nothing is charged now.
+  const isSetup = session.client_secret?.startsWith("seti_") ?? false;
 
+  /** Prices the tax for the buyer's address and refreshes the Payment Element's amount. */
+  async function quoteTax(address: StripeAddressChange["value"]["address"]) {
+    const run = ++quoteRun.current;
+    setQuoting(true);
+    setErrorMessage(null);
+    try {
+      const res = await fetch(`${apiUrl}/l/session/${session.id}/tax`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          address: {
+            country: address.country,
+            postal_code: address.postal_code ?? undefined,
+            state: address.state ?? undefined,
+            city: address.city ?? undefined,
+            line1: address.line1 ?? undefined,
+            line2: address.line2 ?? undefined,
+          },
+        }),
+      });
+      const body = await res.json();
+      if (run !== quoteRun.current) return;
+      if (!res.ok) {
+        setQuote(null);
+        // Address problems are the buyer's to fix; anything else is ours.
+        setErrorMessage(
+          res.status < 500
+            ? (body?.error?.message ?? "We couldn't work out tax for this address.")
+            : "We couldn't work out tax right now. Please try again in a moment.",
+        );
+        return;
+      }
+      await elementsRef.current?.fetchUpdates();
+      if (run === quoteRun.current) setQuote(body as TaxQuote);
+    } catch {
+      if (run === quoteRun.current) setErrorMessage("We couldn't work out tax. Try again.");
+    } finally {
+      if (run === quoteRun.current) setQuoting(false);
+    }
+  }
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Stripe Elements mount once per client secret; quoteTax only reads refs and state setters.
   useEffect(() => {
     let unmounted = false;
 
@@ -115,6 +193,23 @@ export function CheckoutForm({ session }: { session: SessionData }) {
         paymentElement.on("ready", () => {
           if (!unmounted) setLoading(false);
         });
+
+        if (taxed && addressRef.current) {
+          const addressElement = elements.create("address", { mode: "billing" });
+          addressElement.mount(addressRef.current);
+          addressElement.on("change", (event: StripeAddressChange) => {
+            if (!event.complete) {
+              lastAddress.current = "";
+              setQuote(null);
+              return;
+            }
+            const key = JSON.stringify(event.value.address);
+            if (key === lastAddress.current) return;
+            lastAddress.current = key;
+            if (quoteTimer.current) clearTimeout(quoteTimer.current);
+            quoteTimer.current = setTimeout(() => quoteTax(event.value.address), 350);
+          });
+        }
       })
       .catch((err) => {
         if (!unmounted) {
@@ -125,6 +220,7 @@ export function CheckoutForm({ session }: { session: SessionData }) {
 
     return () => {
       unmounted = true;
+      if (quoteTimer.current) clearTimeout(quoteTimer.current);
     };
   }, [session.client_secret, publishableKey]);
 
@@ -138,7 +234,8 @@ export function CheckoutForm({ session }: { session: SessionData }) {
     setErrorMessage(null);
 
     try {
-      const { error } = await stripe.confirmPayment({
+      const confirm = isSetup ? stripe.confirmSetup : stripe.confirmPayment;
+      const { error } = await confirm({
         elements,
         confirmParams: {
           return_url: session.success_url,
@@ -155,7 +252,9 @@ export function CheckoutForm({ session }: { session: SessionData }) {
     }
   };
 
-  const formattedAmount = formatMoney(session.amount, session.currency);
+  const formattedAmount = formatMoney(quote?.total ?? session.amount, session.currency);
+  // With tax on, the buyer can't pay until their address has priced it.
+  const awaitingTax = taxed && (quoting || quote === null);
 
   if (!session.client_secret) {
     return (
@@ -181,6 +280,34 @@ export function CheckoutForm({ session }: { session: SessionData }) {
         </div>
       </div>
 
+      {taxed && (
+        <div className="space-y-4">
+          <p className="block text-xs font-medium uppercase tracking-wider text-mute">
+            Billing address
+          </p>
+          <div className="rounded-xl border border-line bg-white p-4 shadow-xs">
+            <div ref={addressRef} />
+          </div>
+        </div>
+      )}
+
+      {taxed && quote && !isSetup && (
+        <dl className="space-y-1.5 rounded-xl border border-line bg-[#fcfcff] p-4 text-sm">
+          <div className="flex justify-between text-mute">
+            <dt>Subtotal</dt>
+            <dd>{formatMoney(quote.subtotal, session.currency)}</dd>
+          </div>
+          <div className="flex justify-between text-mute">
+            <dt>Tax</dt>
+            <dd>{formatMoney(quote.tax, session.currency)}</dd>
+          </div>
+          <div className="flex justify-between border-t border-line pt-1.5 font-medium text-ink">
+            <dt>Total</dt>
+            <dd>{formatMoney(quote.total, session.currency)}</dd>
+          </div>
+        </dl>
+      )}
+
       {errorMessage && (
         <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-3.5 text-sm text-red-700">
           <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-500" />
@@ -190,7 +317,7 @@ export function CheckoutForm({ session }: { session: SessionData }) {
 
       <button
         type="submit"
-        disabled={loading || submitting}
+        disabled={loading || submitting || awaitingTax}
         className="group relative flex w-full items-center justify-center gap-2 rounded-xl bg-ink py-3.5 text-sm font-medium text-white transition-all hover:bg-black hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
       >
         {submitting ? (
@@ -201,7 +328,15 @@ export function CheckoutForm({ session }: { session: SessionData }) {
         ) : (
           <>
             <Lock className="size-3.5 transition-transform group-hover:scale-110" />
-            <span>Pay {formattedAmount}</span>
+            <span>
+              {isSetup
+                ? "Save payment method"
+                : taxed && !quote
+                  ? quoting
+                    ? "Calculating tax…"
+                    : "Enter your billing address"
+                  : `Pay ${formattedAmount}`}
+            </span>
           </>
         )}
       </button>

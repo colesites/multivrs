@@ -23,6 +23,11 @@ export interface StripeApi {
       params: Stripe.PaymentIntentCreateParams,
       options?: Stripe.RequestOptions,
     ): Promise<Stripe.PaymentIntent>;
+    update(
+      id: string,
+      params?: Stripe.PaymentIntentUpdateParams,
+      options?: Stripe.RequestOptions,
+    ): Promise<Stripe.PaymentIntent>;
   };
   setupIntents: {
     retrieve(
@@ -40,6 +45,29 @@ export interface StripeApi {
       params?: Stripe.CustomerCreateParams,
       options?: Stripe.RequestOptions,
     ): Promise<Stripe.Customer>;
+    update(
+      id: string,
+      params?: Stripe.CustomerUpdateParams,
+      options?: Stripe.RequestOptions,
+    ): Promise<Stripe.Customer>;
+  };
+  tax: {
+    calculations: {
+      create(
+        params: Stripe.Tax.CalculationCreateParams,
+        options?: Stripe.RequestOptions,
+      ): Promise<Stripe.Tax.Calculation>;
+    };
+    transactions: {
+      createFromCalculation(
+        params: Stripe.Tax.TransactionCreateFromCalculationParams,
+        options?: Stripe.RequestOptions,
+      ): Promise<Stripe.Tax.Transaction>;
+      createReversal(
+        params: Stripe.Tax.TransactionCreateReversalParams,
+        options?: Stripe.RequestOptions,
+      ): Promise<Stripe.Tax.Transaction>;
+    };
   };
   refunds: {
     create(

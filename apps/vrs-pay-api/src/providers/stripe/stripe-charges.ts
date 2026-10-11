@@ -1,8 +1,15 @@
-import type { ChargeSavedInput, ChargeSavedResult, ProviderCustomerInput } from "@vrs-pay/core";
+import {
+  type ChargeSavedInput,
+  type ChargeSavedResult,
+  money,
+  type ProviderCustomerInput,
+} from "@vrs-pay/core";
+import type Stripe from "stripe";
 import type { StripeApi } from "./stripe-api.types";
 import { call, RETRYABLE_ERRORS, stripeErrorType } from "./stripe-call";
 import { chargeDetails, INTENT_EXPAND } from "./stripe-fees";
 import { descriptorSuffix, requestOptions } from "./stripe-options";
+import { commitTax, renewalTax, TAX_AMOUNT_KEY, TAX_CALCULATION_KEY } from "./stripe-tax";
 
 export const CUSTOMER_METADATA_KEY = "vrs_customer_id";
 
@@ -35,17 +42,32 @@ export async function chargeSavedStripe(
   input: ChargeSavedInput,
 ): Promise<ChargeSavedResult> {
   const fee = input.platformFee.amount;
+  let calculation: Stripe.Tax.Calculation | null;
+  try {
+    calculation = await renewalTax(api, input);
+  } catch (error) {
+    // Our tax setup failing isn't the customer's decline: try again later.
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return { status: "error", reference: null, message: `Tax calculation failed: ${message}` };
+  }
+  const tax = calculation?.tax_amount_exclusive ?? 0;
   try {
     const intent = await api.paymentIntents.create(
       {
-        amount: input.amount.amount,
+        amount: input.amount.amount + tax,
         currency: input.amount.currency.toLowerCase(),
         customer: input.providerCustomer,
         payment_method: input.methodRef,
         off_session: true,
         confirm: true,
         description: input.description,
-        metadata: input.metadata,
+        metadata: calculation
+          ? {
+              ...input.metadata,
+              [TAX_CALCULATION_KEY]: calculation.id ?? "",
+              [TAX_AMOUNT_KEY]: String(tax),
+            }
+          : input.metadata,
         // Our fee is a separate application fee only on a merchant's own account.
         ...(fee > 0 && input.merchantAccountId ? { application_fee_amount: fee } : {}),
         ...(descriptorSuffix(input.statementDescriptor)
@@ -63,7 +85,14 @@ export async function chargeSavedStripe(
       };
     }
     const { platformFee, providerFee } = chargeDetails(intent, input.amount.currency);
-    return { status: "succeeded", reference: intent.id, platformFee, providerFee };
+    if (calculation?.id) await commitTax(api, input.merchantAccountId, intent.id, calculation.id);
+    return {
+      status: "succeeded",
+      reference: intent.id,
+      platformFee,
+      providerFee,
+      tax: money(tax, input.amount.currency),
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     const type = stripeErrorType(error);

@@ -74,6 +74,36 @@ export interface ProviderRefundInput {
   idempotencyKey: string;
 }
 
+/** Where the buyer is, as much as a tax engine needs to place them. */
+export interface TaxAddress {
+  /** ISO 3166-1 alpha-2. */
+  country: string;
+  postalCode?: string;
+  state?: string;
+  city?: string;
+  line1?: string;
+  line2?: string;
+}
+
+export interface ProviderTaxInput {
+  merchantAccountId: string | null;
+  /** The pending payment the tax goes on (Stripe `pi_…`); null when nothing is charged yet. */
+  paymentReference: string | null;
+  /** The price before tax. */
+  amount: Money;
+  address: TaxAddress;
+  /** Saved on the provider customer so renewals are taxed at the same address. */
+  providerCustomer: string | null;
+  /** Our checkout session id. */
+  reference: string;
+}
+
+/** Tax added on top of a price, and what the buyer now pays. */
+export interface ProviderTax {
+  tax: Money;
+  total: Money;
+}
+
 export const REFUND_REASONS = ["duplicate", "fraudulent", "requested_by_customer"] as const;
 export type RefundReason = (typeof REFUND_REASONS)[number];
 
@@ -97,6 +127,11 @@ export interface PaymentProvider {
   ensureCustomer(input: ProviderCustomerInput): Promise<{ reference: string }>;
   /** Charges a saved method with nobody present (renewals, upgrades). */
   chargeSaved(input: ChargeSavedInput): Promise<ChargeSavedResult>;
+  /**
+   * Adds tax for `address` on top of a pending payment and saves the address
+   * on the provider customer. Providers without a tax engine leave it out.
+   */
+  applyTax?(input: ProviderTaxInput): Promise<ProviderTax>;
 }
 
 export type ProviderRegistry = Readonly<Record<ProviderId, PaymentProvider>>;

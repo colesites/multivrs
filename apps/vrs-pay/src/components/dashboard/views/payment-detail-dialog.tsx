@@ -72,7 +72,9 @@ export function PaymentDetailDialog({
   if (!payment) return null;
 
   const current = detail ?? payment;
-  const netAmount = current.net ?? (current.amount - current.provider_fee - current.platform_fee);
+  const tax = current.amount_tax ?? 0;
+  const netAmount =
+    current.net ?? current.amount - tax - current.platform_fee - current.amount_refunded;
 
   const copyText = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -130,10 +132,12 @@ export function PaymentDetailDialog({
                 <span>Gross charge</span>
                 <span className="font-mono">+{formatMoney(current.amount, current.currency)}</span>
               </div>
-              <div className="flex justify-between items-center text-mute text-xs">
-                <span>Stripe processing fee</span>
-                <span className="font-mono">-{formatMoney(current.provider_fee, current.currency)}</span>
-              </div>
+              {tax > 0 && (
+                <div className="flex justify-between items-center text-mute text-xs">
+                  <span>Tax (paid to tax authorities)</span>
+                  <span className="font-mono">-{formatMoney(tax, current.currency)}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center text-mute text-xs">
                 <span>VRS Pay platform fee</span>
                 <span className="font-mono">-{formatMoney(current.platform_fee, current.currency)}</span>

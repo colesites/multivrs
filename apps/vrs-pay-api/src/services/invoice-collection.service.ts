@@ -2,7 +2,7 @@ import { CurrencyCodeSchema, money } from "@vrs-pay/core";
 import type { AppDeps } from "../app.types";
 import type { StoredEvent } from "./event.types";
 import { buildEvent } from "./events";
-import { paidInvoice } from "./invoice-builder";
+import { paidInvoice, withTax } from "./invoice-builder";
 import { recordDecline, withStatus } from "./invoice-dunning";
 import { capturedPayment } from "./payment-builder";
 import { feeFor, PLATFORM_ACCOUNT, providersFor } from "./platform";
@@ -51,24 +51,27 @@ export async function collectInvoice(
           description: `Invoice ${invoice.id}`,
           metadata: { vrs_invoice_id: invoice.id, vrs_subscription_id: sub.subscription.id },
           idempotencyKey: `${invoice.id}-${attempt}`,
+          addTax: deps.modes[sub.mode].tax === true,
         })
       : ({ status: "declined", reference: null, message: "No saved payment method." } as const);
 
   if (result.status === "succeeded" && fee) {
+    const tax = result.tax?.amount ?? 0;
     const { payment, posting } = capturedPayment({
       merchantId,
       mode,
       provider: sub.provider,
       providerAccountId: PLATFORM_ACCOUNT,
       providerReference: result.reference,
-      amount,
+      amount: money(amount.amount + tax, amount.currency),
       platformFee: fee,
       providerFee: result.providerFee,
+      tax: result.tax,
       checkoutSession: null,
       customerEmail: null,
       metadata: { vrs_invoice_id: invoice.id },
     });
-    const paid = paidInvoice(stored, payment.payment.id);
+    const paid = paidInvoice(withTax(stored, tax), payment.payment.id);
     // Paying ends a trial or a past-due spell; a canceled subscription's final invoice stays canceled.
     const { status } = sub.subscription;
     const revived =

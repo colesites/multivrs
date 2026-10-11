@@ -20,7 +20,10 @@ export interface CheckoutCompletedData {
   sessionId: string | null;
   /** Provider's payment id (e.g. Stripe `pi_…`). */
   paymentReference: string;
+  /** What the buyer paid, tax included. */
   amount: Money;
+  /** The part of `amount` that is tax, owed to tax authorities; absent when none. */
+  tax?: Money;
   platformFee: Money;
   /** Zero when the provider settled in another currency or hasn't reported it yet. */
   providerFee: Money;

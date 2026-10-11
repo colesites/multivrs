@@ -8,9 +8,11 @@ export interface Payment {
   object: "payment";
   livemode: boolean;
   status: PaymentStatus;
-  /** Minor units. */
+  /** Minor units, tax included. */
   amount: number;
   amount_refunded: number;
+  /** The part of `amount` that is tax, minor units. */
+  amount_tax: number;
   /** Lowercase ISO code. */
   currency: string;
   /** VRS Pay's application fee, minor units. */

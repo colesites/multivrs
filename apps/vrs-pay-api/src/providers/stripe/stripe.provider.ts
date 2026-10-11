@@ -10,6 +10,7 @@ import { chargeSavedStripe, ensureStripeCustomer } from "./stripe-charges";
 import { checkoutParams, paymentIntentParams, setupIntentParams } from "./stripe-checkout";
 import { REFUND_METADATA_KEY, refundStatusFrom, toProviderEvent } from "./stripe-events";
 import { requestOptions } from "./stripe-options";
+import { applyStripeTax, reverseTax } from "./stripe-tax";
 
 async function verify(api: StripeApi, payload: string, header: string, secrets: readonly string[]) {
   for (const secret of secrets) {
@@ -75,6 +76,7 @@ export function createStripeProvider({
           requestOptions(input.merchantAccountId, input.idempotencyKey),
         ),
       );
+      if (refund.status !== "failed" && refund.status !== "canceled") await reverseTax(api, input);
       return { provider: "stripe", reference: refund.id, status: refundStatusFrom(refund.status) };
     },
     async parseWebhook({ rawBody, headers }) {
@@ -90,5 +92,6 @@ export function createStripeProvider({
     },
     ensureCustomer: (input) => ensureStripeCustomer(api, input),
     chargeSaved: (input) => chargeSavedStripe(api, input),
+    applyTax: (input) => applyStripeTax(api, input),
   };
 }

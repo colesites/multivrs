@@ -134,6 +134,8 @@ export interface Payment {
   status: "succeeded" | "partially_refunded" | "refunded";
   amount: number;
   amount_refunded: number;
+  /** The part of amount that is tax. */
+  amount_tax?: number;
   currency: string;
   platform_fee: number;
   provider_fee: number;

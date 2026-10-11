@@ -57,22 +57,34 @@ export function capturePosting(input: CapturePostingInput): LedgerEntry[] {
   return entries;
 }
 
-/** A refund comes out of the merchant's balance and back through the provider. */
+/**
+ * A refund goes back through the provider. Its tax share comes out of the
+ * tax we owe; the rest comes out of the merchant's balance.
+ */
 export function refundPosting(input: {
   merchantId: string;
   provider: ProviderId;
   amount: Money;
+  /** The part of `amount` that was tax; zero when none. */
+  tax?: Money;
 }): LedgerEntry[] {
-  return [
+  const { amount } = input;
+  const tax = input.tax ?? money(0, amount.currency);
+  if (tax.currency !== amount.currency || tax.amount < 0 || tax.amount > amount.amount) {
+    throw invalidRequest("tax_invalid", "Refunded tax must be within the refund amount.");
+  }
+  const entries: LedgerEntry[] = [
     {
       account: { kind: "merchant_balance", owner: input.merchantId },
       direction: "debit",
-      amount: input.amount,
+      amount: money(amount.amount - tax.amount, amount.currency),
     },
+    { account: { kind: "tax_payable", owner: PLATFORM_OWNER }, direction: "debit", amount: tax },
     {
       account: { kind: "provider_receivable", owner: input.provider },
       direction: "credit",
-      amount: input.amount,
+      amount,
     },
   ];
+  return entries.filter((e) => e.amount.amount > 0);
 }

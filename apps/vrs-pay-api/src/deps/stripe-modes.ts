@@ -52,3 +52,20 @@ export function stripeModes(env: Env): Record<ApiKeyMode, ModeProviders> {
   }
   return modes;
 }
+
+/**
+ * Turns on tax for the modes listed in STRIPE_TAX ("test", "live", both
+ * comma-separated, or "on" for both). Off by default: Stripe rejects tax
+ * calculations until Stripe Tax is activated for that mode.
+ */
+export function withStripeTax(
+  modes: Record<ApiKeyMode, ModeProviders>,
+  setting: string | undefined,
+): Record<ApiKeyMode, ModeProviders> {
+  const listed = new Set((setting ?? "").split(",").map((m) => m.trim().toLowerCase()));
+  const on = (mode: ApiKeyMode) => listed.has(mode) || listed.has("on");
+  return {
+    test: { ...modes.test, tax: on("test") },
+    live: { ...modes.live, tax: on("live") },
+  };
+}

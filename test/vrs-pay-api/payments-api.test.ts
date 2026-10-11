@@ -51,9 +51,9 @@ describe("GET /v1/payments & /v1/payments/:id", () => {
     expect(initRes.status).toBe(200);
     const initPayment = await initRes.json();
     expect(initPayment.id).toBe(paymentId);
-    expect(initPayment.net).toBe(
-      initPayment.amount - initPayment.provider_fee - initPayment.platform_fee,
-    );
+    // What the merchant is owed, as booked: the amount less our fee (the
+    // provider's fee is the platform's cost).
+    expect(initPayment.net).toBe(initPayment.amount - initPayment.platform_fee);
     expect(initPayment.refunds).toEqual([]);
 
     // Create a partial refund
@@ -72,6 +72,7 @@ describe("GET /v1/payments & /v1/payments/:id", () => {
     expect(detail.refunds).toHaveLength(1);
     expect(detail.refunds[0].id).toBe(refund.id);
     expect(detail.refunds[0].amount).toBe(1500);
+    expect(detail.net).toBe(initPayment.amount - initPayment.platform_fee - 1500);
 
     // Filter payments by partially_refunded status
     const filterRes = await call("/v1/payments?status=partially_refunded");

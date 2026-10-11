@@ -264,6 +264,12 @@ export default function DocsPage() {
               </p>
               <Code file="checkout.ts" code={PAYMENT} />
               <p>
+                Where tax applies, the checkout page asks for the buyer's
+                billing address and adds tax on top of your price. The payment's{" "}
+                <Mono>amount</Mono> includes it, and <Mono>amount_tax</Mono>{" "}
+                says how much was tax.
+              </p>
+              <p>
                 When the payment goes through, the buyer lands on your{" "}
                 <Mono>success_url</Mono> and your webhook endpoint receives{" "}
                 <Mono>payment.succeeded</Mono>. Fulfil orders from the webhook,

@@ -8,6 +8,8 @@ export interface Refund {
   status: ProviderRefundStatus;
   /** Minor units. */
   amount: number;
+  /** The part of `amount` that is tax returned to the buyer, minor units. */
+  amount_tax: number;
   /** Lowercase ISO code. */
   currency: string;
   payment: string;

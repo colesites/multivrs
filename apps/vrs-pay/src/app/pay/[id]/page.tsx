@@ -22,6 +22,8 @@ interface SessionData {
   merchant_name: string | null;
   success_url: string;
   cancel_url: string;
+  /** Tax is added from the buyer's billing address before they pay. */
+  tax_enabled?: boolean;
 }
 
 async function getSession(id: string): Promise<SessionData | null> {
@@ -130,11 +132,18 @@ export default async function PayPage({
 
             <div className="rounded-2xl border border-line bg-white p-6 shadow-xs space-y-4">
               <div className="flex items-baseline justify-between border-b border-line pb-4">
-                <span className="text-sm font-medium text-ink">Total due</span>
+                <span className="text-sm font-medium text-ink">
+                  {session.tax_enabled ? "Subtotal" : "Total due"}
+                </span>
                 <span className="text-2xl font-semibold tracking-tight text-ink">
                   {formattedAmount}
                 </span>
               </div>
+              {session.tax_enabled && (
+                <p className="text-xs text-mute">
+                  Tax is added from your billing address before you pay.
+                </p>
+              )}
 
               <div className="space-y-2 text-xs text-mute pt-1">
                 {session.merchant_name && (
@@ -181,7 +190,7 @@ export default async function PayPage({
               </p>
 
               <div className="mt-8">
-                <CheckoutForm session={session} />
+                <CheckoutForm session={session} apiUrl={apiUrl} />
               </div>
             </div>
           </section>
