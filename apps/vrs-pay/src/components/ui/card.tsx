@@ -62,7 +62,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        "flex flex-col rounded-xl",
+        "flex flex-col rounded-2xl",
         VARIANTS[variant],
         SIZES[size],
         DESIGNS[design],

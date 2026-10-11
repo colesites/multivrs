@@ -1,4 +1,4 @@
-import { Lock, ShieldCheck, Zap } from "lucide-react";
+import { Lock, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import { type Country, Flag } from "./flag";
 import { LogoMark } from "./logo";
@@ -37,6 +37,63 @@ export function Features() {
           body="Tokenized card vault, 3-D Secure and adaptive fraud rules. Raw card data never touches your servers."
           visual={<SecurityVisual />}
         />
+      </div>
+
+      {/* Two Integration Modes Spotlight */}
+      <div className="reveal mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5">
+        <div className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-line bg-gradient-to-b from-wash/60 via-white to-white p-7 sm:p-8 transition-shadow duration-500 hover:shadow-[0_30px_60px_-30px_rgb(11_11_18/0.25)]">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-600 ring-1 ring-brand-100">
+              <Sparkles className="size-3.5" />
+              <span>Drop-in UI · Like Clerk Billing</span>
+            </div>
+            <h3 className="mt-4 text-xl font-medium tracking-tight text-ink sm:text-2xl">
+              Pricing tables & comparison tables
+            </h3>
+            <p className="mt-2.5 text-[15px] leading-relaxed text-mute">
+              Drop in complete billing UI with 1 tag. Includes animated monthly/annual toggles, feature lists, and self-service customer portals. Easy 3-tier styling with zero CSS fighting.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-2 pt-6 border-t border-line/60">
+            <span className="font-mono text-xs rounded-lg bg-wash px-2.5 py-1 text-ink-soft border border-line">
+              &lt;PricingTable /&gt;
+            </span>
+            <span className="font-mono text-xs rounded-lg bg-wash px-2.5 py-1 text-ink-soft border border-line">
+              &lt;PricingComparisonTable /&gt;
+            </span>
+            <span className="font-mono text-xs rounded-lg bg-wash px-2.5 py-1 text-ink-soft border border-line">
+              &lt;CustomerPortal /&gt;
+            </span>
+          </div>
+        </div>
+
+        <div className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-line bg-gradient-to-b from-wash/60 via-white to-white p-7 sm:p-8 transition-shadow duration-500 hover:shadow-[0_30px_60px_-30px_rgb(11_11_18/0.25)]">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+              <Zap className="size-3.5" />
+              <span>Full Control · Like Stripe</span>
+            </div>
+            <h3 className="mt-4 text-xl font-medium tracking-tight text-ink sm:text-2xl">
+              Typed payments API & webhooks
+            </h3>
+            <p className="mt-2.5 text-[15px] leading-relaxed text-mute">
+              Full control over custom checkout flows. Typed TypeScript SDK, automated idempotency, multi-currency conversion, usage-based billing, and signed webhook retries.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-2 pt-6 border-t border-line/60">
+            <span className="font-mono text-xs rounded-lg bg-wash px-2.5 py-1 text-ink-soft border border-line">
+              vrs.checkout.sessions
+            </span>
+            <span className="font-mono text-xs rounded-lg bg-wash px-2.5 py-1 text-ink-soft border border-line">
+              vrs.subscriptions
+            </span>
+            <span className="font-mono text-xs rounded-lg bg-wash px-2.5 py-1 text-ink-soft border border-line">
+              vrs.webhooks.verify
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   );

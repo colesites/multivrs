@@ -9,6 +9,7 @@ import {
   CustomerPortalView,
   Gate,
   PricingTableView,
+  PricingComparisonTableView,
   periodLabel,
   periodsOf,
   priceFor,
@@ -186,5 +187,49 @@ describe("provider", () => {
     );
     expect(page).toContain("checking");
     expect(page).not.toContain("export<");
+  });
+});
+
+describe("PricingComparisonTableView", () => {
+  test("renders plans, section headings, and comparison rows", () => {
+    const plans = [
+      { id: "hobby", name: "Hobby", price: "$0", ctaText: "Start free" },
+      { id: "pro", name: "Pro", price: "$20", highlighted: true, ctaText: "Upgrade" },
+    ];
+    const sections = [
+      {
+        title: "Platform Features",
+        rows: [
+          {
+            name: "API Access",
+            values: { hobby: true, pro: true },
+          },
+          {
+            name: "Team Members",
+            values: { hobby: "Up to 3", pro: "Unlimited" },
+          },
+          {
+            name: "Custom Domains",
+            values: { hobby: false, pro: true },
+          },
+        ],
+      },
+    ];
+
+    const html = renderToString(
+      <PricingComparisonTableView plans={plans} sections={sections} onChoose={noop} />,
+    );
+
+    expect(html).toContain("Hobby");
+    expect(html).toContain("Pro");
+    expect(html).toContain("Start free");
+    expect(html).toContain("Upgrade");
+    expect(html).toContain("Platform Features");
+    expect(html).toContain("API Access");
+    expect(html).toContain("Team Members");
+    expect(html).toContain("Up to 3");
+    expect(html).toContain("Unlimited");
+    expect(html).toContain("vrs-comparison-check");
+    expect(html).toContain("vrs-comparison-dash");
   });
 });

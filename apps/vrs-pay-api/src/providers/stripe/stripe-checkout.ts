@@ -64,3 +64,37 @@ export function checkoutParams(input: ProviderCheckoutInput): Stripe.Checkout.Se
     },
   };
 }
+
+/**
+ * PaymentIntent params for a direct charge using custom checkout UI / Stripe Elements.
+ */
+export function paymentIntentParams(input: ProviderCheckoutInput): Stripe.PaymentIntentCreateParams {
+  const metadata = { ...input.metadata, [SESSION_METADATA_KEY]: input.sessionId };
+  const fee = input.platformFee.amount;
+  const suffix = descriptorSuffix(input.statementDescriptor);
+  return {
+    amount: input.amount.amount,
+    currency: input.amount.currency.toLowerCase(),
+    payment_method_types: [STRIPE_METHODS[input.method] ?? "card"],
+    description: input.description ?? DEFAULT_LINE_ITEM_NAME,
+    metadata,
+    ...(input.providerCustomer ? { customer: input.providerCustomer } : {}),
+    ...(input.customerEmail ? { receipt_email: input.customerEmail } : {}),
+    ...(input.saveMethod ? { setup_future_usage: "off_session" as const } : {}),
+    ...(fee > 0 && input.merchantAccountId ? { application_fee_amount: fee } : {}),
+    ...(suffix ? { statement_descriptor_suffix: suffix } : {}),
+  };
+}
+
+/**
+ * SetupIntent params to save a card for later off-session billing using custom UI / Stripe Elements.
+ */
+export function setupIntentParams(input: ProviderCheckoutInput): Stripe.SetupIntentCreateParams {
+  const metadata = { ...input.metadata, [SESSION_METADATA_KEY]: input.sessionId };
+  return {
+    usage: "off_session" as const,
+    payment_method_types: [STRIPE_METHODS[input.method] ?? "card"],
+    metadata,
+    ...(input.providerCustomer ? { customer: input.providerCustomer } : {}),
+  };
+}

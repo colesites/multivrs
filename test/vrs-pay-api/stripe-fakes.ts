@@ -97,19 +97,51 @@ export function fakeStripeApi(options: FakeStripeOptions = {}) {
     paymentIntents: {
       retrieve: async (id) => intentWithFees(id, options),
       async create(params, requestOptions) {
-        calls.charges.push({ params, options: requestOptions });
-        if (options.charge === "declined")
-          throw stripeError("StripeCardError", "Your card was declined.", "card_declined");
-        if (options.charge === "auth")
-          throw stripeError(
-            "StripeCardError",
-            "Authentication required.",
-            "authentication_required",
-          );
-        if (options.charge === "network")
-          throw stripeError("StripeConnectionError", "socket hang up");
-        const id = `pi_renewal_${options.prefix ?? ""}${calls.charges.length}`;
-        return intentWithFees(id, options, params.amount);
+        if (options.failWith) throw options.failWith;
+        if (params.confirm) {
+          calls.charges.push({ params, options: requestOptions });
+          if (options.charge === "declined")
+            throw stripeError("StripeCardError", "Your card was declined.", "card_declined");
+          if (options.charge === "auth")
+            throw stripeError(
+              "StripeCardError",
+              "Authentication required.",
+              "authentication_required",
+            );
+          if (options.charge === "network")
+            throw stripeError("StripeConnectionError", "socket hang up");
+          const id = `pi_renewal_${options.prefix ?? ""}${calls.charges.length}`;
+          return intentWithFees(id, options, params.amount);
+        }
+        calls.sessions.push({
+          params: {
+            mode: "payment",
+            customer: params.customer as string | undefined,
+            payment_method_types: params.payment_method_types,
+            payment_intent_data: {
+              ...(params.setup_future_usage ? { setup_future_usage: params.setup_future_usage } : {}),
+              ...(params.statement_descriptor_suffix ? { statement_descriptor_suffix: params.statement_descriptor_suffix } : {}),
+              ...(params.application_fee_amount ? { application_fee_amount: params.application_fee_amount } : {}),
+              metadata: params.metadata,
+            },
+            metadata: params.metadata,
+            line_items: [
+              {
+                price_data: {
+                  currency: params.currency,
+                  unit_amount: params.amount,
+                },
+              },
+            ],
+          } as unknown as Stripe.Checkout.SessionCreateParams,
+          options: requestOptions,
+        });
+        const id = `pi_test_${options.prefix ?? ""}${calls.sessions.length}`;
+        const intent = intentWithFees(id, options, params.amount);
+        return {
+          ...intent,
+          client_secret: `${id}_secret_${options.prefix ?? ""}${calls.sessions.length}`,
+        };
       },
     },
     setupIntents: {
@@ -119,6 +151,25 @@ export function fakeStripeApi(options: FakeStripeOptions = {}) {
           status: "succeeded",
           payment_method: cardFor(options),
         }),
+      async create(params, requestOptions) {
+        if (options.failWith) throw options.failWith;
+        calls.sessions.push({
+          params: {
+            mode: "setup",
+            customer: params.customer as string | undefined,
+            payment_method_types: params.payment_method_types,
+            metadata: params.metadata,
+          } as unknown as Stripe.Checkout.SessionCreateParams,
+          options: requestOptions,
+        });
+        const id = `seti_test_${options.prefix ?? ""}${calls.charges.length + 1}`;
+        return partial<Stripe.SetupIntent>({
+          id,
+          status: "requires_payment_method",
+          client_secret: `${id}_secret_${options.prefix ?? ""}${calls.charges.length + 1}`,
+          metadata: params.metadata,
+        });
+      },
     },
     customers: {
       async create() {

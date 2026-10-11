@@ -65,5 +65,11 @@ export function createPrismaPaymentLinkStore(db: Db): PaymentLinkStore {
       if (count === 0) return null;
       return linkFromRow(await db.paymentLink.findUniqueOrThrow({ where: { id } }));
     },
+    async delete(merchantId, mode, id) {
+      const { count } = await db.paymentLink.deleteMany({
+        where: { id, merchantId, mode },
+      });
+      return count > 0;
+    },
   };
 }

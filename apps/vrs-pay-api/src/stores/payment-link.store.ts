@@ -13,4 +13,5 @@ export interface PaymentLinkStore {
     id: string,
     active: boolean,
   ): Promise<StoredPaymentLink | null>;
+  delete(merchantId: string, mode: ApiKeyMode, id: string): Promise<boolean>;
 }

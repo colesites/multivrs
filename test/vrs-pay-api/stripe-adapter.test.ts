@@ -28,8 +28,9 @@ describe("Stripe adapter", () => {
     );
     expect(checkout).toEqual({
       provider: "stripe",
-      reference: "cs_test_1",
-      url: "https://checkout.stripe.test/cs_test_1",
+      reference: "pi_test_1",
+      url: "https://pay.test/stripe/cs_vrs123",
+      clientSecret: "pi_test_1_secret_1",
     });
     const [{ params, options } = { params: {} }] = calls.sessions;
     expect(options).toEqual({ stripeAccount: "acct_1", idempotencyKey: "idem_1" });

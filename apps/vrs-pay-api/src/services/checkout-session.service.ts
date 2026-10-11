@@ -23,6 +23,7 @@ export async function createCheckoutSession(
   const route = routeOnPlatform(deps, merchant.mode, input.currency, input.payment_method);
   const id = newId("checkoutSession");
   const platformFee = feeFor(merchant, amount);
+  const hostedUrl = `${deps.urls.site}/pay/${id}`;
   const checkout = await providersFor(deps, merchant.mode)[route.provider].createCheckout({
     merchantAccountId: null,
     statementDescriptor: merchant.name,
@@ -36,6 +37,7 @@ export async function createCheckoutSession(
     customerEmail: input.customer_email,
     metadata: input.metadata,
     idempotencyKey: idempotencyKey ?? id,
+    hostedUrl,
   });
 
   const session: CheckoutSession = {
@@ -53,7 +55,8 @@ export async function createCheckoutSession(
     description: input.description ?? null,
     provider: checkout.provider,
     provider_reference: checkout.reference,
-    url: checkout.url,
+    url: checkout.url || hostedUrl,
+    client_secret: checkout.clientSecret ?? null,
     platform_fee: platformFee.amount,
     success_url: input.success_url,
     cancel_url: input.cancel_url,

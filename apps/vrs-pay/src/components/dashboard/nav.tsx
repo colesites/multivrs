@@ -9,7 +9,7 @@ import {
 import { useDashboard } from "./context";
 import { Mark, VIEWS, type ViewId } from "./nav-items";
 import { OrgSwitcher } from "./org-switcher";
-import { Button } from "./ui";
+import { Button } from "@/components/ui/button";
 
 interface NavProps {
   view: ViewId;

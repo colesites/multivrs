@@ -48,7 +48,7 @@ export function SidebarItem({
       type="button"
       data-active={active}
       className={cn(
-        "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors [&_svg]:size-4",
+        "flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors [&_svg]:size-4",
         active ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
         className,
       )}
@@ -63,7 +63,7 @@ export function SidebarTrigger({ className, ...props }: React.ButtonHTMLAttribut
       type="button"
       aria-label="Toggle sidebar"
       onClick={() => ctx?.toggle()}
-      className={cn("inline-flex size-9 items-center justify-center rounded-lg border border-border hover:bg-muted", className)}
+      className={cn("inline-flex cursor-pointer size-9 items-center justify-center rounded-lg border border-border hover:bg-muted", className)}
       {...props}
     >
       <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 3v18" /></svg>

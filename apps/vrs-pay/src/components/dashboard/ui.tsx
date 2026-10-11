@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertAction, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Card as UiCard } from "@/components/ui/card";
 import {
   EmptyDescription,
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/table";
 
 /** The dashboard's building blocks, all swift-rust ui underneath. */
-export { Button } from "@/components/ui/button";
+export { Button };
 export {
   Dialog,
   DialogContent,
@@ -93,18 +94,38 @@ export function Stat({
   );
 }
 
-export function Loading() {
+export function Loading({ label }: { label?: string } = {}) {
   return (
     <div className="grid place-items-center py-16 text-mute">
-      <Spinner aria-label="Loading" />
+      <Spinner aria-label={label ?? "Loading"} />
+      {label && <p className="mt-3 text-xs text-mute">{label}</p>}
     </div>
   );
 }
 
-export function ErrorNote({ message }: { message: string }) {
+export function ErrorNote({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry?: () => void;
+}) {
   return (
     <Alert variant="destructive">
       <AlertDescription>{message}</AlertDescription>
+      {onRetry && (
+        <AlertAction className="top-1/2 -translate-y-1/2 right-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="xs"
+            onClick={onRetry}
+            className="border-destructive/30 bg-transparent text-destructive hover:bg-destructive/15 hover:text-destructive"
+          >
+            Retry
+          </Button>
+        </AlertAction>
+      )}
     </Alert>
   );
 }

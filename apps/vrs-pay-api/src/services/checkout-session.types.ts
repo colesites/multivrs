@@ -25,6 +25,8 @@ export interface CheckoutSession {
   provider_reference: string;
   /** Where to send the customer to pay. */
   url: string;
+  /** Client secret for embedding custom payment fields / Stripe Elements. */
+  client_secret?: string | null;
   /** VRS Pay's application fee, minor units. */
   platform_fee: number;
   success_url: string;

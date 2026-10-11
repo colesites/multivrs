@@ -101,9 +101,9 @@ export function buttonVariants({
   className,
 }: ButtonStyleProps & { className?: string } = {}): string {
   return cn(
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-all",
+    "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-all",
     "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring/50",
-    "disabled:pointer-events-none disabled:opacity-50",
+    "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
     VARIANTS[variant],
     SIZES[size],

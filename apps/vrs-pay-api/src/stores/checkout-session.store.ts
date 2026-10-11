@@ -6,6 +6,8 @@ import type { Effects } from "../services/event.types";
 export interface CheckoutSessionStore {
   save(record: StoredCheckoutSession): Promise<void>;
   get(merchantId: string, mode: ApiKeyMode, id: string): Promise<CheckoutSession | null>;
+  /** Public lookup for custom checkout UI / payment links by session id. */
+  findById(id: string): Promise<StoredCheckoutSession | null>;
   /** Webhook lookup by the provider's checkout id. */
   findByReference(provider: ProviderId, reference: string): Promise<StoredCheckoutSession | null>;
   /** Marks an open session expired; returns it, or null if it wasn't open. */

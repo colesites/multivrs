@@ -21,8 +21,17 @@
         "@multivrs/mcp-adapter": "*",
         "@multivrs/routing-utils": "*",
         "@multivrs/static-build": "*",
+        "@repo/biome-config": "*",
+        "@repo/typescript-config": "*",
         "@types/bun": "^1.3.5",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
         "@vrs-pay/core": "*",
+        "@vrs-pay/js": "*",
+        "@vrs-pay/react": "*",
+        "@vrs-pay/sdk": "*",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
         "stripe": "^22.3.2",
         "turbo": "^2.9.18",
         "typescript": "5.9.2",
@@ -103,6 +112,8 @@
       "version": "0.1.0",
       "dependencies": {
         "@tailwindcss/postcss": "^4.0.0",
+        "@vrs-pay/js": "*",
+        "@vrs-pay/react": "*",
         "clsx": "^2.1.1",
         "lucide-react": "^0.460.0",
         "postcss": "^8.4.0",
@@ -501,7 +512,7 @@
     },
     "packages/vrs-pay-js": {
       "name": "@vrs-pay/js",
-      "version": "0.1.0",
+      "version": "0.1.2",
       "devDependencies": {
         "@repo/biome-config": "*",
         "@repo/typescript-config": "*",
@@ -511,9 +522,9 @@
     },
     "packages/vrs-pay-react": {
       "name": "@vrs-pay/react",
-      "version": "0.1.0",
+      "version": "0.1.2",
       "dependencies": {
-        "@vrs-pay/js": "0.1.0",
+        "@vrs-pay/js": "^0.1.2",
       },
       "devDependencies": {
         "@repo/biome-config": "*",

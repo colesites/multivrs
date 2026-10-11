@@ -16,6 +16,8 @@ const PaymentMethodSchema = z.enum(PAYMENT_METHODS);
 const RefundReasonSchema = z.enum(REFUND_REASONS).nullable();
 
 export function sessionFromRow(row: SessionRow): StoredCheckoutSession {
+  const metadata = toMetadata(row.metadata);
+  const clientSecret = typeof metadata._client_secret === "string" ? metadata._client_secret : null;
   return {
     merchantId: row.merchantId,
     mode: row.mode,
@@ -35,11 +37,12 @@ export function sessionFromRow(row: SessionRow): StoredCheckoutSession {
       provider: row.provider,
       provider_reference: row.providerReference,
       url: row.url,
+      client_secret: clientSecret,
       platform_fee: toMinor(row.platformFee),
       success_url: row.successUrl,
       cancel_url: row.cancelUrl,
       customer_email: row.customerEmail,
-      metadata: toMetadata(row.metadata),
+      metadata,
       created: toUnix(row.createdAt),
     },
   };

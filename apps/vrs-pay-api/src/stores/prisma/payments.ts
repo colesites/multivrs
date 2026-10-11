@@ -29,9 +29,27 @@ export function createPrismaPaymentStore(db: Db): PaymentStore {
       const row = await db.payment.findFirst({ where: { id, merchantId, mode } });
       return row ? paymentFromRow(row) : null;
     },
-    async list(merchantId, mode, limit) {
+    async list(merchantId, mode, limitOrFilters) {
+      const filters = typeof limitOrFilters === "number" ? { limit: limitOrFilters } : limitOrFilters;
+      const limit = filters.limit ?? 100;
+      const where: Record<string, unknown> = { merchantId, mode };
+      if (filters.status && filters.status !== "all") {
+        where.status = filters.status;
+      }
+      if (filters.customer) {
+        where.customerId = filters.customer;
+      }
+      if (filters.search?.trim()) {
+        const q = filters.search.trim();
+        where.OR = [
+          { id: { contains: q, mode: "insensitive" } },
+          { customerEmail: { contains: q, mode: "insensitive" } },
+          { description: { contains: q, mode: "insensitive" } },
+          { providerReference: { contains: q, mode: "insensitive" } },
+        ];
+      }
       const rows = await db.payment.findMany({
-        where: { merchantId, mode },
+        where,
         orderBy: { createdAt: "desc" },
         take: limit,
       });

@@ -24,5 +24,10 @@ export function createMemoryPaymentLinkStore(
       links.set(id, updated);
       return updated;
     },
+    async delete(merchantId, mode, id) {
+      const record = links.get(id);
+      if (!record || record.merchantId !== merchantId || record.mode !== mode) return false;
+      return links.delete(id);
+    },
   };
 }

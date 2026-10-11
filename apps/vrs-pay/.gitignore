@@ -6,6 +6,8 @@ dist/
 target/
 *.log
 .DS_Store
+.__sr_*
+**/.__sr_*
 
 # env files — ignore everything except the example
 .env

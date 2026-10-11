@@ -5,6 +5,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@vrs-pay/react": [
+        "../../packages/vrs-pay-react/src/index.ts"
+      ],
+      "@vrs-pay/js": [
+        "../../packages/vrs-pay-js/src/index.ts"
       ]
     }
   },

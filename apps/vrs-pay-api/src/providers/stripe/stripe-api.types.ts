@@ -30,6 +30,10 @@ export interface StripeApi {
       params?: Stripe.SetupIntentRetrieveParams,
       options?: Stripe.RequestOptions,
     ): Promise<Stripe.SetupIntent>;
+    create(
+      params: Stripe.SetupIntentCreateParams,
+      options?: Stripe.RequestOptions,
+    ): Promise<Stripe.SetupIntent>;
   };
   customers: {
     create(

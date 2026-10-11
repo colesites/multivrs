@@ -66,6 +66,39 @@ export async function dashboardFetch<T>(
   return data as T;
 }
 
+export async function dashboardDownload(
+  apiUrl: string,
+  path: string,
+  scope: Scope,
+  fallbackFilename = "export.csv",
+): Promise<void> {
+  const res = await fetch(`${apiUrl}/dashboard${path}`, {
+    method: "GET",
+    credentials: "include",
+    headers: scopeHeaders(scope),
+  });
+  if (res.status === 401) throw new SignedOut();
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || "Download failed.");
+  }
+  const blob = await res.blob();
+  const disposition = res.headers.get("content-disposition");
+  let filename = fallbackFilename;
+  if (disposition) {
+    const match = disposition.match(/filename="?([^";]+)"?/);
+    if (match?.[1]) filename = match[1];
+  }
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 export async function signOut(apiUrl: string): Promise<void> {
   await fetch(`${apiUrl}/auth/sign-out`, {
     method: "POST",
@@ -75,3 +108,4 @@ export async function signOut(apiUrl: string): Promise<void> {
   }).catch(() => undefined);
   window.location.assign("/sign-in");
 }
+

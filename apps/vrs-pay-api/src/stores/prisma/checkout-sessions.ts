@@ -27,7 +27,10 @@ export function createPrismaCheckoutSessionStore(db: Db): CheckoutSessionStore {
           successUrl: session.success_url,
           cancelUrl: session.cancel_url,
           customerEmail: session.customer_email,
-          metadata: session.metadata,
+          metadata: {
+            ...(typeof session.metadata === "object" && session.metadata !== null ? session.metadata : {}),
+            ...(session.client_secret ? { _client_secret: session.client_secret } : {}),
+          },
           createdAt: new Date(session.created * 1000),
         },
       });
@@ -35,6 +38,10 @@ export function createPrismaCheckoutSessionStore(db: Db): CheckoutSessionStore {
     async get(merchantId, mode, id) {
       const row = await db.checkoutSession.findFirst({ where: { id, merchantId, mode } });
       return row ? sessionFromRow(row).session : null;
+    },
+    async findById(id) {
+      const row = await db.checkoutSession.findUnique({ where: { id } });
+      return row ? sessionFromRow(row) : null;
     },
     async findByReference(provider, reference) {
       const row = await db.checkoutSession.findUnique({

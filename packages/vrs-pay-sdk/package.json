@@ -4,16 +4,29 @@
   "description": "VRS Pay for your server: products, checkout, subscriptions, usage, entitlements, webhooks.",
   "type": "module",
   "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./src/index.ts"
+    }
   },
   "bin": {
     "vrs-pay": "./src/cli.ts"
   },
   "files": [
+    "dist",
     "src"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
+    "build": "bun build ./src/index.ts --target node --outdir ./dist && tsc --emitDeclarationOnly --declaration --outDir ./dist",
+    "prepublishOnly": "bun run build",
     "lint": "biome check .",
     "format": "biome check --fix .",
     "check-types": "tsc --noEmit"
