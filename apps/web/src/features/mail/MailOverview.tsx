@@ -8,17 +8,27 @@ import {
   MousePointerClick,
   Send,
 } from "lucide-react";
-import type { MailDashboardData } from "@/features/mail/mail.types";
+import { Suspense } from "react";
+import { MailOverviewHero } from "@/features/mail/MailOverviewHero";
+import { MailOverviewDataSkeleton } from "@/features/mail/MailSkeletons";
+import { useMailData } from "@/features/mail/mail-context";
 import type { MailView } from "@/features/mail/mail-navigation";
 import { SenderAvatar } from "@/features/mail/SenderAvatar";
 
-export function MailOverview({
-  data,
-  onView,
-}: {
-  data: MailDashboardData;
-  onView: (view: MailView) => void;
-}) {
+export function MailOverview({ onView }: { onView: (view: MailView) => void }) {
+  return (
+    <div className="w-full min-w-0 max-w-full space-y-6 sm:space-y-8 px-4 py-6 sm:px-5 sm:py-8 lg:px-8">
+      <MailOverviewHero />
+      <Suspense fallback={<MailOverviewDataSkeleton />}>
+        <OverviewData onView={onView} />
+      </Suspense>
+    </div>
+  );
+}
+
+/** Metrics, recent conversations and infrastructure, once the data arrives. */
+function OverviewData({ onView }: { onView: (view: MailView) => void }) {
+  const data = useMailData();
   const metrics = [
     ["Sent this month", data.stats.sent.toLocaleString(), Send],
     ["Received", data.stats.received.toLocaleString(), Inbox],
@@ -26,25 +36,17 @@ export function MailOverview({
     ["Open rate", `${data.stats.openRate}%`, MousePointerClick],
   ] as const;
   return (
-    <div className="w-full min-w-0 max-w-full space-y-6 sm:space-y-8 px-4 py-6 sm:px-5 sm:py-8 lg:px-8">
-      <section className="relative min-w-0 max-w-full overflow-hidden rounded-2xl border border-black/10 dark:border-white/10 bg-[radial-gradient(circle_at_10%_0%,rgba(168,85,247,.12),transparent_34%),linear-gradient(130deg,#f8f9fa,#e9ecef)] dark:bg-[radial-gradient(circle_at_10%_0%,rgba(168,85,247,.12),transparent_34%),linear-gradient(130deg,#0a0a0c,#050507)] p-5 sm:p-6 md:p-8">
-        <div className="pointer-events-none absolute right-8 top-8 size-24 rounded-full bg-accent/10 blur-3xl" />
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent/70">
-          Communications control plane
-        </p>
-        <h2 className="mt-3 max-w-xl text-xl font-medium tracking-[-0.03em] sm:text-2xl md:text-3xl break-words">
-          One mailbox for product mail, support conversations, and campaigns.
-        </h2>
-        <p className="mt-3 max-w-2xl text-xs sm:text-sm leading-5 sm:leading-6 text-black/45 dark:text-white/45 break-words">
-          Incoming and outgoing mail share a real thread model. Delivery states
-          come from provider events—not optimistic UI.
-        </p>
-      </section>
+    <div className="space-y-6 sm:space-y-8">
       <section className="grid grid-cols-2 lg:grid-cols-4 min-w-0 max-w-full gap-px overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-black/10 dark:bg-white/10">
         {metrics.map(([label, value, Icon]) => (
-          <div className="bg-white dark:bg-black p-4 sm:p-5 min-w-0" key={label}>
+          <div
+            className="bg-white dark:bg-black p-4 sm:p-5 min-w-0"
+            key={label}
+          >
             <Icon className="size-4 text-accent/70 shrink-0" />
-            <p className="mt-3 sm:mt-5 text-xl sm:text-2xl font-medium tracking-tight truncate">{value}</p>
+            <p className="mt-3 sm:mt-5 text-xl sm:text-2xl font-medium tracking-tight truncate">
+              {value}
+            </p>
             <p className="mt-1 text-xs text-black/40 dark:text-white/40 truncate">
               {label}
             </p>
@@ -55,7 +57,9 @@ export function MailOverview({
         <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black min-w-0 max-w-full overflow-hidden">
           <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 p-4 gap-3 min-w-0">
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-medium truncate">Recent conversations</h3>
+              <h3 className="text-sm font-medium truncate">
+                Recent conversations
+              </h3>
               <p className="mt-1 text-xs text-black/35 dark:text-white/35 truncate">
                 The latest activity across every mailbox.
               </p>
@@ -68,7 +72,7 @@ export function MailOverview({
               <span>Open inbox</span> <ArrowUpRight className="size-3" />
             </button>
           </div>
-          {data.threads.slice(0, 5).map((thread) => (
+          {data.recentThreads.map((thread) => (
             <button
               className="group block w-full min-w-0 max-w-full border-b border-black/5 dark:border-white/5 px-4 py-3 text-left last:border-0 hover:bg-black/5 dark:bg-white/5 transition-colors overflow-hidden"
               key={thread.id}
@@ -103,7 +107,7 @@ export function MailOverview({
               </div>
             </button>
           ))}
-          {!data.threads.length ? <EmptyMail /> : null}
+          {!data.recentThreads.length ? <EmptyMail /> : null}
         </div>
         <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-4 sm:p-5 min-w-0 max-w-full">
           <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-black/30 dark:text-white/30">
@@ -118,7 +122,7 @@ export function MailOverview({
               label="Verified domains"
               value={data.stats.verifiedDomains}
             />
-            <Status label="Contacts" value={data.resources.contacts.length} />
+            <Status label="Contacts" value={data.stats.contacts} />
           </div>
         </div>
       </section>
@@ -129,7 +133,9 @@ export function MailOverview({
 function Status({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-3 text-xs gap-3 min-w-0">
-      <span className="text-black/45 dark:text-white/45 truncate min-w-0">{label}</span>
+      <span className="text-black/45 dark:text-white/45 truncate min-w-0">
+        {label}
+      </span>
       <span className="font-mono text-black/80 dark:text-white/80 shrink-0">
         {value}
       </span>

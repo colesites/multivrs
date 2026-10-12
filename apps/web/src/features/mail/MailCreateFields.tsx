@@ -6,14 +6,14 @@ import {
   FormChoice,
   FormField,
 } from "@/features/mail/MailFormControls";
-import type { MailDashboardData } from "@/features/mail/mail.types";
+import type { MailResources } from "@/features/mail/mail.types";
 import type { CreateMailView } from "@/features/mail/mail-resource-form";
 
 export function MailCreateFields({
-  data,
+  resources,
   view,
 }: {
-  data: MailDashboardData;
+  resources: MailResources;
   view: CreateMailView;
 }) {
   if (view === "domains")
@@ -54,7 +54,7 @@ export function MailCreateFields({
           placeholder="customer, newsletter"
           required={false}
         />
-        <AudienceChoice data={data} optional />
+        <AudienceChoice resources={resources} optional />
       </>
     );
   if (view === "audiences")
@@ -86,7 +86,7 @@ export function MailCreateFields({
           placeholder="team@example.com"
           type="email"
         />
-        <AudienceChoice data={data} />
+        <AudienceChoice resources={resources} />
         <FormArea name="body" placeholder="Write the campaign email…" />
         <FormField name="scheduledAt" required={false} type="datetime-local" />
       </>

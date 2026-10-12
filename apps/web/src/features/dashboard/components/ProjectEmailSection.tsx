@@ -4,8 +4,15 @@ import { MailProvider } from "@/features/mail/mail-context";
 import type { MailView } from "@/features/mail/mail-navigation";
 import { getScopedProject } from "@/lib/services/dashboard-scope.service";
 import { mailAccount } from "@/lib/services/mail-access.service";
-import { mailDashboard } from "@/lib/services/mail-dashboard.service";
+import {
+  mailDashboard,
+  mailResources,
+} from "@/lib/services/mail-dashboard.service";
 
+/**
+ * Checks access, then hands the mail page a promise for its shared data, so
+ * nothing waits on mail queries before the page can render.
+ */
 export async function ProjectEmailSection({
   scope,
   initialView,
@@ -26,11 +33,11 @@ export async function ProjectEmailSection({
       { account: username },
       "read",
     );
-    const data = await mailDashboard(ownerId, userId);
     return (
       <MailProvider
         key={`all:${initialView}`}
-        data={data}
+        resources={mailResources(ownerId)}
+        shell={mailDashboard(ownerId, userId)}
         initialCompose={initialCompose}
         initialView={initialView}
       >
@@ -44,11 +51,11 @@ export async function ProjectEmailSection({
     { projectId: project.id },
     "read",
   );
-  const data = await mailDashboard(ownerId, userId, project.id);
   return (
     <MailProvider
       key={`${project.id}:${initialView}`}
-      data={data}
+      resources={mailResources(ownerId, project.id)}
+      shell={mailDashboard(ownerId, userId, project.id)}
       initialCompose={initialCompose}
       initialView={initialView}
       projectId={project.id}

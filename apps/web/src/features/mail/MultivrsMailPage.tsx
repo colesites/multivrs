@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { type ComponentProps, Suspense, useState } from "react";
 import { MailboxView } from "@/features/mail/MailboxView";
 import { MailCompose } from "@/features/mail/MailCompose";
 import { MailMobileMenu } from "@/features/mail/MailMobileMenu";
 import { MailOverview } from "@/features/mail/MailOverview";
 import { MailResourcePage } from "@/features/mail/MailResourcePage";
-import { useMailContext } from "@/features/mail/mail-context";
+import { useMailContext, useMailData } from "@/features/mail/mail-context";
 import type { MailView } from "@/features/mail/mail-navigation";
 
 const mailboxViews = new Set<MailView>([
@@ -21,7 +21,6 @@ const mailboxViews = new Set<MailView>([
 
 export function MultivrsMailPage() {
   const {
-    data,
     projectId,
     view,
     setView,
@@ -37,19 +36,12 @@ export function MultivrsMailPage() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   let content = (
-    <MailResourcePage
-      data={data}
-      projectId={projectId}
-      query={query}
-      view={view}
-    />
+    <MailResourcePage projectId={projectId} query={query} view={view} />
   );
-  if (view === "overview")
-    content = <MailOverview data={data} onView={setView} />;
+  if (view === "overview") content = <MailOverview onView={setView} />;
   if (mailboxViews.has(view))
     content = (
       <MailboxView
-        data={data}
         projectId={projectId}
         onReply={(message) => {
           setForward(undefined);
@@ -69,13 +61,15 @@ export function MultivrsMailPage() {
   return (
     <>
       {content}
-      <MailCompose
-        mailboxes={data.mailboxes}
-        onOpenChange={setComposeOpen}
-        open={composeOpen}
-        reply={reply}
-        forward={forward}
-      />
+      {/* Compose needs the mailboxes; it waits for them without holding up the page. */}
+      <Suspense fallback={null}>
+        <ComposeWithMailboxes
+          onOpenChange={setComposeOpen}
+          open={composeOpen}
+          reply={reply}
+          forward={forward}
+        />
+      </Suspense>
       <MailMobileMenu
         onOpenChange={setMenuOpen}
         onView={setView}
@@ -84,4 +78,10 @@ export function MultivrsMailPage() {
       />
     </>
   );
+}
+
+function ComposeWithMailboxes(
+  props: Omit<ComponentProps<typeof MailCompose>, "mailboxes">,
+) {
+  return <MailCompose mailboxes={useMailData().mailboxes} {...props} />;
 }

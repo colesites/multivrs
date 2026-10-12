@@ -28,7 +28,7 @@ export function PlatformSectionStream({
     <Suspense
       fallback={
         section === "emails" ? (
-          <MailPageSkeleton />
+          <MailPageSkeleton view={parseMailView(requestedView)} />
         ) : (
           <DashboardSectionSkeleton
             requestedScope={scope}

@@ -1,15 +1,19 @@
 "use client";
 
 import { CircleDashed, Plus } from "lucide-react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MailAnalytics, MailSettings } from "@/features/mail/MailAnalytics";
 import { MailCreateDialog } from "@/features/mail/MailCreateDialog";
 import { MailResourceRow } from "@/features/mail/MailResourceRow";
+import { MailResourceSkeleton } from "@/features/mail/MailSkeletons";
 import type {
   MailDashboardData,
   MailResourceItem,
+  MailResources,
 } from "@/features/mail/mail.types";
+import { useMailData, useMailResources } from "@/features/mail/mail-context";
+import { useMailLog } from "@/features/mail/mail-data.client";
 import type { MailView } from "@/features/mail/mail-navigation";
 import { isCreateMailView } from "@/features/mail/mail-resource-form";
 
@@ -28,31 +32,48 @@ const descriptions: Partial<Record<MailView, string>> = {
 };
 
 export function MailResourcePage({
-  data,
   projectId,
   query,
   view,
 }: {
-  data: MailDashboardData;
   projectId?: string;
   query: string;
   view: MailView;
 }) {
-  const [creating, setCreating] = useState(false);
-  const items = resourceItems(data, view).filter((item) =>
-    `${item.name} ${item.detail} ${item.status}`
-      .toLowerCase()
-      .includes(query.toLowerCase()),
-  );
-  if (view === "analytics") return <MailAnalytics data={data} />;
   if (view === "settings") return <MailSettings />;
+  // The log pages through messages on its own; everything else is shared data.
+  if (view === "logs") return <MailLogTable query={query} />;
   return (
-    <div className="w-full min-w-0 max-w-full space-y-6 px-4 py-6 sm:px-5 sm:py-8 lg:px-8">
-      <header className="flex items-end justify-between gap-5">
-        <p className="max-w-2xl text-sm leading-6 text-black/60 dark:text-white/60">
-          {descriptions[view]}
-        </p>
-        {isCreateMailView(view) ? (
+    <Suspense fallback={<MailResourceSkeleton />}>
+      {view === "analytics" ? (
+        <MailAnalyticsWithData />
+      ) : (
+        <MailResourceTable projectId={projectId} query={query} view={view} />
+      )}
+    </Suspense>
+  );
+}
+
+function MailAnalyticsWithData() {
+  return <MailAnalytics data={useMailData()} />;
+}
+
+function MailResourceTable({
+  projectId,
+  query,
+  view,
+}: {
+  projectId?: string;
+  query: string;
+  view: MailView;
+}) {
+  const data = useMailData();
+  const resources = useMailResources();
+  const [creating, setCreating] = useState(false);
+  return (
+    <ResourceTable
+      action={
+        isCreateMailView(view) ? (
           <Button
             className="bg-foreground text-background hover:bg-foreground/90 shrink-0"
             onClick={() => setCreating(true)}
@@ -60,7 +81,69 @@ export function MailResourcePage({
             <Plus />
             Create
           </Button>
-        ) : null}
+        ) : null
+      }
+      items={matching(resourceItems(view, data, resources), query)}
+      view={view}
+    >
+      {isCreateMailView(view) ? (
+        <MailCreateDialog
+          resources={resources}
+          onOpenChange={setCreating}
+          open={creating}
+          projectId={projectId}
+          view={view}
+        />
+      ) : null}
+    </ResourceTable>
+  );
+}
+
+/** The email log, newest first, a page at a time. */
+function MailLogTable({ query }: { query: string }) {
+  const log = useMailLog();
+  if (log.loading) return <MailResourceSkeleton />;
+  return (
+    <ResourceTable items={matching(log.items, query)} view="logs">
+      {log.hasMore ? (
+        <Button
+          className="w-full"
+          disabled={log.loadingMore}
+          onClick={log.loadMore}
+          variant="outline"
+        >
+          {log.loadingMore ? "Loading…" : "Load older messages"}
+        </Button>
+      ) : null}
+    </ResourceTable>
+  );
+}
+
+function matching(items: MailResourceItem[], query: string) {
+  const needle = query.toLowerCase();
+  return items.filter((item) =>
+    `${item.name} ${item.detail} ${item.status}`.toLowerCase().includes(needle),
+  );
+}
+
+function ResourceTable({
+  action,
+  children,
+  items,
+  view,
+}: {
+  action?: React.ReactNode;
+  children?: React.ReactNode;
+  items: MailResourceItem[];
+  view: MailView;
+}) {
+  return (
+    <div className="w-full min-w-0 max-w-full space-y-6 px-4 py-6 sm:px-5 sm:py-8 lg:px-8">
+      <header className="flex items-end justify-between gap-5">
+        <p className="max-w-2xl text-sm leading-6 text-black/60 dark:text-white/60">
+          {descriptions[view]}
+        </p>
+        {action}
       </header>
       <section className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black">
         <div className="min-w-[480px]">
@@ -88,22 +171,15 @@ export function MailResourcePage({
           </div>
         ) : null}
       </section>
-      {isCreateMailView(view) ? (
-        <MailCreateDialog
-          data={data}
-          onOpenChange={setCreating}
-          open={creating}
-          projectId={projectId}
-          view={view}
-        />
-      ) : null}
+      {children}
     </div>
   );
 }
 
 function resourceItems(
-  data: MailDashboardData,
   view: MailView,
+  data: MailDashboardData,
+  resources: MailResources,
 ): MailResourceItem[] {
   if (view === "mailboxes")
     return data.mailboxes.map((item) => ({
@@ -115,24 +191,13 @@ function resourceItems(
       address: item.address,
       kind: item.kind,
     }));
-  if (view === "logs")
-    return Object.values(data.messages)
-      .flat()
-      .map((item) => ({
-        id: item.id,
-        name: item.subject,
-        detail: `${item.direction} · ${item.fromAddress}`,
-        status: item.status,
-        createdAt: item.createdAt,
-      }))
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  if (view === "domains") return data.resources.domains;
-  if (view === "contacts") return data.resources.contacts;
-  if (view === "audiences") return data.resources.audiences;
-  if (view === "templates") return data.resources.templates;
-  if (view === "broadcasts") return data.resources.broadcasts;
-  if (view === "automations") return data.resources.automations;
-  if (view === "credentials") return data.resources.credentials;
-  if (view === "webhooks") return data.resources.webhooks;
+  if (view === "domains") return resources.domains;
+  if (view === "contacts") return resources.contacts;
+  if (view === "audiences") return resources.audiences;
+  if (view === "templates") return resources.templates;
+  if (view === "broadcasts") return resources.broadcasts;
+  if (view === "automations") return resources.automations;
+  if (view === "credentials") return resources.credentials;
+  if (view === "webhooks") return resources.webhooks;
   return [];
 }

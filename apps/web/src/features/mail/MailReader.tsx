@@ -20,6 +20,7 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MailMessageBody } from "@/features/mail/MailMessageBody";
+import { MailReaderSkeleton } from "@/features/mail/MailSkeletons";
 import type {
   MailMessageDetail,
   MailThreadSummary,
@@ -62,6 +63,7 @@ function getRelativeTime(dateString: string): string {
 }
 
 export function MailReader({
+  loading = false,
   messages,
   onAction,
   onForward,
@@ -74,6 +76,8 @@ export function MailReader({
   view = "inbox",
   className,
 }: {
+  /** The open conversation's messages are still loading. */
+  loading?: boolean;
   messages: MailMessageDetail[];
   onAction: (messageId: string, action: string) => void;
   onForward: (message: MailMessageDetail) => void;
@@ -121,7 +125,8 @@ export function MailReader({
           No conversation selected
         </h3>
         <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-muted-foreground">
-          Select an email from the conversations list to view its contents and attachments.
+          Select an email from the conversations list to view its contents and
+          attachments.
         </p>
         <div className="mt-6 flex items-center gap-2 rounded-xl border border-black/8 dark:border-white/8 bg-black/2 dark:bg-white/2 px-3.5 py-2 text-[11px] text-muted-foreground">
           <span className="font-mono bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded text-[10px]">
@@ -137,6 +142,14 @@ export function MailReader({
           </span>
           <span>to reply</span>
         </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className={cn("flex h-full min-h-0 flex-1 flex-col", className)}>
+        <MailReaderSkeleton />
       </div>
     );
   }
@@ -284,7 +297,6 @@ export function MailReader({
             </div>
           )}
 
-
           <Button
             aria-label="Print conversation"
             title="Print conversation"
@@ -359,7 +371,8 @@ export function MailReader({
                   key={message.id}
                   className={cn(
                     "transition-all",
-                    idx > 0 && "pt-6 border-t border-black/10 dark:border-white/10",
+                    idx > 0 &&
+                      "pt-6 border-t border-black/10 dark:border-white/10",
                   )}
                 >
                   {/* Message Header */}
@@ -414,7 +427,8 @@ export function MailReader({
                           className="group inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10 hover:text-foreground transition cursor-pointer"
                         >
                           <span>
-                            to {message.to.length ? message.to.join(", ") : "me"}
+                            to{" "}
+                            {message.to.length ? message.to.join(", ") : "me"}
                           </span>
                           <ChevronDown
                             className={cn(
@@ -467,9 +481,7 @@ export function MailReader({
                           </div>
                           <div className="flex items-center gap-2 pt-1 border-t border-black/6 dark:border-white/6 text-emerald-600 dark:text-emerald-400 font-sans text-[11px]">
                             <ShieldCheck className="size-3.5 shrink-0" />
-                            <span>
-                              Delivered securely via TLS encryption
-                            </span>
+                            <span>Delivered securely via TLS encryption</span>
                           </div>
                         </div>
                       )}

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { MailDashboardData } from "@/features/mail/mail.types";
+import type { MailResources } from "@/features/mail/mail.types";
 
 export function FormField({
   name,
@@ -87,10 +87,10 @@ export function FormChoice({
 }
 
 export function AudienceChoice({
-  data,
+  resources,
   optional = false,
 }: {
-  data: MailDashboardData;
+  resources: MailResources;
   optional?: boolean;
 }) {
   return (
@@ -104,7 +104,7 @@ export function AudienceChoice({
         required={!optional}
       >
         <option value="">{optional ? "No audience" : "Select audience"}</option>
-        {data.resources.audiences.map((item) => (
+        {resources.audiences.map((item) => (
           <option key={item.id} value={item.id}>
             {item.name}
           </option>
