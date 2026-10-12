@@ -12,6 +12,8 @@ model Merchant {
   checkoutSessions CheckoutSession[]
   payments         Payment[]
   refunds          Refund[]
+  disputes         Dispute[]
+  payouts          Payout[]
   events           Event[]
   usageRecords     UsageRecord[]
   webhookEndpoints WebhookEndpoint[]

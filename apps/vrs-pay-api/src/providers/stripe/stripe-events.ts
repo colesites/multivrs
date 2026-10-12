@@ -1,6 +1,7 @@
 import {
   CurrencyCodeSchema,
   money,
+  type ProviderDisputeStatus,
   type ProviderRefundStatus,
   type ProviderWebhookEvent,
 } from "@vrs-pay/core";
@@ -45,6 +46,53 @@ function refundUpdated(
   };
 }
 
+/** Stripe dispute status → ours. An inquiry that closes without a chargeback counts as won. */
+function disputeStatusFrom(status: string): ProviderDisputeStatus {
+  if (status === "won" || status === "warning_closed") return "won";
+  return status === "lost" ? "lost" : "open";
+}
+
+/**
+ * What Stripe has taken for a dispute, in the payment's currency: the
+ * disputed amount once withdrawn (until reinstated), and the dispute fee net
+ * of any returned. Balance transactions are in the settlement currency, so
+ * the fee is converted at the withdrawal's own rate.
+ */
+function disputeTakings(dispute: Stripe.Dispute): { withdrawn: number; fee: number } {
+  const moves = dispute.balance_transactions ?? [];
+  const withdrawal = moves.find((t) => t.amount < 0);
+  const net = moves.filter((t) => t.amount < 0).length - moves.filter((t) => t.amount > 0).length;
+  const rate = withdrawal ? dispute.amount / Math.abs(withdrawal.amount) : 1;
+  const fee = moves.reduce((sum, t) => sum + t.fee, 0) * rate;
+  return { withdrawn: net > 0 ? dispute.amount : 0, fee: Math.max(0, Math.round(fee)) };
+}
+
+function disputeUpdated(
+  base: EventBase,
+  event: Stripe.Event,
+  dispute: Stripe.Dispute,
+): ProviderWebhookEvent {
+  const paymentReference = idOf(dispute.payment_intent) ?? idOf(dispute.charge);
+  const currency = CurrencyCodeSchema.safeParse(dispute.currency);
+  if (!paymentReference || !currency.success) return ignored(base, event.type);
+  const status = disputeStatusFrom(dispute.status);
+  const { withdrawn, fee } = disputeTakings(dispute);
+  return {
+    ...base,
+    type: "dispute.updated",
+    data: {
+      disputeReference: dispute.id,
+      paymentReference,
+      status,
+      reason: dispute.reason ?? null,
+      amount: money(dispute.amount, currency.data),
+      withdrawn: money(withdrawn, currency.data),
+      fee: money(fee, currency.data),
+      evidenceDueBy: status === "open" ? (dispute.evidence_details?.due_by ?? null) : null,
+    },
+  };
+}
+
 /** Maps a verified Stripe event to the few things VRS Pay acts on. */
 export async function toProviderEvent(
   api: StripeApi,
@@ -58,7 +106,12 @@ export async function toProviderEvent(
   };
   switch (event.type) {
     case "payment_intent.succeeded":
-      return paymentIntentSucceeded(api, base, event.type, event.data.object as Stripe.PaymentIntent);
+      return paymentIntentSucceeded(
+        api,
+        base,
+        event.type,
+        event.data.object as Stripe.PaymentIntent,
+      );
     case "setup_intent.succeeded":
       return setupIntentSucceeded(api, base, event.type, event.data.object as Stripe.SetupIntent);
     case "checkout.session.completed":
@@ -75,6 +128,12 @@ export async function toProviderEvent(
     case "refund.updated":
     case "refund.failed":
       return refundUpdated(base, event, event.data.object);
+    case "charge.dispute.created":
+    case "charge.dispute.updated":
+    case "charge.dispute.closed":
+    case "charge.dispute.funds_withdrawn":
+    case "charge.dispute.funds_reinstated":
+      return disputeUpdated(base, event, event.data.object);
     case "account.updated": {
       const account = event.data.object;
       return {

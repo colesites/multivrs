@@ -305,7 +305,7 @@ describe("which check runs", () => {
     expect(routeIdentity({})).toBeUndefined();
   });
 
-  test("a NIN lookup with no answer (registry down, no Didit credit) falls back to the slip scan", async () => {
+  test("a NIN lookup with no answer (registry down, no Didit credit) falls back to the document scan", async () => {
     const noCredit = didit({ detail: "Insufficient balance" }, 402);
     const documents = diditDocuments();
     const identity = routeIdentity({ registry: noCredit.verifier, didit: documents.verifier });

@@ -1,6 +1,8 @@
 import type { ApiKeyMode, LedgerTransaction } from "@vrs-pay/core";
 import type { CheckoutSession } from "./checkout-session.types";
+import type { Dispute } from "./dispute.types";
 import type { Payment } from "./payment.types";
+import type { Payout } from "./payout.types";
 import type { Refund } from "./refund.types";
 import type { Invoice, Subscription } from "./subscription.types";
 
@@ -8,6 +10,11 @@ export const EVENT_TYPES = [
   "payment.succeeded",
   "refund.succeeded",
   "refund.failed",
+  "dispute.created",
+  "dispute.updated",
+  "dispute.closed",
+  "payout.paid",
+  "payout.failed",
   "checkout.session.expired",
   "subscription.created",
   "subscription.updated",
@@ -27,7 +34,17 @@ export interface VrsEvent {
   livemode: boolean;
   /** Unix seconds. */
   created: number;
-  data: { object: Payment | Refund | CheckoutSession | Subscription | Invoice | Entitlements };
+  data: {
+    object:
+      | Payment
+      | Refund
+      | Dispute
+      | Payout
+      | CheckoutSession
+      | Subscription
+      | Invoice
+      | Entitlements;
+  };
 }
 
 /** Everything a customer currently has, merged across their live subscriptions. */
@@ -46,7 +63,8 @@ export interface StoredEvent {
 
 export interface LedgerPosting {
   mode: ApiKeyMode;
-  source: { type: "payment" | "refund"; id: string };
+  /** A dispute posts each change to its balance once, keyed by the provider event. */
+  source: { type: "payment" | "refund" | "dispute" | "payout"; id: string };
   transaction: LedgerTransaction;
 }
 

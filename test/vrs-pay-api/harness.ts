@@ -10,6 +10,7 @@ import { createApp } from "../../apps/vrs-pay-api/src/app";
 import type { AppDeps, MerchantProfile } from "../../apps/vrs-pay-api/src/app.types";
 import { createPaystackProvider } from "../../apps/vrs-pay-api/src/providers/paystack/paystack.provider";
 import type { PaystackApi } from "../../apps/vrs-pay-api/src/providers/paystack/paystack-api";
+import { createPaystackPayouts } from "../../apps/vrs-pay-api/src/providers/paystack/paystack-payouts";
 import { createStripeProvider } from "../../apps/vrs-pay-api/src/providers/stripe/stripe.provider";
 import type { StripeApi } from "../../apps/vrs-pay-api/src/providers/stripe/stripe-api.types";
 import { createMemoryStores } from "../../apps/vrs-pay-api/src/stores/memory";
@@ -73,6 +74,9 @@ export async function harness(
   const providers = options.realAdapters
     ? createProviderRegistry()
     : createProviderRegistry({ stripe: stripeProvider, paystack: paystackProvider });
+  const payoutRails = options.paystackApi
+    ? { paystack: createPaystackPayouts(options.paystackApi) }
+    : undefined;
   const stores = createMemoryStores();
   const key = await generateApiKey("secret", "test");
   const otherKey = await generateApiKey("secret", "test");
@@ -89,8 +93,8 @@ export async function harness(
   const deps: AppDeps = {
     ...stores,
     modes: {
-      test: { providers, platformProviders: ["stripe", "paystack", "flutterwave"] },
-      live: { providers, platformProviders: ["stripe", "paystack", "flutterwave"] },
+      test: { providers, platformProviders: ["stripe", "paystack", "flutterwave"], payoutRails },
+      live: { providers, platformProviders: ["stripe", "paystack", "flutterwave"], payoutRails },
     },
     urls: { api: "https://api.vrs.test", site: "https://vrs.test" },
   };

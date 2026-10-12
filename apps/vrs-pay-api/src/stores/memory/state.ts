@@ -1,6 +1,7 @@
 import type { MerchantProfile } from "../../app.types";
 import type { ProviderAccountStatus } from "../../services/account-status";
 import type { CheckoutSession, StoredCheckoutSession } from "../../services/checkout-session.types";
+import type { StoredDispute } from "../../services/dispute.types";
 import {
   type Effects,
   eventsOf,
@@ -9,6 +10,7 @@ import {
   type StoredEvent,
 } from "../../services/event.types";
 import type { StoredPayment } from "../../services/payment.types";
+import type { StoredPayout } from "../../services/payout.types";
 import type { StoredRefund } from "../../services/refund.types";
 import type {
   PaymentMethodRecord,
@@ -42,6 +44,8 @@ export interface MemoryState {
   sessions: Map<string, StoredCheckoutSession>;
   payments: Map<string, StoredPayment>;
   refunds: Map<string, StoredRefund>;
+  disputes: Map<string, StoredDispute>;
+  payouts: Map<string, StoredPayout>;
   ledger: LedgerPosting[];
   events: StoredEvent[];
   endpoints: Map<string, StoredWebhookEndpoint>;
@@ -68,6 +72,8 @@ export function createMemoryState(): MemoryState {
     sessions: new Map(),
     payments: new Map(),
     refunds: new Map(),
+    disputes: new Map(),
+    payouts: new Map(),
     ledger: [],
     events: [],
     endpoints: new Map(),

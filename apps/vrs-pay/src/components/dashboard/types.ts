@@ -117,6 +117,33 @@ export interface Balance {
   category?: "domestic_accelerated" | "standard" | "cross_border";
   description?: string;
   data: CurrencyBalance[];
+  /** How and when the merchant is paid. */
+  payouts?: PayoutSchedule;
+}
+
+export interface PayoutSchedule {
+  schedule: "daily";
+  /** The payout account's currency, lowercase; null with no account yet. */
+  currency: string | null;
+  /** The least a payout sends, minor units. */
+  minimum: number | null;
+  /** False when payouts in that currency can't go yet; `reason` says why. */
+  ready: boolean;
+  reason: string | null;
+}
+
+/** Money sent to the merchant's bank. */
+export interface Payout {
+  id: string;
+  status: "pending" | "paid" | "failed";
+  /** What reaches the bank. */
+  amount: number;
+  /** The transfer fee, taken from the balance with it. */
+  fee: number;
+  currency: string;
+  destination: { bank_name: string | null; last4: string | null };
+  failure_message: string | null;
+  created: number;
 }
 
 export interface List<T> {
@@ -130,6 +157,22 @@ export interface RefundItem {
   currency: string;
   status: "pending" | "succeeded" | "failed";
   reason: string | null;
+  created: number;
+}
+
+/** A chargeback on a payment. */
+export interface Dispute {
+  id: string;
+  status: "open" | "won" | "lost";
+  amount: number;
+  currency: string;
+  /** Taken out of the balance: the amount while held or lost, 0 once won. */
+  amount_withdrawn: number;
+  /** The bank's dispute fee, taken out of the balance. */
+  fee: number;
+  reason: string | null;
+  evidence_due_by: number | null;
+  payment: string;
   created: number;
 }
 

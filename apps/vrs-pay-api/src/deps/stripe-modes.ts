@@ -7,6 +7,7 @@ import {
 import type { ModeProviders } from "../app.types";
 import { createPaystackProvider } from "../providers/paystack/paystack.provider";
 import { createPaystackClient } from "../providers/paystack/paystack-api";
+import { createPaystackPayouts } from "../providers/paystack/paystack-payouts";
 import { createStripeProvider } from "../providers/stripe/stripe.provider";
 import { createStripeClient, isLiveStripeKey } from "../providers/stripe/stripe-client";
 
@@ -86,22 +87,44 @@ function paystackKey(env: Env, mode: ApiKeyMode): string | undefined {
 }
 
 /**
- * Adds Paystack to each mode that has a Paystack secret key, so NGN, GHS,
- * KES and ZAR payments route to it (see routePayment's African preference).
+ * PAYSTACK_CURRENCIES: what the Paystack account takes, comma-separated. A
+ * Paystack account takes its own country's currency (NGN for a Nigerian one,
+ * plus USD once Paystack approves it), so NGN when unset.
+ */
+function paystackCurrencies(setting: string | undefined): CurrencyCode[] {
+  const listed = (setting ?? "")
+    .split(",")
+    .map((c) => c.trim().toUpperCase())
+    .filter(Boolean);
+  return (listed.length > 0 ? listed : ["NGN"]).map((code) => {
+    const parsed = CurrencyCodeSchema.safeParse(code);
+    if (!parsed.success)
+      throw new Error(`PAYSTACK_CURRENCIES: ${code} isn't a currency VRS Pay supports.`);
+    return parsed.data;
+  });
+}
+
+/**
+ * Adds Paystack to each mode that has a Paystack secret key, for the
+ * currencies in PAYSTACK_CURRENCIES (see routePayment's African preference).
  */
 export function withPaystack(
   modes: Record<ApiKeyMode, ModeProviders>,
   env: Env,
 ): Record<ApiKeyMode, ModeProviders> {
   const next = { ...modes };
+  const currencies = paystackCurrencies(env.PAYSTACK_CURRENCIES);
   for (const mode of ["test", "live"] as const) {
     const key = paystackKey(env, mode);
     if (!key) continue;
-    const paystack = createPaystackProvider({ api: createPaystackClient(key), secretKey: key });
+    const api = createPaystackClient(key);
+    const paystack = createPaystackProvider({ api, secretKey: key });
     next[mode] = {
       ...modes[mode],
       providers: { ...modes[mode].providers, paystack },
       platformProviders: [...new Set([...modes[mode].platformProviders, "paystack" as const])],
+      currencies: { ...modes[mode].currencies, paystack: currencies },
+      payoutRails: { ...modes[mode].payoutRails, paystack: createPaystackPayouts(api) },
     };
   }
   return next;

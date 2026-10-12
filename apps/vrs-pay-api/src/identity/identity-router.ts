@@ -71,12 +71,12 @@ export function routeIdentity({
  * covers the whole account, so a passing check is what opens live payments.
  *
  * - Didit (DIDIT_API_KEY + DIDIT_WORKFLOW_ID) runs the document and selfie
- *   check. It accepts Nigeria's NIN slip and card, passports, driver's
- *   licences and voter's cards, and 500 checks a month are free.
+ *   check. For Nigeria it reads the National ID card, passports and
+ *   driver's licences (not NIN slips), and 500 checks a month are free.
  * - Stripe Identity, on the platform's live Stripe key, is the backup when
  *   Didit isn't set up or doesn't answer.
  * - DIDIT_NIN_LOOKUP=on adds Didit's paid instant NIN lookup, for merchants
- *   with a NIN number but no slip or card.
+ *   with a NIN number but no ID card to scan.
  *
  * Servers with a database only use real providers. Without one (local dev)
  * and with no provider at all, any well-formed number passes.

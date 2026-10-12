@@ -8,6 +8,7 @@
  *   VRS_TEST_DATABASE_URL=postgresql://… bun test test/vrs-pay-api/postgres.test.ts
  */
 import { afterAll, describe, expect, test } from "bun:test";
+import { createLedgerTransaction, money, payoutPosting, reversePosting } from "@vrs-pay/core";
 import { renewSubscription } from "../../apps/vrs-pay-api/src/services/billing-engine.service";
 import { emptyOnboarding } from "../../apps/vrs-pay-api/src/services/onboarding.types";
 import { DATABASE_URL, postgresHarness } from "./postgres-harness";
@@ -119,6 +120,145 @@ describe.skipIf(!DATABASE_URL)("on Postgres", () => {
     expect(events).toBeGreaterThan(0);
     const deliveries = await db.webhookDelivery.count({ where: { event: { merchantId } } });
     expect(deliveries).toBe(events);
+  });
+
+  test("a chargeback saves one row, posts each balance change once and is won back", async () => {
+    const { call, db, deliver } = await setUp();
+    const session = await (
+      await call("/v1/checkout/sessions", {
+        body: {
+          amount: 4900,
+          currency: "gbp",
+          success_url: "https://shop.test/ok",
+          cancel_url: "https://shop.test/no",
+        },
+      })
+    ).json();
+    await deliver(
+      stripeEvent(
+        "checkout.session.completed",
+        checkoutCompleted(session.provider_reference, session.id),
+      ),
+    );
+    const [payment] = (await (await call("/v1/payments")).json()).data;
+    const disputeId = `dp_${crypto.randomUUID()}`;
+    const disputeObject = (status: string, moves: Array<{ amount: number; fee: number }>) => ({
+      id: disputeId,
+      object: "dispute",
+      amount: 4900,
+      currency: "gbp",
+      charge: "ch_pg",
+      payment_intent: payment.provider_reference,
+      reason: "fraudulent",
+      status,
+      evidence_details: { due_by: 1_900_000_000 },
+      balance_transactions: moves.map((m) => ({ ...m, currency: "gbp" })),
+    });
+    const withdrawn = { amount: -4900, fee: 2000 };
+    expect(
+      await deliver(
+        stripeEvent("charge.dispute.created", disputeObject("needs_response", [withdrawn])),
+      ),
+    ).toBe("processed");
+    expect(
+      await deliver(
+        stripeEvent("charge.dispute.funds_withdrawn", disputeObject("needs_response", [withdrawn])),
+      ),
+    ).toBe("duplicate");
+    expect(
+      await deliver(
+        stripeEvent(
+          "charge.dispute.closed",
+          disputeObject("won", [withdrawn, { amount: 4900, fee: 0 }]),
+        ),
+      ),
+    ).toBe("processed");
+    const row = await db.dispute.findUnique({
+      where: { provider_providerReference: { provider: "stripe", providerReference: disputeId } },
+    });
+    expect(row).toMatchObject({ status: "won", amountWithdrawn: 0n, fee: 2000n, version: 1 });
+    const postings = await db.ledgerTransaction.count({
+      where: { sourceType: "dispute", sourceId: { startsWith: row?.id ?? "?" } },
+    });
+    expect(postings).toBe(2);
+    const listed = (await (await call("/v1/disputes")).json()).data;
+    expect(listed).toMatchObject([{ id: row?.id, status: "won", evidence_due_by: null }]);
+  });
+
+  test("payouts: one per merchant, currency and day; a bank reversal posts the money back once", async () => {
+    const { db, deps, merchantId } = await setUp();
+    const newPayout = (id: string, day: string) => ({
+      merchantId,
+      mode: "test" as const,
+      day,
+      payout: {
+        id,
+        object: "payout" as const,
+        livemode: false,
+        status: "pending" as const,
+        amount: 4_660_000,
+        fee: 7_500,
+        currency: "ngn",
+        rail: "paystack" as const,
+        destination: { bank_name: "Guaranty Trust Bank", last4: "6789" },
+        provider_reference: id.toLowerCase(),
+        failure_message: null,
+        created: Math.floor(Date.now() / 1000),
+      },
+    });
+    const posting = (id: string) => ({
+      ledger: {
+        mode: "test" as const,
+        source: { type: "payout" as const, id },
+        transaction: createLedgerTransaction({
+          description: `Payout ${id}`,
+          entries: payoutPosting({
+            merchantId,
+            provider: "paystack",
+            amount: money(4_660_000, "NGN"),
+            fee: money(7_500, "NGN"),
+          }),
+        }),
+      },
+    });
+    const first = `po_${crypto.randomUUID().replaceAll("-", "").slice(0, 24)}`;
+    const second = `po_${crypto.randomUUID().replaceAll("-", "").slice(0, 24)}`;
+    expect(await deps.payouts.create(newPayout(first, "2026-10-20"), posting(first))).toBe(true);
+    expect(await deps.payouts.create(newPayout(second, "2026-10-20"), posting(second))).toBe(false);
+    const paid = await deps.payouts.settle(
+      first,
+      { status: "paid", failureMessage: null },
+      () => ({}),
+    );
+    expect(paid?.payout.status).toBe("paid");
+    const reversal = () => ({
+      ledger: {
+        mode: "test" as const,
+        source: { type: "payout" as const, id: `${first}:returned` },
+        transaction: createLedgerTransaction({
+          description: "returned",
+          entries: reversePosting(posting(first).ledger.transaction.entries),
+        }),
+      },
+    });
+    const back = await deps.payouts.settle(
+      first,
+      { status: "failed", failureMessage: "reversed" },
+      reversal,
+    );
+    expect(back?.payout).toMatchObject({ status: "failed", failure_message: "reversed" });
+    expect(
+      await deps.payouts.settle(first, { status: "failed", failureMessage: "again" }, reversal),
+    ).toBeNull();
+    expect(
+      await db.ledgerTransaction.count({
+        where: { sourceType: "payout", sourceId: { startsWith: first } },
+      }),
+    ).toBe(2);
+    expect((await deps.payouts.find("paystack", first.toLowerCase()))?.payout.id).toBe(first);
+    expect((await deps.payouts.list(merchantId, "test", 10)).map((p) => p.payout.id)).toEqual([
+      first,
+    ]);
   });
 
   test("a subscription keeps the currency it started in", async () => {

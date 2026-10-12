@@ -57,6 +57,40 @@ export interface RefundUpdatedData {
   amount: Money;
 }
 
+export type ProviderDisputeStatus = "open" | "won" | "lost";
+
+/**
+ * A chargeback: the buyer asked their bank to reverse a payment. Amounts are
+ * in the payment's currency and are running totals, so replaying an event
+ * changes nothing.
+ */
+export interface DisputeUpdatedData {
+  /** Provider's dispute id (e.g. Stripe `dp_…`). */
+  disputeReference: string;
+  paymentReference: string;
+  status: ProviderDisputeStatus;
+  /** The bank's reason, e.g. "fraudulent" or "product_not_received". */
+  reason: string | null;
+  /** The disputed amount. */
+  amount: Money;
+  /** What the provider has taken back so far, net of anything returned. */
+  withdrawn: Money;
+  /** The provider's dispute fee kept so far, net of any returned. */
+  fee: Money;
+  /** Unix seconds: the last moment to send evidence; null when there's nothing to answer. */
+  evidenceDueBy: number | null;
+}
+
+export type ProviderPayoutStatus = "pending" | "paid" | "failed";
+
+/** A payout to a merchant's bank moved on (sent, failed, or reversed by the bank). */
+export interface PayoutUpdatedData {
+  /** The reference we sent the transfer with. */
+  payoutReference: string;
+  status: ProviderPayoutStatus;
+  failureMessage: string | null;
+}
+
 export interface AccountUpdatedData {
   accountId: string;
   chargesEnabled: boolean;
@@ -77,6 +111,8 @@ export type ProviderWebhookEvent = ProviderEventBase &
     | { type: "checkout.setup_completed"; data: CheckoutSetupData }
     | { type: "checkout.expired"; data: { sessionReference: string } }
     | { type: "refund.updated"; data: RefundUpdatedData }
+    | { type: "dispute.updated"; data: DisputeUpdatedData }
+    | { type: "payout.updated"; data: PayoutUpdatedData }
     | { type: "account.updated"; data: AccountUpdatedData }
     | { type: "identity.updated"; data: IdentityUpdatedData }
     | { type: "ignored"; data: { providerType: string } }

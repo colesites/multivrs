@@ -3,8 +3,10 @@ import type { AppDeps, AppEnv } from "../app.types";
 import { billingRoutes } from "./billing.route";
 import { checkoutSessionRoutes } from "./checkout-sessions.route";
 import { customerRoutes, customerSessionRoutes } from "./customers.route";
+import { disputeRoutes } from "./disputes.route";
 import { paymentLinkRoutes } from "./payment-links.route";
 import { eventRoutes, paymentRoutes } from "./payments.route";
+import { payoutRoutes } from "./payouts.route";
 import { priceRoutes, productRoutes } from "./products.route";
 import { refundRoutes } from "./refunds.route";
 import { entitlementRoutes, invoiceRoutes, subscriptionRoutes } from "./subscriptions.route";
@@ -20,6 +22,8 @@ export function v1Resources(deps: AppDeps): Hono<AppEnv> {
     .route("/payments", paymentRoutes(deps))
     .route("/events", eventRoutes(deps))
     .route("/refunds", refundRoutes(deps))
+    .route("/disputes", disputeRoutes(deps))
+    .route("/payouts", payoutRoutes(deps))
     .route("/webhook_endpoints", webhookEndpointRoutes(deps))
     .route("/customers", customerRoutes(deps))
     .route("/customer_sessions", customerSessionRoutes(deps))

@@ -25,6 +25,13 @@ export function createPrismaOnboardingStore(db: Db): OnboardingStore {
         identityAttempts: identityAttempts.map(toUnix),
       };
     },
+    async withPayoutAccount() {
+      const rows = await db.merchantOnboarding.findMany({
+        where: { payoutDetails: { not: null } },
+        select: { merchantId: true },
+      });
+      return rows.map((r) => r.merchantId);
+    },
     async save({
       merchantId,
       submittedAt,

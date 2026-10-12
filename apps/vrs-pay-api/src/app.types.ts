@@ -2,6 +2,7 @@ import type { ApiKeyMode, CurrencyCode, ProviderId, ProviderRegistry } from "@vr
 import type { IdentityVerifier } from "./identity/identity.types";
 import type { Sealer } from "./lib/sealer";
 import type { Resolver } from "./lib/webhook-url";
+import type { PayoutRail } from "./providers/paystack/paystack-payouts";
 import type { StoredCustomer } from "./services/customer.types";
 import type { Stores } from "./stores/stores.types";
 
@@ -30,6 +31,13 @@ export interface ModeProviders {
   platformProviders: readonly ProviderId[];
   /** Tax is calculated and added on top of prices (Stripe Tax is switched on for this mode). */
   tax?: boolean;
+  /**
+   * Currencies a provider's platform account can take, where that's narrower
+   * than the provider supports (a Paystack account takes its own country's).
+   */
+  currencies?: Partial<Record<ProviderId, readonly CurrencyCode[]>>;
+  /** How merchants get paid out, by provider (Paystack Transfers for NGN). */
+  payoutRails?: Partial<Record<ProviderId, PayoutRail>>;
 }
 
 /** Everything the app needs, injected so tests can swap any piece. */

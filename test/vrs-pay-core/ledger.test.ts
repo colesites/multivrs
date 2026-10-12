@@ -8,9 +8,11 @@ import {
   createLedgerTransaction,
   creditBalance,
   debitBalance,
+  disputePosting,
   money,
   PLATFORM_OWNER,
   refundPosting,
+  reversePosting,
 } from "@vrs-pay/core";
 import { thrown } from "./helpers";
 
@@ -114,5 +116,56 @@ describe("ledger", () => {
     expect(thrown(() => capturePosting(tooHigh)).code).toBe("fees_invalid");
     const wrongCurrency = { ...base, providerFee: money(10, "GBP"), platformFee: money(0, "NGN") };
     expect(thrown(() => capturePosting(wrongCurrency)).code).toBe("currency_mismatch");
+  });
+});
+
+describe("disputePosting", () => {
+  test("the merchant covers the amount and the fee; the tax share comes off the tax owed", () => {
+    const entries = disputePosting({
+      merchantId: "mer_test",
+      provider: "stripe",
+      amount: money(6000, "GBP"),
+      fee: money(2000, "GBP"),
+      tax: money(1000, "GBP"),
+    });
+    const balances = computeBalances([createLedgerTransaction({ description: "dp", entries })]);
+    expect(debitBalance(balances, merchant, "GBP")).toBe(5000 + 2000);
+    expect(debitBalance(balances, { kind: "tax_payable", owner: PLATFORM_OWNER }, "GBP")).toBe(
+      1000,
+    );
+    expect(creditBalance(balances, stripeReceivable, "GBP")).toBe(8000);
+  });
+
+  test("reversed, it gives the same money back", () => {
+    const taken = disputePosting({
+      merchantId: "mer_test",
+      provider: "stripe",
+      amount: money(4900, "GBP"),
+      fee: money(2000, "GBP"),
+    });
+    const balances = computeBalances([
+      createLedgerTransaction({ description: "taken", entries: taken }),
+      createLedgerTransaction({ description: "back", entries: reversePosting(taken) }),
+    ]);
+    expect(debitBalance(balances, merchant, "GBP")).toBe(0);
+    expect(debitBalance(balances, stripeReceivable, "GBP")).toBe(0);
+  });
+
+  test("tax beyond the amount or mixed currencies are refused", () => {
+    const base = { merchantId: "mer_test", provider: "stripe" as const };
+    expect(
+      thrown(() =>
+        disputePosting({
+          ...base,
+          amount: money(100, "GBP"),
+          fee: money(0, "GBP"),
+          tax: money(200, "GBP"),
+        }),
+      ).code,
+    ).toBe("dispute_invalid");
+    expect(
+      thrown(() => disputePosting({ ...base, amount: money(100, "GBP"), fee: money(20, "USD") }))
+        .code,
+    ).toBe("currency_mismatch");
   });
 });

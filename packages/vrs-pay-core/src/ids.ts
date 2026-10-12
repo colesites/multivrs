@@ -21,6 +21,8 @@ export const ID_KINDS = [
   "customerSession",
   "paymentLink",
   "usageRecord",
+  "dispute",
+  "payout",
 ] as const;
 
 export type IdKind = (typeof ID_KINDS)[number];
@@ -47,6 +49,8 @@ export const ID_PREFIXES: Record<IdKind, string> = {
   customerSession: "sess",
   paymentLink: "plink",
   usageRecord: "mbur",
+  dispute: "dp",
+  payout: "po",
 };
 
 const ID_BODY_LENGTH = 24;

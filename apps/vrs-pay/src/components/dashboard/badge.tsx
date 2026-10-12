@@ -13,6 +13,7 @@ const VARIANTS: Record<string, Variant> = {
   setting_up: "warning",
   trialing: "outline",
   open: "outline",
+  won: "success",
 };
 
 /** Extra tones on top of swift-rust's variants. */
@@ -21,6 +22,7 @@ const TONES: Record<string, string> = {
   open: "border-brand-200 bg-brand-50 text-brand-700",
   on_hold: "border-transparent bg-red-500/15 text-red-700",
   failed: "border-transparent bg-red-500/15 text-red-700",
+  lost: "border-transparent bg-red-500/15 text-red-700",
 };
 
 /** A status as a swift-rust badge: green for good, amber for waiting, red for blocked. */

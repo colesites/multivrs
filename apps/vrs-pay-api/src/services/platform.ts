@@ -25,6 +25,12 @@ export function providersFor(deps: AppDeps, mode: ApiKeyMode): ProviderRegistry 
   return deps.modes[mode].providers;
 }
 
+/** Providers set up in this mode whose platform account takes this currency. */
+function providersTaking(deps: AppDeps, mode: ApiKeyMode, currency: CurrencyCode): ProviderId[] {
+  const { platformProviders, currencies } = deps.modes[mode];
+  return platformProviders.filter((p) => currencies?.[p]?.includes(currency) ?? true);
+}
+
 /** The provider for a payment, among those the platform is set up with in this mode. */
 export function routeOnPlatform(
   deps: AppDeps,
@@ -32,8 +38,7 @@ export function routeOnPlatform(
   currency: Money["currency"],
   method: PaymentMethod,
 ) {
-  const enabledProviders = deps.modes[mode].platformProviders;
-  if (enabledProviders.length === 0) {
+  if (deps.modes[mode].platformProviders.length === 0) {
     throw invalidRequest(
       "mode_unavailable",
       mode === "live"
@@ -41,20 +46,22 @@ export function routeOnPlatform(
         : "Test payments aren't set up on this server.",
     );
   }
-  return routePayment({ currency, method, enabledProviders });
+  return routePayment({
+    currency,
+    method,
+    enabledProviders: providersTaking(deps, mode, currency),
+  });
 }
 
 /**
- * Currencies VRS Pay can charge cards in today, across both modes' providers
- * (NGN, GHS, KES and ZAR arrive with Paystack). Sorted, for the dashboard.
+ * Currencies VRS Pay can charge cards in today, across both modes' provider
+ * accounts (NGN arrives with a Nigerian Paystack account). Sorted, for the dashboard.
  */
 export function chargeableCurrencies(deps: AppDeps): CurrencyCode[] {
-  const providers = new Set([
-    ...deps.modes.test.platformProviders,
-    ...deps.modes.live.platformProviders,
-  ]);
   return CURRENCY_CODES.filter((currency) =>
-    [...providers].some((p) => providerSupports(p, currency, "card")),
+    (["test", "live"] as const).some((mode) =>
+      providersTaking(deps, mode, currency).some((p) => providerSupports(p, currency, "card")),
+    ),
   );
 }
 
@@ -95,8 +102,8 @@ export function isConverted(deps: AppDeps, provider: ProviderId, currency: Curre
 
 /** Chargeable currencies whose card payments Stripe would convert in this mode. */
 export function convertedCurrencies(deps: AppDeps, mode: ApiKeyMode): CurrencyCode[] {
-  const enabledProviders = deps.modes[mode].platformProviders;
   return chargeableCurrencies(deps).filter((currency) => {
+    const enabledProviders = providersTaking(deps, mode, currency);
     if (enabledProviders.length === 0) return isConverted(deps, "stripe", currency);
     try {
       const { provider } = routePayment({ currency, method: "card", enabledProviders });

@@ -6,12 +6,14 @@ import { createMemoryBillingStore } from "./billing";
 import { createMemoryCatalogStore } from "./catalog";
 import { createMemoryCheckoutSessionStore } from "./checkout-sessions";
 import { createMemoryCustomerStore } from "./customers";
+import { createMemoryDisputeStore } from "./disputes";
 import { createMemoryEventStore } from "./events";
 import { createMemoryLedgerStore } from "./ledger";
 import { createMemoryMerchantStore } from "./merchants";
 import { createMemoryOnboardingStore } from "./onboarding";
 import { createMemoryPaymentLinkStore } from "./payment-links";
 import { createMemoryPaymentStore } from "./payments";
+import { createMemoryPayoutStore } from "./payouts";
 import { createMemoryRefundStore } from "./refunds";
 import { createMemoryState, type MemoryState } from "./state";
 import { createMemoryUsageStore } from "./usage";
@@ -49,6 +51,8 @@ export function createMemoryStores(state: MemoryState = createMemoryState()): Me
     checkoutSessions: createMemoryCheckoutSessionStore(state),
     payments: createMemoryPaymentStore(state),
     refunds: createMemoryRefundStore(state),
+    disputes: createMemoryDisputeStore(state),
+    payouts: createMemoryPayoutStore(state),
     providerAccounts: createMemoryProviderAccountStore(state),
     providerEvents: createMemoryProviderEventStore(state),
     webhookEndpoints: createMemoryWebhookEndpointStore(state),

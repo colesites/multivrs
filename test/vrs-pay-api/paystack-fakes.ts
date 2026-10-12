@@ -11,7 +11,25 @@ export interface FakePaystackOptions {
   charge?: "success" | "paused" | "failed" | "network" | "duplicate";
   /** The status POST /refund answers with (default pending, as Paystack does). */
   refundStatus?: string;
+  /** How POST /transfer answers (default pending, as Paystack does); "network" throws. */
+  transfer?: "pending" | "success" | "failed" | "otp" | "network";
+  /** What GET /transfer/verify says (default success). */
+  verifiedTransfer?: string;
+  /** Account numbers the bank knows, with their holder's name. */
+  accounts?: Record<string, string>;
 }
+
+/** Paystack's Nigerian bank list, two pages of it. */
+export const BANK_PAGES = [
+  [
+    { name: "Guaranty Trust Bank", code: "058", active: true },
+    { name: "Access Bank", code: "044", active: true },
+  ],
+  [
+    { name: "Zenith Bank", code: "057", active: true },
+    { name: "Closed Bank", code: "999", active: false },
+  ],
+];
 
 interface Call {
   method: string;
@@ -28,6 +46,14 @@ export function fakePaystackApi(options: FakePaystackOptions = {}) {
     providerRequestFailed("paystack", path, message, retryable);
 
   const api: PaystackApi = {
+    async page<T>(path: string) {
+      calls.push({ method: "GET", path });
+      const second = path.includes("next=page2");
+      return {
+        data: (second ? BANK_PAGES[1] : BANK_PAGES[0]) as unknown as T[],
+        next: second ? null : "page2",
+      };
+    },
     async request<T>(method: "GET" | "POST", path: string, body?: object): Promise<T> {
       const b = body as Record<string, unknown> | undefined;
       calls.push({ method, path, body: b });
@@ -67,6 +93,24 @@ export function fakePaystackApi(options: FakePaystackOptions = {}) {
           case "duplicate":
             throw fail(path, "Duplicate Transaction Reference");
         }
+      }
+      if (method === "POST" && path === "/transferrecipient") {
+        return answer({ recipient_code: `RCP_${String(b?.account_number)}` });
+      }
+      if (method === "POST" && path === "/transfer") {
+        const status = options.transfer ?? "pending";
+        if (status === "network") throw fail(path, "socket hang up", true);
+        return answer({ status, reference: b?.reference, transfer_code: `TRF_${calls.length}` });
+      }
+      if (method === "GET" && path.startsWith("/transfer/verify/")) {
+        const reference = decodeURIComponent(path.slice("/transfer/verify/".length));
+        return answer({ status: options.verifiedTransfer ?? "success", reference });
+      }
+      if (method === "GET" && path.startsWith("/bank/resolve")) {
+        const number = new URL(`https://x${path}`).searchParams.get("account_number") ?? "";
+        const name = options.accounts?.[number];
+        if (!name) throw fail(path, "Could not resolve account name");
+        return answer({ account_number: number, account_name: name });
       }
       if (method === "GET" && path.startsWith("/transaction/verify/")) {
         const reference = decodeURIComponent(path.slice("/transaction/verify/".length));
@@ -136,6 +180,21 @@ export function refundEvent(type: string, transactionReference: string, amount: 
       refund_reference: null,
       amount: String(amount),
       currency: "NGN",
+    },
+  };
+}
+
+/** A transfer webhook: success, failed or reversed. */
+export function transferEvent(type: string, reference: string, amount: number) {
+  return {
+    event: type,
+    data: {
+      reference,
+      amount,
+      currency: "NGN",
+      status: type.slice("transfer.".length),
+      transfer_code: `TRF_${reference}`,
+      reason: type === "transfer.success" ? "VRS Pay payout" : "Account closed",
     },
   };
 }

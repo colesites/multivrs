@@ -5,7 +5,9 @@
  */
 import { describe, expect, test } from "bun:test";
 import { money } from "@vrs-pay/core";
+import { createApp } from "../../apps/vrs-pay-api/src/app";
 import { createPaystackProvider } from "../../apps/vrs-pay-api/src/providers/paystack/paystack.provider";
+import { chargeableCurrencies } from "../../apps/vrs-pay-api/src/services/platform";
 import { harness } from "./harness";
 import {
   chargeSuccess,
@@ -106,6 +108,29 @@ describe("Paystack checkout", () => {
     });
     expect((await res.json()).error.code).toBe("not_needed");
     expect(paystackApi.calls).toHaveLength(0);
+  });
+});
+
+describe("Paystack account currencies", () => {
+  test("a Nigerian account takes NGN only: cedi checkouts aren't sent to it", async () => {
+    const h = await harness();
+    const nigerian = { ...h.deps.modes.test, currencies: { paystack: ["NGN"] as const } };
+    const deps = {
+      ...h.deps,
+      modes: { test: nigerian, live: { ...h.deps.modes.live, currencies: nigerian.currencies } },
+    };
+    const app = createApp(deps);
+    const create = (currency: string, amount: number) =>
+      app.request("/v1/checkout/sessions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${h.key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ ...NGN_SESSION, currency, amount }),
+      });
+    expect((await (await create("ngn", 500000)).json()).provider).toBe("paystack");
+    const ghs = await (await create("ghs", 50000)).json();
+    expect(ghs.provider).not.toBe("paystack");
+    expect(h.paystack.calls.map((c) => c.amount.currency)).toEqual(["NGN"]);
+    expect(chargeableCurrencies(deps)).toContain("NGN");
   });
 });
 

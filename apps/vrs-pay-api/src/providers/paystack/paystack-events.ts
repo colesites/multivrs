@@ -3,6 +3,7 @@ import {
   CurrencyCodeSchema,
   invalidRequest,
   money,
+  type ProviderPayoutStatus,
   type ProviderRefundStatus,
   type ProviderWebhookEvent,
   type SavedMethod,
@@ -48,6 +49,9 @@ interface PaystackData {
   };
   authorization?: Authorization;
   transaction_reference?: string;
+  /** Transfers: Paystack's id for the transfer, and the reason given. */
+  transfer_code?: string;
+  reason?: string | null;
 }
 
 /** `x-paystack-signature`: HMAC-SHA512 of the raw body with the secret key, in hex. */
@@ -86,6 +90,12 @@ const REFUND_STATUSES: Record<string, ProviderRefundStatus> = {
   "refund.processing": "pending",
 };
 
+const TRANSFER_STATUSES: Record<string, ProviderPayoutStatus> = {
+  "transfer.success": "paid",
+  "transfer.failed": "failed",
+  "transfer.reversed": "failed",
+};
+
 /** Verifies and maps a Paystack webhook. Paystack sends no event id, so one is derived. */
 export function parsePaystackWebhook(
   rawBody: string,
@@ -102,6 +112,22 @@ export function parsePaystackWebhook(
     account: null,
     occurredAt: Math.floor(Date.now() / 1000),
   };
+  const transferStatus = TRANSFER_STATUSES[type];
+  if (transferStatus && data?.reference) {
+    return {
+      ...base,
+      id: `${type}:${data.transfer_code ?? data.reference}`,
+      type: "payout.updated",
+      data: {
+        payoutReference: data.reference,
+        status: transferStatus,
+        failureMessage:
+          transferStatus === "failed"
+            ? `Paystack says the transfer ${type === "transfer.reversed" ? "was reversed" : "failed"}${data.reason ? `: ${data.reason}` : "."}`
+            : null,
+      },
+    };
+  }
   const currency = CurrencyCodeSchema.safeParse(String(data?.currency ?? "").toUpperCase());
   const amount = Number(data?.amount);
   const ignored = (id: string): ProviderWebhookEvent => ({
