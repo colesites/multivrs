@@ -4,6 +4,7 @@
  */
 import { describe, expect, test } from "bun:test";
 import { SIGNATURE_HEADER, verifyWebhookSignature } from "@vrs-pay/core";
+import { isInternalHost, isPrivateAddress } from "../../apps/vrs-pay-api/src/lib/webhook-url";
 import {
   deliverDueWebhooks,
   RETRY_SCHEDULE_SECONDS,
@@ -216,5 +217,90 @@ describe("choosing events, delivery history and test sends", () => {
     );
     expect(state.events).toHaveLength(0);
     expect(state.deliveries.size).toBe(0);
+  });
+});
+
+describe("webhook URLs in production", () => {
+  test("private, loopback and internal addresses are recognised", () => {
+    for (const ip of [
+      "127.0.0.1",
+      "10.2.3.4",
+      "172.20.0.1",
+      "192.168.1.9",
+      "169.254.169.254",
+      "100.64.0.1",
+      "0.0.0.0",
+      "::1",
+      "fdaa:0:1::2",
+      "fe80::1",
+      "::ffff:7f00:1",
+      "::ffff:10.0.0.1",
+    ]) {
+      expect([ip, isPrivateAddress(ip)]).toEqual([ip, true]);
+    }
+    for (const ip of ["8.8.8.8", "1.1.1.1", "2606:4700::1111"]) {
+      expect([ip, isPrivateAddress(ip)]).toEqual([ip, false]);
+    }
+    expect(isInternalHost("https://api.internal/hooks")).toBe(true);
+    expect(isInternalHost("https://my-app.flycast/hooks")).toBe(true);
+    expect(isInternalHost("https://[::1]/hooks")).toBe(true);
+    expect(isInternalHost("http://2130706433/hooks")).toBe(true);
+    expect(isInternalHost("https://shop.test/hooks")).toBe(false);
+  });
+
+  test("saving refuses localhost and private networks; public URLs are fine", async () => {
+    const { call, deps } = await harness();
+    deps.webhookUrls = { strict: true };
+    for (const url of [
+      "http://localhost:3000/hooks",
+      "https://10.0.0.5/hooks",
+      "https://[::1]/hooks",
+      "https://db.internal/hooks",
+    ]) {
+      const res = await call("/v1/webhook_endpoints", { body: { url } });
+      expect([url, res.status, (await res.json()).error.code]).toEqual([
+        url,
+        400,
+        "url_not_public",
+      ]);
+    }
+    expect(
+      (await call("/v1/webhook_endpoints", { body: { url: "https://shop.test/hooks" } })).status,
+    ).toBe(200);
+  });
+
+  test("a name that resolves to a private address is refused when sending", async () => {
+    const { call, deps } = await harness();
+    deps.webhookUrls = { strict: true, resolve: async () => ["10.0.0.7"] };
+    const endpoint = await (
+      await call("/v1/webhook_endpoints", { body: { url: "https://rebound.test/hooks" } })
+    ).json();
+    const { requests, doFetch } = recorder(200);
+    const merchant = { ...MERCHANT, mode: "test" as const };
+    expect(await sendTestWebhook(deps, merchant, endpoint.id, doFetch)).toMatchObject({
+      ok: false,
+      status_code: null,
+      error: "Webhook URL resolves to a private address.",
+    });
+    expect(requests).toHaveLength(0);
+  });
+
+  test("the delivery worker refuses private destinations and retries later", async () => {
+    const { deliver, deps, event, state } = await paidCheckout();
+    await deliver(event);
+    const { requests, doFetch } = recorder(200);
+    const resolve = async () => ["192.168.0.10"];
+    expect(
+      await deliverDueWebhooks(deps.deliveries, {
+        fetch: doFetch,
+        now: () => AT,
+        strictUrls: true,
+        resolve,
+      }),
+    ).toBe(1);
+    expect(requests).toHaveLength(0);
+    expect([...state.deliveries.values()]).toMatchObject([
+      { status: "pending", attempts: 1, lastError: "Webhook URL resolves to a private address." },
+    ]);
   });
 });

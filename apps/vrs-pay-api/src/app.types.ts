@@ -1,6 +1,7 @@
 import type { ApiKeyMode, ProviderId, ProviderRegistry } from "@vrs-pay/core";
 import type { IdentityVerifier } from "./identity/identity.types";
 import type { Sealer } from "./lib/sealer";
+import type { Resolver } from "./lib/webhook-url";
 import type { StoredCustomer } from "./services/customer.types";
 import type { Stores } from "./stores/stores.types";
 
@@ -43,6 +44,11 @@ export interface AppDeps extends Stores {
   sealer?: Sealer;
   /** Public origins: this API (payment link URLs) and the VRS Pay site (thank-you page). */
   urls: { api: string; site: string };
+  /**
+   * Production refuses webhook URLs on localhost or private networks, both
+   * when saved and right before each send. Tests swap the DNS resolver.
+   */
+  webhookUrls?: { strict: boolean; resolve?: Resolver };
 }
 
 export interface DashboardUser {

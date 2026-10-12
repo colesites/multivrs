@@ -1,5 +1,5 @@
-"use client";
-
+// Rendered inside the BillingShowcase island, so no "use client" here: a
+// nested island makes the server wrap it in markup the showcase doesn't render.
 import React from "react";
 import type { PricingPrice, PricingProduct } from "./types";
 import { type VrsAppearance, appearanceToStyle } from "./appearance";

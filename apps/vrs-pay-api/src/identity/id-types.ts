@@ -34,6 +34,20 @@ const BY_COUNTRY: Record<string, IdType[]> = {
       pattern: /^\d{11}$/,
       hint: "11 digits, on your NIN slip or NIMC app",
     },
+    // Photo IDs for anyone without a BVN or NIN to hand; all go to the document scan.
+    PASSPORT,
+    {
+      id: "driving_licence",
+      label: "Nigerian driver's licence",
+      pattern: /^[A-Z0-9]{8,14}$/,
+      hint: "As printed on your licence, e.g. ABC12345DE67",
+    },
+    {
+      id: "voters_card",
+      label: "Voter's card (PVC)",
+      pattern: /^[A-Z0-9]{19}$/,
+      hint: "The 19-character VIN on your card",
+    },
   ],
   GH: [
     {

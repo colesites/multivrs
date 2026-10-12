@@ -22,8 +22,10 @@ export function authenticateClient(
     if (!token || parsed?.kind !== "publishable") {
       throw authenticationError("Send your publishable key as `Authorization: Bearer pk_…`.");
     }
-    const record = await apiKeys.findByHash(await hashApiKey(token));
+    const hash = await hashApiKey(token);
+    const record = await apiKeys.findByHash(hash);
     if (!record) throw authenticationError("Invalid API key.");
+    apiKeys.markUsed?.(hash, new Date()).catch(() => undefined);
     const merchant = { ...record.merchant, mode: parsed.mode };
     c.set("merchant", merchant);
     const secret = c.req.header(CUSTOMER_SESSION_HEADER);

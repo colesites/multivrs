@@ -38,9 +38,17 @@ model ApiKey {
   merchantId    String     @map("merchant_id")
   mode          Mode
   kind          ApiKeyKind
-  /// SHA-256 of the key. The plaintext is shown once and never stored.
+  /// SHA-256 of the key, which is how requests are matched to it.
   hash          String     @unique
   displayPrefix String     @map("display_prefix")
+  /// A label the merchant gives it, e.g. "Production server".
+  name          String?
+  /// Publishable keys only: the key itself. It's public by design.
+  plaintext     String?
+  /// Test-mode secret keys only: the key sealed with VRS_DATA_KEY, so it can
+  /// be shown again. Live secret keys are shown once and never stored.
+  sealedSecret  String?    @map("sealed_secret")
+  lastUsedAt    DateTime?  @map("last_used_at")
   createdAt     DateTime   @default(now()) @map("created_at")
   revokedAt     DateTime?  @map("revoked_at")
 

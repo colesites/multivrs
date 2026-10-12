@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
-import { ogImage, siteName, siteUrl } from "@/lib/site";
+import { ogImage, siteName } from "@/lib/site";
 
 /**
  * The app owns the outer document here; swift-rust injects metadata, icons,
- * the compiled globals.css and its runtime scripts before </head>.
+ * the compiled globals.css and its runtime scripts before </head>. Each
+ * page's canonical URL and robots tag come from seo.tsx.
  *
  * Fonts are requested with explicit axes in one stylesheet. The built-in
  * `swift-rust/font/google` factories only request each family's default
@@ -31,7 +32,6 @@ export default function Shell({ children }: { children: ReactNode }) {
           content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
         <meta name="theme-color" content="#ffffff" />
-        <link rel="canonical" href={siteUrl} />
         {/* Social tags swift-rust's metadata doesn't emit; og:image & friends come from layout.tsx. */}
         <meta property="og:site_name" content={siteName} />
         <meta property="og:locale" content="en_US" />

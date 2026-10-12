@@ -266,9 +266,17 @@ export interface Overview {
 export interface ApiKey {
   id: string;
   kind: "secret" | "publishable";
+  livemode: boolean;
   display_prefix: string;
+  name: string | null;
+  /** Publishable keys: the whole key. */
+  token: string | null;
+  /** Test secret keys can be shown again. */
+  revealable: boolean;
+  last_used: number | null;
   created: number;
   revoked: boolean;
+  /** Only when just created or rolled. */
   secret?: string;
 }
 

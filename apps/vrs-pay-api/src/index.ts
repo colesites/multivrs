@@ -22,7 +22,12 @@ function report(event: string) {
   };
 }
 
-const stopDeliveries = startDeliveryWorker(deps.deliveries, report("webhook_delivery_failed"));
+const stopDeliveries = startDeliveryWorker(
+  deps.deliveries,
+  report("webhook_delivery_failed"),
+  undefined,
+  { strictUrls: deps.webhookUrls?.strict },
+);
 const stopBilling = startBillingWorker(deps, report("billing_cycle_failed"));
 hot.stopVrsPayApi = async () => {
   stopDeliveries();

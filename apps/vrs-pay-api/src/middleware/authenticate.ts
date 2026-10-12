@@ -19,10 +19,13 @@ export function authenticate(apiKeys: ApiKeyStore): MiddlewareHandler<AppEnv> {
     if (parsed.kind !== "secret") {
       throw authenticationError("Publishable keys can't call this endpoint; use a secret key.");
     }
-    const record = await apiKeys.findByHash(await hashApiKey(token));
+    const hash = await hashApiKey(token);
+    const record = await apiKeys.findByHash(hash);
     if (!record) {
       throw authenticationError("Invalid API key.");
     }
+    // For "last used" in the dashboard; never holds up the request.
+    apiKeys.markUsed?.(hash, new Date()).catch(() => undefined);
     c.set("merchant", { ...record.merchant, mode: parsed.mode });
     await next();
   };

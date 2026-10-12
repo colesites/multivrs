@@ -1,10 +1,16 @@
-import { FIXED_FEE_MINOR, generateApiKey, newId, resourceMissing } from "@vrs-pay/core";
+import { FIXED_FEE_MINOR, resourceMissing } from "@vrs-pay/core";
 import { Hono } from "hono";
 import { z } from "zod";
 import type { AppDeps, AppEnv } from "../app.types";
 import { idTypesFor } from "../identity/id-types";
 import { readJson } from "../lib/read-json";
 import { overview } from "../services/analytics.service";
+import {
+  createApiKey,
+  ensureDefaultKeys,
+  revealApiKey,
+  rollApiKey,
+} from "../services/api-keys.service";
 import { merchantBalance } from "../services/balance.service";
 import { setupWithIdentity, verifyIdentity } from "../services/identity.service";
 import { chargeableCurrencies } from "../services/platform";
@@ -13,7 +19,10 @@ import { accountSetup } from "../services/setup.service";
 import { updateSetup } from "../services/setup-update.service";
 import { IdentitySchema, SetupUpdateSchema } from "./setup.schema";
 
-const NewKeySchema = z.strictObject({ kind: z.enum(["secret", "publishable"]).default("secret") });
+const NewKeySchema = z.strictObject({
+  kind: z.enum(["secret", "publishable"]).default("secret"),
+  name: z.string().trim().max(60).optional(),
+});
 const MerchantPatchSchema = z.strictObject({ name: z.string().trim().min(1).max(100) });
 
 /** Dashboard-only endpoints, behind a signed-in session. */
@@ -70,33 +79,21 @@ export function dashboardRoutes(deps: AppDeps): Hono<AppEnv> {
     )
     .get("/keys", async (c) => {
       const { id, mode } = c.get("merchant");
+      // New test accounts get a publishable and a secret key on first look.
+      await ensureDefaultKeys(deps, id, mode);
       return c.json({ object: "list", data: await deps.merchants.listKeys(id, mode) });
     })
     .post("/keys", async (c) => {
-      const { kind } = NewKeySchema.parse(await readJson(c));
+      const { kind, name } = NewKeySchema.parse(await readJson(c));
       const { id: merchantId, mode } = c.get("merchant");
-      const key = await generateApiKey(kind, mode);
-      const id = newId("apiKey");
-      await deps.merchants.addKey(merchantId, {
-        id,
-        mode,
-        kind,
-        hash: key.hash,
-        displayPrefix: key.displayPrefix,
-      });
-      const now = Math.floor(Date.now() / 1000);
-      // The full key is returned here once and never stored.
-      return c.json({
-        id,
-        object: "api_key",
-        kind,
-        livemode: mode === "live",
-        display_prefix: key.displayPrefix,
-        created: now,
-        revoked: false,
-        secret: key.plaintext,
-      });
+      return c.json(await createApiKey(deps, merchantId, mode, kind, name || null));
     })
+    .post("/keys/:id/reveal", async (c) =>
+      c.json(await revealApiKey(deps, c.get("merchant").id, c.req.param("id"))),
+    )
+    .post("/keys/:id/roll", async (c) =>
+      c.json(await rollApiKey(deps, c.get("merchant").id, c.req.param("id"))),
+    )
     .delete("/keys/:id", async (c) => {
       const revoked = await deps.merchants.revokeKey(c.get("merchant").id, c.req.param("id"));
       if (!revoked) throw resourceMissing("api key", c.req.param("id"));

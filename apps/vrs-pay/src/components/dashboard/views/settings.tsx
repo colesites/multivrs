@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import { useAction, useDashboard } from "../context";
 import { formatMoney } from "../format";
 import { Button, Card, ErrorNote, Input, PageHeader } from "../ui";
+import { Profile, SignInMethods } from "./settings-account";
 
 function BusinessName() {
   const { session, refreshSession } = useDashboard();
@@ -89,10 +90,12 @@ export function SettingsView() {
       <PageHeader
         serif="Settings"
         title=""
-        description="Your business name and pricing."
+        description="Your profile, how you sign in, your business and pricing."
       />
-      <Fees />
+      <Profile />
+      <SignInMethods />
       <BusinessName />
+      <Fees />
     </div>
   );
 }

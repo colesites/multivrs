@@ -60,7 +60,7 @@ export interface MemoryState {
   /** Dashboard user id → their merchant. */
   /** userId → memberships, oldest first. */
   members: Map<string, Array<{ merchantId: string; role: string }>>;
-  keys: Array<ApiKeySummary & { merchantId: string }>;
+  keys: Array<ApiKeySummary & { merchantId: string; hash: string; sealedSecret: string | null }>;
 }
 
 export function createMemoryState(): MemoryState {

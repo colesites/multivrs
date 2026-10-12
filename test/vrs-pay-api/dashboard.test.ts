@@ -4,6 +4,7 @@
  * is reachable behind the session.
  */
 import { describe, expect, test } from "bun:test";
+import { createApiKey, revealApiKey } from "../../apps/vrs-pay-api/src/services/api-keys.service";
 import { dashboardHarness, ORIGIN } from "./dashboard-harness";
 
 describe("/dashboard", () => {
@@ -45,6 +46,52 @@ describe("/dashboard", () => {
     expect((await call()).status).toBe(200);
     expect((await dash(`/keys/${key.id}`, { method: "DELETE" })).status).toBe(200);
     expect((await (await dash("/keys")).json()).data[0].revoked).toBe(true);
+  });
+
+  test("a new test account starts with a default publishable and secret key", async () => {
+    const { app, dash } = await dashboardHarness();
+    const { data } = await (await dash("/keys")).json();
+    const pk = data.find((k: { kind: string }) => k.kind === "publishable");
+    const sk = data.find((k: { kind: string }) => k.kind === "secret");
+    expect(pk).toMatchObject({ name: "Default", revealable: false });
+    expect(pk.token).toMatch(/^pk_test_/);
+    expect(sk).toMatchObject({ name: "Default", token: null, revealable: true });
+    // Looking again doesn't make more.
+    expect((await (await dash("/keys")).json()).data).toHaveLength(2);
+    const { secret } = await (await dash(`/keys/${sk.id}/reveal`, { body: {} })).json();
+    expect(secret).toMatch(/^sk_test_/);
+    const v1 = await app.request("/v1/payments", {
+      headers: { Authorization: `Bearer ${secret}` },
+    });
+    expect(v1.status).toBe(200);
+    const client = await app.request("/client/v1/pricing", {
+      headers: { Authorization: `Bearer ${pk.token}` },
+    });
+    expect(client.status).toBe(200);
+  });
+
+  test("rolling a key replaces it: the new one works, the old one stops", async () => {
+    const { app, dash } = await dashboardHarness();
+    const old = await (await dash("/keys", { body: { kind: "secret", name: "Server" } })).json();
+    const rolled = await (await dash(`/keys/${old.id}/roll`, { body: {} })).json();
+    expect(rolled).toMatchObject({ kind: "secret", name: "Server", revoked: false });
+    expect(rolled.secret).not.toBe(old.secret);
+    const status = async (key: string) =>
+      (await app.request("/v1/payments", { headers: { Authorization: `Bearer ${key}` } })).status;
+    expect(await status(rolled.secret)).toBe(200);
+    expect(await status(old.secret)).toBe(401);
+    const revealOld = await dash(`/keys/${old.id}/reveal`, { body: {} });
+    expect(revealOld.status).toBe(404);
+  });
+
+  test("live secret keys are only shown when created", async () => {
+    const { deps, dash } = await dashboardHarness();
+    const me = await (await dash("/me")).json();
+    const live = await createApiKey(deps, me.merchant.id, "live", "secret", null);
+    expect(live).toMatchObject({ revealable: false });
+    expect(live.secret).toMatch(/^sk_live_/);
+    const reveal = revealApiKey(deps, me.merchant.id, live.id);
+    await expect(reveal).rejects.toMatchObject({ code: "live_key_hidden" });
   });
 
   test("every /v1 resource works behind the session, scoped to that merchant", async () => {

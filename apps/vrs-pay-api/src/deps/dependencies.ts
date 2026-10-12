@@ -25,12 +25,16 @@ export async function createDependencies(env: Env): Promise<{ deps: AppDeps; db:
   const url = databaseUrl(env);
   const returnUrl = `${urls.site}/dashboard?view=setup`;
   const identity = identityFromEnv(env, { database: Boolean(url), returnUrl });
+  const webhookUrls = { strict: env.NODE_ENV === "production" };
   if (!url) {
-    return { deps: { ...(await createMemoryDependencies(env)), modes, urls, identity }, db: null };
+    return {
+      deps: { ...(await createMemoryDependencies(env)), modes, urls, identity, webhookUrls },
+      db: null,
+    };
   }
   const db = createDb(url);
   const stores = createPrismaStores(db);
   const auth = createBetterAuth(db, env, stores.merchants, createEmailSender(env)) ?? undefined;
   const sealer = env.VRS_DATA_KEY ? await createSealer(env.VRS_DATA_KEY) : undefined;
-  return { deps: { ...stores, modes, auth, urls, sealer, identity }, db };
+  return { deps: { ...stores, modes, auth, urls, sealer, identity, webhookUrls }, db };
 }

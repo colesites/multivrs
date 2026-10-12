@@ -2,6 +2,7 @@ import type { ApiKeyRecord, ApiKeyStore } from "../api-key.store";
 
 export interface MemoryApiKeyStore extends ApiKeyStore {
   add(record: ApiKeyRecord): Promise<void>;
+  remove(hash: string): Promise<void>;
 }
 
 /** In-memory keys for tests and local dev. */
@@ -13,6 +14,9 @@ export function createMemoryApiKeyStore(): MemoryApiKeyStore {
     },
     async add(record) {
       byHash.set(record.hash, record);
+    },
+    async remove(hash) {
+      byHash.delete(hash);
     },
   };
 }
