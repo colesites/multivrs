@@ -9,8 +9,8 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "mailparser": "^3.9.14",
-    "smtp-server": "^3.19.2"
+    "mailparser": "^3.9.38",
+    "smtp-server": "^3.19.21"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
