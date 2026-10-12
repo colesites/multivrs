@@ -2,6 +2,7 @@ import { resourceMissing } from "@vrs-pay/core";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { AppDeps, AppEnv } from "../app.types";
+import { platformStripeKey, platformStripePublishableKey } from "../deps/stripe-modes";
 import { listLimit } from "../lib/list-limit";
 import { readJson } from "../lib/read-json";
 import { applyCheckoutTax } from "../services/checkout-tax.service";
@@ -88,7 +89,7 @@ export function paymentLinkRedirect(deps: AppDeps): Hono<AppEnv> {
         let clientSecret = session.client_secret;
         if (!clientSecret && session.provider === "stripe" && session.provider_reference) {
           try {
-            const stripeKey = process.env.STRIPE_SECRET_KEY;
+            const stripeKey = platformStripeKey(process.env, stored.mode);
             if (stripeKey) {
               const { createStripeClient } = await import("../providers/stripe/stripe-client");
               const stripe = createStripeClient(stripeKey);
@@ -114,11 +115,8 @@ export function paymentLinkRedirect(deps: AppDeps): Hono<AppEnv> {
           client_secret: clientSecret,
           status: session.status,
           provider: session.provider,
-          publishable_key:
-            process.env.STRIPE_PUBLISHABLE_KEY ??
-            process.env.STRIPE_TEST_PUBLISHABLE_KEY ??
-            process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ??
-            null,
+          // The session's own mode: a test checkout needs the test key.
+          publishable_key: platformStripePublishableKey(process.env, stored.mode),
           success_url: session.success_url,
           cancel_url: session.cancel_url,
           // Providers that take payment on their own page (Paystack): where to
