@@ -1,7 +1,8 @@
 /**
  * Transactional auth emails sent via AWS SES v2.
  *
- * These are invoked from Better Auth's `emailOTP` plugin handler
+ * Codes come from Better Auth's `emailOTP` plugin; confirmation links come from
+ * its email verification, change-email, and delete-user flows
  * (`src/lib/auth/config.ts`).
  */
 
@@ -82,4 +83,110 @@ export async function sendOtpEmail({
     logError("email.otp.send_failed", error, { type });
     throw error instanceof Error ? error : new Error(String(error));
   }
+}
+
+type LinkEmailKind = "verify-email" | "approve-email-change" | "delete-account";
+
+const LINK_COPY: Record<
+  LinkEmailKind,
+  {
+    subject: string;
+    heading: string;
+    line: (newEmail?: string) => string;
+    action: string;
+    footer: string;
+  }
+> = {
+  "verify-email": {
+    subject: "Confirm your email address",
+    heading: "Confirm your email",
+    line: () => "Confirm this address to use it for your Multivrs account.",
+    action: "Confirm email",
+    footer:
+      "This link expires in 1 hour. If you didn't ask for this, you can ignore this email.",
+  },
+  "approve-email-change": {
+    subject: "Approve your email change",
+    heading: "Approve your email change",
+    line: (newEmail) =>
+      `Someone asked to change your Multivrs account email to ${newEmail}. Approve it here, then confirm the new address from the email we send there.`,
+    action: "Approve change",
+    footer:
+      "This link expires in 1 hour. If you didn't ask for this, ignore this email and change your password.",
+  },
+  "delete-account": {
+    subject: "Confirm deleting your Multivrs account",
+    heading: "Delete your account",
+    line: () =>
+      "Confirm to permanently delete your Multivrs account, your team, and everything in it. This can't be undone.",
+    action: "Delete my account",
+    footer:
+      "This link expires in 24 hours. If you didn't ask for this, ignore this email and change your password.",
+  },
+};
+
+function linkEmailHtml(
+  heading: string,
+  line: string,
+  action: string,
+  url: string,
+  footer: string,
+): string {
+  return `
+  <div style="background:#030303;padding:40px 0;font-family:Arial,sans-serif">
+    <div style="max-width:420px;margin:0 auto;padding:32px;background:#0a0a0a;border:1px solid rgba(255,255,255,0.1);border-radius:16px">
+      <h1 style="margin:0 0 8px;font-size:20px;color:#fff">${heading}</h1>
+      <p style="margin:0 0 24px;font-size:14px;line-height:1.5;color:rgba(255,255,255,0.55)">${line}</p>
+      <a href="${url}" style="display:inline-block;background:#A855F7;color:#fff;font-weight:bold;text-decoration:none;padding:12px 18px;border-radius:8px">${action}</a>
+      <p style="margin:24px 0 0;font-size:12px;color:rgba(255,255,255,0.35)">${footer}</p>
+    </div>
+  </div>`;
+}
+
+/**
+ * Send a confirmation link for an account change (Better Auth's email
+ * verification, change-email, and delete-user flows).
+ */
+export async function sendAuthLinkEmail({
+  email,
+  kind,
+  url,
+  newEmail,
+}: {
+  email: string;
+  kind: LinkEmailKind;
+  url: string;
+  newEmail?: string;
+}): Promise<void> {
+  const copy = LINK_COPY[kind];
+  const line = copy.line(newEmail);
+  try {
+    await sendEmail({
+      from: EMAIL_FROM,
+      to: [email],
+      subject: copy.subject,
+      html: linkEmailHtml(
+        copy.heading,
+        escapeHtml(line),
+        copy.action,
+        escapeHtml(url),
+        copy.footer,
+      ),
+      text: `${line}\n\n${copy.action}: ${url}\n\n${copy.footer}`,
+      headers: { "X-Multivrs-Auth-Type": kind },
+    });
+  } catch (error) {
+    logError("email.auth_link.send_failed", error, { kind });
+    throw error instanceof Error ? error : new Error(String(error));
+  }
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>'"]/g, (character) => {
+    if (character === "&") return "&amp;";
+    if (character === "<") return "&lt;";
+    if (character === ">") return "&gt;";
+    if (character === "'") return "&#39;";
+    return "&quot;";
+  });
 }

@@ -11,11 +11,14 @@
  * - Database adapter (Prisma)
  */
 
+import { passkey } from "@better-auth/passkey";
 import { APIError, type BetterAuthOptions } from "better-auth";
 import { organization, twoFactor, username } from "better-auth/plugins";
 import { emailOTP } from "better-auth/plugins/email-otp";
-import { sendOtpEmail } from "@/lib/email/auth-emails";
+import { sendAuthLinkEmail, sendOtpEmail } from "@/lib/email/auth-emails";
 import { sendOrganizationInvitation } from "@/lib/email/organization-emails";
+import { accountDeletionBlockers } from "@/lib/services/account-deletion.service";
+import { deleteAvatar } from "@/lib/services/avatar-storage.service";
 import {
   assertOrganizationSeat,
   isPaidRole,
@@ -97,6 +100,50 @@ export const authConfig = {
         const base = profile.login ?? profile.name ?? "user";
         const username = await generateUniqueUsername(base);
         return { username, displayUsername: profile.login ?? username };
+      },
+    },
+  },
+
+  // Confirmation links. Sign-up still verifies with the 6-digit code from
+  // `emailOTP` below: links only go out when a flow here asks for one.
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendAuthLinkEmail({ email: user.email, kind: "verify-email", url });
+    },
+  },
+
+  user: {
+    // A verified account approves the change from its current address, then
+    // confirms the new one.
+    changeEmail: {
+      enabled: true,
+      sendChangeEmailConfirmation: async ({ user, newEmail, url }) => {
+        await sendAuthLinkEmail({
+          email: user.email,
+          kind: "approve-email-change",
+          newEmail,
+          url,
+        });
+      },
+    },
+    // Deletion is confirmed from an emailed link, and only once everything
+    // living outside the database has been cleaned up.
+    deleteUser: {
+      enabled: true,
+      sendDeleteAccountVerification: async ({ user, url }) => {
+        await sendAuthLinkEmail({
+          email: user.email,
+          kind: "delete-account",
+          url,
+        });
+      },
+      beforeDelete: async (user) => {
+        const [blocker] = await accountDeletionBlockers(user.id);
+        if (blocker)
+          throw new APIError("BAD_REQUEST", { message: blocker.message });
+      },
+      afterDelete: async (user) => {
+        await deleteAvatar(user.id, user.image);
       },
     },
   },
@@ -225,6 +272,9 @@ export const authConfig = {
     // NOTE: that auto-send hook only fires when `overrideDefaultEmailVerification`
     // is falsy, so we leave it off — verification is enforced at the dashboard
     // layout layer, not via Better Auth's built-in link flow.
+    // Passwordless sign-in with Face ID, Touch ID, Windows Hello, or a security
+    // key. The relying party is BETTER_AUTH_URL's host.
+    passkey({ rpName: "Multivrs" }),
     emailOTP({
       otpLength: 6,
       expiresIn: 60 * 5, // 5 minutes

@@ -34,7 +34,7 @@ function Spinner() {
   );
 }
 
-const GoogleIcon = () => (
+export const GoogleIcon = () => (
   <svg className="size-4" viewBox="0 0 24 24" aria-hidden="true">
     <path
       fill="#4285F4"
@@ -55,7 +55,7 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const GitHubIcon = () => (
+export const GitHubIcon = () => (
   <svg
     className="size-4"
     viewBox="0 0 24 24"

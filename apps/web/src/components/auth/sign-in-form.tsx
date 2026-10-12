@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Fingerprint } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -78,6 +78,28 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
       .finally(() => setIsLoading(false));
   };
 
+  const signInWithPasskey = () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    void authClient.signIn
+      .passkey()
+      .then((result) => {
+        if (result?.error) {
+          // Closing the system prompt isn't an error worth reporting.
+          const code = "code" in result.error ? result.error.code : "";
+          if (!/CANCEL|ABORT|NOT_ALLOWED/i.test(code)) {
+            toast.error(result.error.message || "Passkey sign-in failed.");
+          }
+          return;
+        }
+        toast.success("Welcome back.");
+        router.replace(returnTo);
+        router.refresh();
+      })
+      .catch(() => toast.error("Passkey sign-in failed. Please try again."))
+      .finally(() => setIsLoading(false));
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-1.5">
@@ -88,6 +110,16 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
       </div>
 
       <OAuthButtons callbackURL={returnTo} />
+
+      <button
+        type="button"
+        onClick={signInWithPasskey}
+        disabled={isLoading}
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] text-sm font-medium text-white/90 transition-colors duration-200 hover:border-[#A855F7]/50 hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <Fingerprint className="size-4" />
+        Sign in with a passkey
+      </button>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

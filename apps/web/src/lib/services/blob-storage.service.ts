@@ -5,7 +5,6 @@ import {
   GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
-  S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
@@ -21,6 +20,7 @@ import type { prepareBlobUploadSchema } from "@/lib/schemas/content-platform.sch
 import { getProject } from "@/lib/services/project.service";
 import { deploymentUrl } from "@/lib/services/serve.service";
 import { recordUsageEvent } from "@/lib/services/usage-event.service";
+import { r2Storage } from "@/lib/storage/r2";
 
 type PrepareBlobInput = z.infer<typeof prepareBlobUploadSchema>;
 
@@ -29,23 +29,6 @@ function requireEnvironment(name: string, fallback?: string): string {
   if (!value)
     throw new MultivrsError("internal_error", `${name} is required`, 503);
   return value;
-}
-
-function storage() {
-  const bucket = requireEnvironment(
-    "R2_CONTENT_BUCKET_NAME",
-    process.env.R2_BUCKET_NAME,
-  );
-  const client = new S3Client({
-    credentials: {
-      accessKeyId: requireEnvironment("R2_ACCESS_KEY_ID"),
-      secretAccessKey: requireEnvironment("R2_SECRET_ACCESS_KEY"),
-    },
-    endpoint: requireEnvironment("R2_ENDPOINT"),
-    forcePathStyle: true,
-    region: "auto",
-  });
-  return { bucket, client };
 }
 
 function toBlobData(row: {
@@ -125,7 +108,7 @@ export async function prepareBlobUpload(
       visibility: input.visibility,
     },
   });
-  const { bucket, client } = storage();
+  const { bucket, client } = r2Storage();
   const uploadUrl = await getSignedUrl(
     client,
     new PutObjectCommand({
@@ -151,7 +134,7 @@ export async function completeBlobUpload(
   blobId: string,
 ) {
   const row = await ownedBlob(userId, projectId, blobId, "update");
-  const { bucket, client } = storage();
+  const { bucket, client } = r2Storage();
   const object = await client.send(
     new HeadObjectCommand({ Bucket: bucket, Key: row.storageKey }),
   );
@@ -225,7 +208,7 @@ export async function getBlobAccess(
     }
     edgeUrl = url.toString();
   }
-  const { bucket, client } = storage();
+  const { bucket, client } = r2Storage();
   const downloadUrl = await getSignedUrl(
     client,
     new GetObjectCommand({ Bucket: bucket, Key: blob.storageKey }),
@@ -240,7 +223,7 @@ export async function deleteBlob(
   blobId: string,
 ): Promise<void> {
   const blob = await ownedBlob(userId, projectId, blobId, "update");
-  const { bucket, client } = storage();
+  const { bucket, client } = r2Storage();
   await client.send(
     new DeleteObjectCommand({ Bucket: bucket, Key: blob.storageKey }),
   );

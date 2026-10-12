@@ -21,6 +21,7 @@ model User {
 
   sessions             Session[]
   accounts             Account[]
+  passkeys             Passkey[]
   projects             Project[]
   domains              Domain[]
   apiTokens            ApiToken[]
@@ -695,16 +696,37 @@ model TwoFactor {
   @@map("two_factors")
 }
 
+/// WebAuthn credentials for passwordless sign-in (Better Auth `passkey` plugin).
+model Passkey {
+  id           String    @id @default(uuid())
+  name         String?
+  publicKey    String    @db.Text
+  userId       String
+  credentialID String
+  counter      Int
+  deviceType   String
+  backedUp     Boolean
+  transports   String?
+  aaguid       String?
+  createdAt    DateTime? @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([credentialID])
+  @@map("passkeys")
+}
+
 model Organization {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  logo      String?
-  metadata  String?  @db.Text
-  createdAt DateTime @default(now())
+  id             String   @id @default(uuid())
+  name           String
+  slug           String   @unique
+  logo           String?
+  metadata       String?  @db.Text
+  createdAt      DateTime @default(now())
   /// Set on the one team that belongs to a user's account. Its members can
   /// open that user's personal projects; billing stays on the user's plan.
-  accountOwnerId String? @unique
+  accountOwnerId String?  @unique
 
   accountOwner  User?                 @relation("AccountTeam", fields: [accountOwnerId], references: [id], onDelete: Cascade)
   members       Member[]
