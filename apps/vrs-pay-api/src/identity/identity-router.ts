@@ -29,6 +29,8 @@ const unavailable = (error: unknown) =>
 /**
  * Registry lookups for the IDs they cover; a document and selfie check for
  * the rest, on Didit, or on Stripe Identity when Didit is down or not set up.
+ * A lookup that gets no answer (registry down, no Didit credit) falls back
+ * to the document check.
  */
 export function routeIdentity({
   registry,
@@ -40,7 +42,13 @@ export function routeIdentity({
   if (!registry && !first) return undefined;
   return {
     async verify(check) {
-      if (registry?.supports(check.country, check.idType)) return registry.verify(check);
+      if (registry?.supports(check.country, check.idType)) {
+        try {
+          return await registry.verify(check);
+        } catch (error) {
+          if (!first || !unavailable(error)) throw error;
+        }
+      }
       for (const [index, verifier] of documents.entries()) {
         try {
           return await verifier.verify(check);

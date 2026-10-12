@@ -305,6 +305,20 @@ describe("which check runs", () => {
     expect(routeIdentity({})).toBeUndefined();
   });
 
+  test("a NIN lookup with no answer (registry down, no Didit credit) falls back to the slip scan", async () => {
+    const noCredit = didit({ detail: "Insufficient balance" }, 402);
+    const documents = diditDocuments();
+    const identity = routeIdentity({ registry: noCredit.verifier, didit: documents.verifier });
+    expect((await identity?.verify(NIN_CHECK))?.status).toBe("pending");
+    expect([noCredit.requests.length, documents.created.length]).toEqual([1, 1]);
+    // With nothing to fall back to, the merchant is asked to try again.
+    const lookupOnly = routeIdentity({ registry: noCredit.verifier });
+    expect(await errorCode(lookupOnly?.verify(NIN_CHECK) ?? Promise.resolve())).toEqual([
+      503,
+      "identity_check_unavailable",
+    ]);
+  });
+
   test("servers with a database never use a sandbox", () => {
     const options = { returnUrl: "https://vrs.test" };
     expect(identityFromEnv({}, { ...options, database: false })).toBe(sandboxVerifier);
