@@ -7,6 +7,23 @@ export interface DomainSearchResult {
   currency: string;
 }
 
+/** One line of the streamed `/api/domains/search` response. */
+export type DomainSearchEvent =
+  | { type: "meta"; catalog: string[]; total: number }
+  /** A checked batch; `start` is the rank of its first extension. */
+  | { type: "results"; start: number; results: DomainSearchResult[] }
+  | { type: "warning"; message: string }
+  | {
+      type: "error";
+      code: "not_configured" | "unavailable";
+      message: string;
+    }
+  /** `nextOffset` is where "Load more" continues, or null at the end. */
+  | { type: "done"; nextOffset: number | null };
+
+/** Extensions per page of results. */
+export const DOMAIN_SEARCH_PAGE_SIZE = 60;
+
 // Product-led ordering for the default marketplace view. The complete provider
 // catalog remains searchable through the TLD filter.
 export const RELEVANT_DOMAIN_EXTENSIONS = [

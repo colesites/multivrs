@@ -1,5 +1,9 @@
 import "server-only";
 import type { DomainSearchResult } from "@/features/domains/domain-marketplace";
+import {
+  DOMAIN_CHECK_BATCH_SIZE,
+  type DomainSearcher,
+} from "@/lib/domains/domain-search-stream";
 import { searchLocalSandbox } from "@/lib/domains/local-sandbox-provider";
 import { getOpenproviderCatalog } from "@/lib/domains/openprovider-catalog";
 import {
@@ -23,7 +27,6 @@ const DEFAULT_TLDS = [
   "studio",
   "tech",
 ];
-const CHECK_BATCH_SIZE = 12;
 
 export async function searchOpenproviderExtensions(
   name: string,
@@ -38,32 +41,29 @@ export async function searchOpenproviderExtensions(
   return checkExtensions(config.baseUrl, token, name, extensions);
 }
 
-export async function searchOpenproviderCatalog(
-  name: string,
-  extensions: string[],
-): Promise<{ catalog: string[]; results: DomainSearchResult[] } | null> {
+/** Openprovider as a `DomainSearcher`, or null when it isn't configured. */
+export async function openproviderSearcher(): Promise<DomainSearcher | null> {
   if (isLocalOpenproviderSandbox()) {
     return {
-      catalog: [...DEFAULT_TLDS],
-      results: await searchLocalSandbox(name, extensions),
+      extensions: [...DEFAULT_TLDS],
+      check: (name, extensions) => searchLocalSandbox(name, extensions),
     };
   }
   const config = getOpenproviderConfig();
   if (!config) return null;
   const token = await getOpenproviderToken(config);
   const catalog = await getOpenproviderCatalog(config.baseUrl, token);
-  const selected = extensions.filter((extension) =>
-    catalog.some((entry) => entry.name === extension),
-  );
   return {
-    catalog: catalog.map((entry) => entry.name),
-    results: await checkExtensions(
-      config.baseUrl,
-      token,
-      name,
-      selected,
-      catalog,
-    ),
+    extensions: catalog.map((entry) => entry.name),
+    check: (name, extensions, signal) =>
+      checkExtensionChunk(
+        config.baseUrl,
+        token,
+        name,
+        extensions,
+        catalog,
+        signal,
+      ),
   };
 }
 
@@ -75,11 +75,11 @@ async function checkExtensions(
   catalog: CatalogEntry[] = [],
 ): Promise<DomainSearchResult[]> {
   const chunks = Array.from(
-    { length: Math.ceil(extensions.length / CHECK_BATCH_SIZE) },
+    { length: Math.ceil(extensions.length / DOMAIN_CHECK_BATCH_SIZE) },
     (_, index) =>
       extensions.slice(
-        index * CHECK_BATCH_SIZE,
-        index * CHECK_BATCH_SIZE + CHECK_BATCH_SIZE,
+        index * DOMAIN_CHECK_BATCH_SIZE,
+        index * DOMAIN_CHECK_BATCH_SIZE + DOMAIN_CHECK_BATCH_SIZE,
       ),
   );
   const pages = await Promise.all(
@@ -96,9 +96,11 @@ async function checkExtensionChunk(
   name: string,
   extensions: string[],
   catalog: CatalogEntry[],
+  signal?: AbortSignal,
 ): Promise<DomainSearchResult[]> {
   const response = await fetch(`${baseUrl}/v1beta/domains/check`, {
     method: "POST",
+    signal,
     headers: {
       authorization: `Bearer ${token}`,
       "content-type": "application/json",
