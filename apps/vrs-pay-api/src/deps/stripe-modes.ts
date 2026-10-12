@@ -1,4 +1,9 @@
-import { type ApiKeyMode, createProviderRegistry } from "@vrs-pay/core";
+import {
+  type ApiKeyMode,
+  type CurrencyCode,
+  CurrencyCodeSchema,
+  createProviderRegistry,
+} from "@vrs-pay/core";
 import type { ModeProviders } from "../app.types";
 import { createPaystackProvider } from "../providers/paystack/paystack.provider";
 import { createPaystackClient } from "../providers/paystack/paystack-api";
@@ -100,4 +105,24 @@ export function withPaystack(
     };
   }
   return next;
+}
+
+/**
+ * STRIPE_SETTLEMENT_CURRENCIES: the currencies the platform Stripe account
+ * holds, comma-separated (e.g. "GBP,USD,EUR"). GBP when unset. Stripe
+ * payments in other currencies are converted, and carry the conversion fee.
+ */
+export function settlementCurrenciesFrom(setting: string | undefined): CurrencyCode[] {
+  const listed = (setting ?? "")
+    .split(",")
+    .map((c) => c.trim().toUpperCase())
+    .filter(Boolean);
+  if (listed.length === 0) return ["GBP"];
+  return listed.map((code) => {
+    const parsed = CurrencyCodeSchema.safeParse(code);
+    if (!parsed.success) {
+      throw new Error(`STRIPE_SETTLEMENT_CURRENCIES: ${code} isn't a currency VRS Pay supports.`);
+    }
+    return parsed.data;
+  });
 }

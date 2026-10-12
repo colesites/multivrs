@@ -6,7 +6,7 @@ import { identityFromEnv } from "../identity/identity-router";
 import { createSealer } from "../lib/sealer";
 import { createPrismaStores } from "../stores/prisma";
 import { createMemoryDependencies } from "./memory-dependencies";
-import { stripeModes, withPaystack, withStripeTax } from "./stripe-modes";
+import { settlementCurrenciesFrom, stripeModes, withPaystack, withStripeTax } from "./stripe-modes";
 
 type Env = Record<string, string | undefined>;
 
@@ -26,9 +26,17 @@ export async function createDependencies(env: Env): Promise<{ deps: AppDeps; db:
   const returnUrl = `${urls.site}/dashboard?view=setup`;
   const identity = identityFromEnv(env, { database: Boolean(url), returnUrl });
   const webhookUrls = { strict: env.NODE_ENV === "production" };
+  const settlementCurrencies = settlementCurrenciesFrom(env.STRIPE_SETTLEMENT_CURRENCIES);
   if (!url) {
     return {
-      deps: { ...(await createMemoryDependencies(env)), modes, urls, identity, webhookUrls },
+      deps: {
+        ...(await createMemoryDependencies(env)),
+        modes,
+        urls,
+        identity,
+        webhookUrls,
+        settlementCurrencies,
+      },
       db: null,
     };
   }
@@ -36,5 +44,8 @@ export async function createDependencies(env: Env): Promise<{ deps: AppDeps; db:
   const stores = createPrismaStores(db);
   const auth = createBetterAuth(db, env, stores.merchants, createEmailSender(env)) ?? undefined;
   const sealer = env.VRS_DATA_KEY ? await createSealer(env.VRS_DATA_KEY) : undefined;
-  return { deps: { ...stores, modes, auth, urls, sealer, identity, webhookUrls }, db };
+  return {
+    deps: { ...stores, modes, auth, urls, sealer, identity, webhookUrls, settlementCurrencies },
+    db,
+  };
 }

@@ -13,7 +13,11 @@ import {
 } from "../services/api-keys.service";
 import { merchantBalance } from "../services/balance.service";
 import { setupWithIdentity, verifyIdentity } from "../services/identity.service";
-import { chargeableCurrencies } from "../services/platform";
+import {
+  CONVERSION_FEE_BPS,
+  chargeableCurrencies,
+  convertedCurrencies,
+} from "../services/platform";
 import { copyProductToLive } from "../services/product-copy.service";
 import { accountSetup } from "../services/setup.service";
 import { updateSetup } from "../services/setup-update.service";
@@ -39,6 +43,10 @@ export function dashboardRoutes(deps: AppDeps): Hono<AppEnv> {
           ...record,
           platform_fee_bps: merchant.platformFeeBps,
           fixed_fees: FIXED_FEE_MINOR,
+          /** Added to the rate on card payments Stripe converts to settle. */
+          conversion_fee_bps: CONVERSION_FEE_BPS,
+          /** Currencies whose card payments get the conversion fee in this mode. */
+          converted_currencies: convertedCurrencies(deps, merchant.mode),
         },
         mode: merchant.mode,
         /** Live mode opens once every setup step is done. */

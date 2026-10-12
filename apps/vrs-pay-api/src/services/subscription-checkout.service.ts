@@ -84,7 +84,9 @@ export async function createSubscriptionCheckout(
   const upfront = plan.trial_days === 0 && price.usage_type === "licensed";
   const id = newId("checkoutSession");
   const description = `${plan.name} · ${periodLabel(interval, count)}`;
-  const platformFee = upfront ? feeFor(merchant, amount) : money(0, amount.currency);
+  const platformFee = upfront
+    ? feeFor(deps, merchant, amount, route.provider)
+    : money(0, amount.currency);
   const metadata = { ...input.metadata, [SUBSCRIPTION_METADATA_KEY]: subscription.subscription.id };
   const hostedUrl = `${deps.urls.site}/pay/${id}`;
   const checkout = await providersFor(deps, merchant.mode)[route.provider].createCheckout({

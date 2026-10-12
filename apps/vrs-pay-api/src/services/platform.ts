@@ -8,6 +8,7 @@ import {
   minimumCharge,
   money,
   type PaymentMethod,
+  type ProviderId,
   type ProviderRegistry,
   platformFee,
   providerSupports,
@@ -79,8 +80,42 @@ export function assertMinimumAmount(amount: Money, param = "amount"): void {
 }
 
 /** VRS Pay's fee for this merchant on `amount`. */
-export function feeFor(merchant: MerchantProfile, amount: Money): Money {
-  return platformFee(amount, merchant.platformFeeBps);
+/** Added to our rate when Stripe converts a payment to settle it: about what Stripe charges for that. */
+export const CONVERSION_FEE_BPS = 200;
+
+/** Currencies Stripe settles without converting: those the platform account holds. */
+export function settlementCurrencies(deps: AppDeps): readonly CurrencyCode[] {
+  return deps.settlementCurrencies ?? ["GBP"];
+}
+
+/** Stripe converts payments in currencies the platform account doesn't hold; Paystack settles locally. */
+export function isConverted(deps: AppDeps, provider: ProviderId, currency: CurrencyCode): boolean {
+  return provider === "stripe" && !settlementCurrencies(deps).includes(currency);
+}
+
+/** Chargeable currencies whose card payments Stripe would convert in this mode. */
+export function convertedCurrencies(deps: AppDeps, mode: ApiKeyMode): CurrencyCode[] {
+  const enabledProviders = deps.modes[mode].platformProviders;
+  return chargeableCurrencies(deps).filter((currency) => {
+    if (enabledProviders.length === 0) return isConverted(deps, "stripe", currency);
+    try {
+      const { provider } = routePayment({ currency, method: "card", enabledProviders });
+      return isConverted(deps, provider, currency);
+    } catch {
+      return false;
+    }
+  });
+}
+
+/** Our fee on a payment: the merchant's rate (plus the conversion fee when it applies) and the fixed part. */
+export function feeFor(
+  deps: AppDeps,
+  merchant: MerchantProfile,
+  amount: Money,
+  provider: ProviderId,
+): Money {
+  const conversion = isConverted(deps, provider, amount.currency) ? CONVERSION_FEE_BPS : 0;
+  return platformFee(amount, merchant.platformFeeBps + conversion);
 }
 
 /** The provider account a stored payment was charged on: null means the platform's. */

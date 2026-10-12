@@ -1,4 +1,4 @@
-import type { ApiKeyMode, ProviderId, ProviderRegistry } from "@vrs-pay/core";
+import type { ApiKeyMode, CurrencyCode, ProviderId, ProviderRegistry } from "@vrs-pay/core";
 import type { IdentityVerifier } from "./identity/identity.types";
 import type { Sealer } from "./lib/sealer";
 import type { Resolver } from "./lib/webhook-url";
@@ -49,6 +49,11 @@ export interface AppDeps extends Stores {
    * when saved and right before each send. Tests swap the DNS resolver.
    */
   webhookUrls?: { strict: boolean; resolve?: Resolver };
+  /**
+   * Currencies the platform Stripe account holds (it has a bank account in
+   * each), so Stripe pays them out without converting. GBP when unset.
+   */
+  settlementCurrencies?: readonly CurrencyCode[];
 }
 
 export interface DashboardUser {

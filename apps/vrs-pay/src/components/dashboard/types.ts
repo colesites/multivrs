@@ -35,6 +35,10 @@ export interface DashboardSession {
     platform_fee_bps: number;
     /** Fixed part of our fee per currency, minor units. */
     fixed_fees: Record<string, number>;
+    /** Added to the rate on card payments that have to be converted. */
+    conversion_fee_bps?: number;
+    /** Currencies whose card payments get the conversion fee. */
+    converted_currencies?: string[];
   };
   mode: Mode;
   /** Live mode opens once every setup step is done. */
