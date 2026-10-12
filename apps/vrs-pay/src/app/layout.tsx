@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ogImage, siteTitle, siteUrl } from "@/lib/site";
+import { ogImage, siteTitle } from "@/lib/site";
 import "./globals.css";
 
 const description =
@@ -15,7 +15,7 @@ export const metadata = {
     title: siteTitle,
     description,
     type: "website",
-    url: siteUrl,
+    // No og:url here: each page's share should use its own address.
     images: [ogImage],
   },
   twitter: {
