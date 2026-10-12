@@ -1,9 +1,10 @@
-import { ShieldCheck, ArrowLeft, CheckCircle2, Clock } from "lucide-react";
-import { apiUrl } from "@/lib/api";
+import { ArrowLeft, CheckCircle2, Clock, ShieldCheck } from "lucide-react";
+import NotFound from "@/app/not-found";
 import { formatMoney } from "@/components/dashboard/format";
 import { Logo } from "@/components/site/logo";
-import NotFound from "@/app/not-found";
+import { apiUrl } from "@/lib/api";
 import { CheckoutForm } from "./checkout-form";
+import { HostedCheckout } from "./hosted-checkout";
 
 export const metadata = {
   title: "Complete your payment · VRS Pay",
@@ -24,6 +25,11 @@ interface SessionData {
   cancel_url: string;
   /** Tax is added from the buyer's billing address before they pay. */
   tax_enabled?: boolean;
+  /** Paystack: its payment page, once started. */
+  checkout_url?: string | null;
+  /** Paystack: the page must ask for the buyer's email before starting. */
+  needs_email?: boolean;
+  customer_email?: string | null;
 }
 
 async function getSession(id: string): Promise<SessionData | null> {
@@ -85,7 +91,8 @@ export default async function PayPage({
             Checkout link expired
           </h1>
           <p className="mt-3 text-sm text-mute">
-            This payment link is no longer active. Please contact the merchant for a new link.
+            This payment link is no longer active. Please contact the merchant
+            for a new link.
           </p>
         </div>
       </main>
@@ -118,7 +125,10 @@ export default async function PayPage({
                 className="inline-flex items-center gap-1.5 text-xs font-medium text-mute hover:text-ink transition-colors"
               >
                 <ArrowLeft className="size-3.5" />
-                <span>Cancel and return{session.merchant_name ? ` to ${session.merchant_name}` : ""}</span>
+                <span>
+                  Cancel and return
+                  {session.merchant_name ? ` to ${session.merchant_name}` : ""}
+                </span>
               </a>
               <h1 className="mt-6 text-3xl font-light tracking-tight text-ink sm:text-4xl">
                 <span className="font-display italic text-[1.08em] text-brand-600">
@@ -162,7 +172,11 @@ export default async function PayPage({
                 </div>
                 <div className="flex justify-between">
                   <span>Payment rail</span>
-                  <span className="text-ink">VRS Pay Global Core</span>
+                  <span className="text-ink">
+                    {session.provider === "paystack"
+                      ? "Paystack"
+                      : "VRS Pay Global Core"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -174,7 +188,9 @@ export default async function PayPage({
                 <span>Buyer Protection</span>
               </div>
               <p className="leading-relaxed">
-                Your payment is encrypted and routed directly to certified banking rails. Your card data is never stored on VRS Pay servers.
+                Your payment is encrypted and routed directly to certified
+                banking rails. Your card data is never stored on VRS Pay
+                servers.
               </p>
             </div>
           </section>
@@ -182,15 +198,17 @@ export default async function PayPage({
           {/* Payment Form (Right Column) */}
           <section className="lg:col-span-7">
             <div className="rounded-3xl border border-line bg-white p-7 shadow-sm sm:p-9">
-              <h2 className="text-lg font-medium text-ink">
-                Payment details
-              </h2>
+              <h2 className="text-lg font-medium text-ink">Payment details</h2>
               <p className="mt-1 text-xs text-mute">
                 Complete your transaction using your preferred payment method.
               </p>
 
               <div className="mt-8">
-                <CheckoutForm session={session} apiUrl={apiUrl} />
+                {session.provider === "stripe" ? (
+                  <CheckoutForm session={session} apiUrl={apiUrl} />
+                ) : (
+                  <HostedCheckout session={session} apiUrl={apiUrl} />
+                )}
               </div>
             </div>
           </section>

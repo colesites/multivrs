@@ -28,7 +28,9 @@ export function createPrismaCheckoutSessionStore(db: Db): CheckoutSessionStore {
           cancelUrl: session.cancel_url,
           customerEmail: session.customer_email,
           metadata: {
-            ...(typeof session.metadata === "object" && session.metadata !== null ? session.metadata : {}),
+            ...(typeof session.metadata === "object" && session.metadata !== null
+              ? session.metadata
+              : {}),
             ...(session.client_secret ? { _client_secret: session.client_secret } : {}),
           },
           createdAt: new Date(session.created * 1000),
@@ -48,6 +50,13 @@ export function createPrismaCheckoutSessionStore(db: Db): CheckoutSessionStore {
         where: { provider_providerReference: { provider, providerReference: reference } },
       });
       return row ? sessionFromRow(row) : null;
+    },
+    async setHostedCheckout(id, url, customerEmail) {
+      const { count } = await db.checkoutSession.updateMany({
+        where: { id, status: "open" },
+        data: { url, customerEmail },
+      });
+      return count === 1;
     },
     async expire(id, effects) {
       return db.$transaction(async (tx) => {

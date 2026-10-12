@@ -5,9 +5,11 @@ import type { AppDeps, AppEnv } from "../app.types";
 import { listLimit } from "../lib/list-limit";
 import { readJson } from "../lib/read-json";
 import { applyCheckoutTax } from "../services/checkout-tax.service";
+import { hostedPageUrl, startHostedCheckout } from "../services/hosted-checkout.service";
 import { createPaymentLink, publicLink } from "../services/payment-link.service";
 import { openPaymentLink } from "../services/payment-link-open.service";
 import {
+  CheckoutStartSchema,
   CheckoutTaxSchema,
   CreatePaymentLinkSchema,
   UpdatePaymentLinkSchema,
@@ -62,6 +64,10 @@ export function paymentLinkRedirect(deps: AppDeps): Hono<AppEnv> {
       .post("/:id", async (c) => c.redirect(await openPaymentLink(deps, c.req.param("id")), 303))
       // The site's checkout page calls these from the buyer's browser.
       .use("/session/*", cors({ origin: deps.urls.site }))
+      .post("/session/:id/start", async (c) => {
+        const { email } = CheckoutStartSchema.parse(await readJson(c));
+        return c.json(await startHostedCheckout(deps, c.req.param("id"), email));
+      })
       .post("/session/:id/tax", async (c) => {
         const { address } = CheckoutTaxSchema.parse(await readJson(c));
         return c.json(
@@ -115,6 +121,15 @@ export function paymentLinkRedirect(deps: AppDeps): Hono<AppEnv> {
             null,
           success_url: session.success_url,
           cancel_url: session.cancel_url,
+          // Providers that take payment on their own page (Paystack): where to
+          // send the buyer, or that the page must ask for their email first.
+          checkout_url:
+            session.provider !== "stripe" && session.url !== hostedPageUrl(deps, session.id)
+              ? session.url
+              : null,
+          needs_email:
+            session.provider !== "stripe" && session.url === hostedPageUrl(deps, session.id),
+          customer_email: session.customer_email,
           // When on, the page asks for an address and adds tax before payment.
           tax_enabled:
             deps.modes[stored.mode].tax === true &&

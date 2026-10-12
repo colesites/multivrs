@@ -59,3 +59,6 @@ export const CheckoutTaxSchema = z.strictObject({
     line2: optionalText(200),
   }),
 });
+
+/** `POST /l/session/:id/start` body: the buyer's email, which Paystack needs first. */
+export const CheckoutStartSchema = z.strictObject({ email: z.email().max(254) });

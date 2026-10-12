@@ -8,9 +8,12 @@ import {
 } from "@vrs-pay/core";
 import { createApp } from "../../apps/vrs-pay-api/src/app";
 import type { AppDeps, MerchantProfile } from "../../apps/vrs-pay-api/src/app.types";
+import { createPaystackProvider } from "../../apps/vrs-pay-api/src/providers/paystack/paystack.provider";
+import type { PaystackApi } from "../../apps/vrs-pay-api/src/providers/paystack/paystack-api";
 import { createStripeProvider } from "../../apps/vrs-pay-api/src/providers/stripe/stripe.provider";
 import type { StripeApi } from "../../apps/vrs-pay-api/src/providers/stripe/stripe-api.types";
 import { createMemoryStores } from "../../apps/vrs-pay-api/src/stores/memory";
+import { PAYSTACK_SECRET } from "./paystack-fakes";
 import { WEBHOOK_SECRET } from "./stripe-fakes";
 
 export const MERCHANT: MerchantProfile = {
@@ -53,17 +56,23 @@ export function fakeProvider(id: ProviderId) {
 
 /**
  * The real app on in-memory stores, with two merchants' keys. Stripe is a
- * recording fake, or the real adapter over a fake Stripe API (`stripeApi`).
+ * recording fake, or the real adapter over a fake Stripe API (`stripeApi`);
+ * Paystack likewise (`paystackApi`).
  */
-export async function harness(options: { realAdapters?: boolean; stripeApi?: StripeApi } = {}) {
+export async function harness(
+  options: { realAdapters?: boolean; stripeApi?: StripeApi; paystackApi?: PaystackApi } = {},
+) {
   const stripe = fakeProvider("stripe");
   const paystack = fakeProvider("paystack");
   const stripeProvider = options.stripeApi
     ? createStripeProvider({ api: options.stripeApi, webhookSecrets: [WEBHOOK_SECRET] })
     : stripe.provider;
+  const paystackProvider = options.paystackApi
+    ? createPaystackProvider({ api: options.paystackApi, secretKey: PAYSTACK_SECRET })
+    : paystack.provider;
   const providers = options.realAdapters
     ? createProviderRegistry()
-    : createProviderRegistry({ stripe: stripeProvider, paystack: paystack.provider });
+    : createProviderRegistry({ stripe: stripeProvider, paystack: paystackProvider });
   const stores = createMemoryStores();
   const key = await generateApiKey("secret", "test");
   const otherKey = await generateApiKey("secret", "test");

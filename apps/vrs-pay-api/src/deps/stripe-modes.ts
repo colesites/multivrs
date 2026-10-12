@@ -1,5 +1,7 @@
 import { type ApiKeyMode, createProviderRegistry } from "@vrs-pay/core";
 import type { ModeProviders } from "../app.types";
+import { createPaystackProvider } from "../providers/paystack/paystack.provider";
+import { createPaystackClient } from "../providers/paystack/paystack-api";
 import { createStripeProvider } from "../providers/stripe/stripe.provider";
 import { createStripeClient, isLiveStripeKey } from "../providers/stripe/stripe-client";
 
@@ -68,4 +70,34 @@ export function withStripeTax(
     test: { ...modes.test, tax: on("test") },
     live: { ...modes.live, tax: on("live") },
   };
+}
+
+/** The Paystack secret key for `mode`: PAYSTACK_TEST/LIVE_SECRET_KEY, or PAYSTACK_SECRET_KEY by its prefix. */
+function paystackKey(env: Env, mode: ApiKeyMode): string | undefined {
+  const explicit = env[`PAYSTACK_${mode.toUpperCase()}_SECRET_KEY`];
+  if (explicit) return explicit;
+  const shared = env.PAYSTACK_SECRET_KEY;
+  return shared?.startsWith(`sk_${mode}_`) ? shared : undefined;
+}
+
+/**
+ * Adds Paystack to each mode that has a Paystack secret key, so NGN, GHS,
+ * KES and ZAR payments route to it (see routePayment's African preference).
+ */
+export function withPaystack(
+  modes: Record<ApiKeyMode, ModeProviders>,
+  env: Env,
+): Record<ApiKeyMode, ModeProviders> {
+  const next = { ...modes };
+  for (const mode of ["test", "live"] as const) {
+    const key = paystackKey(env, mode);
+    if (!key) continue;
+    const paystack = createPaystackProvider({ api: createPaystackClient(key), secretKey: key });
+    next[mode] = {
+      ...modes[mode],
+      providers: { ...modes[mode].providers, paystack },
+      platformProviders: [...new Set([...modes[mode].platformProviders, "paystack" as const])],
+    };
+  }
+  return next;
 }
