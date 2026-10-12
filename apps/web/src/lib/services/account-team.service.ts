@@ -1,5 +1,6 @@
 import "server-only";
 import { ConflictError, NotFoundError } from "@multivrs/error-utils";
+import type { DashboardWorkspace } from "@/features/dashboard/types/workspace.types";
 import { prisma } from "@/lib/prisma";
 import {
   adoptionBlocker,
@@ -134,7 +135,9 @@ export async function teamsJoined(userId: string) {
       organization: {
         select: {
           id: true,
-          accountOwner: { select: { name: true, username: true } },
+          accountOwner: {
+            select: { name: true, username: true, image: true },
+          },
         },
       },
     },
@@ -148,10 +151,44 @@ export async function teamsJoined(userId: string) {
             role,
             name: organization.accountOwner.name,
             username: organization.accountOwner.username,
+            image: organization.accountOwner.image,
           },
         ]
       : [],
   );
+}
+
+/** Dashboards you can open: your own account first, then teams you're on. */
+export async function dashboardWorkspaces(
+  userId: string,
+): Promise<DashboardWorkspace[]> {
+  const [user, joined] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, username: true, image: true },
+    }),
+    teamsJoined(userId),
+  ]);
+  const own = user?.username
+    ? [{ username: user.username, name: user.name, image: user.image }]
+    : [];
+  return [
+    ...own,
+    ...joined.map(({ username, name, image, role }) => ({
+      username,
+      name,
+      image,
+      role,
+    })),
+  ];
+}
+
+/** The account a dashboard belongs to. */
+export function workspaceOwner(username: string) {
+  return prisma.user.findUnique({
+    where: { username },
+    select: { name: true, image: true },
+  });
 }
 
 /** Your workspaces from before teams existed, and whether each could become your team. */
