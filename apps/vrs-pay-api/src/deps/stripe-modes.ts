@@ -35,6 +35,18 @@ export function platformStripeKey(env: Env, mode: ApiKeyMode): string | undefine
 }
 
 /**
+ * The publishable key for `mode`: STRIPE_TEST/LIVE_PUBLISHABLE_KEY, or
+ * STRIPE_PUBLISHABLE_KEY when it belongs to that mode (pk_test_ / pk_live_).
+ * Stripe.js refuses a client secret from the other mode, so they must match.
+ */
+export function platformStripePublishableKey(env: Env, mode: ApiKeyMode): string | null {
+  const explicit = env[`STRIPE_${mode.toUpperCase()}_PUBLISHABLE_KEY`];
+  if (explicit) return explicit;
+  const shared = [env.STRIPE_PUBLISHABLE_KEY, env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY];
+  return shared.find((key) => key?.startsWith(`pk_${mode}_`)) ?? null;
+}
+
+/**
  * Stripe credentials for each mode. STRIPE_TEST_SECRET_KEY and
  * STRIPE_LIVE_SECRET_KEY (each with its STRIPE_*_WEBHOOK_SECRET) set one
  * mode each; STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET fill whichever mode
