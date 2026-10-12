@@ -6,7 +6,10 @@
 import { describe, expect, test } from "bun:test";
 import { money, platformFee } from "@vrs-pay/core";
 import { createApp } from "../../apps/vrs-pay-api/src/app";
-import { settlementCurrenciesFrom } from "../../apps/vrs-pay-api/src/deps/stripe-modes";
+import {
+  platformStripePublishableKey,
+  settlementCurrenciesFrom,
+} from "../../apps/vrs-pay-api/src/deps/stripe-modes";
 import { dashboardHarness } from "./dashboard-harness";
 import { GBP_SESSION, harness } from "./harness";
 
@@ -61,5 +64,18 @@ describe("conversion fee", () => {
     expect(settlementCurrenciesFrom(" ")).toEqual(["GBP"]);
     expect(settlementCurrenciesFrom("gbp, usd,EUR")).toEqual(["GBP", "USD", "EUR"]);
     expect(() => settlementCurrenciesFrom("GBP,XYZ")).toThrow("XYZ");
+  });
+});
+
+describe("Stripe publishable keys", () => {
+  test("each mode gets its own key, so a test checkout never gets the live one", () => {
+    const both = { STRIPE_PUBLISHABLE_KEY: "pk_live_a", STRIPE_TEST_PUBLISHABLE_KEY: "pk_test_b" };
+    expect(platformStripePublishableKey(both, "live")).toBe("pk_live_a");
+    expect(platformStripePublishableKey(both, "test")).toBe("pk_test_b");
+    const liveOnly = { STRIPE_PUBLISHABLE_KEY: "pk_live_a" };
+    expect(platformStripePublishableKey(liveOnly, "test")).toBeNull();
+    const testOnly = { NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_c" };
+    expect(platformStripePublishableKey(testOnly, "test")).toBe("pk_test_c");
+    expect(platformStripePublishableKey(testOnly, "live")).toBeNull();
   });
 });
