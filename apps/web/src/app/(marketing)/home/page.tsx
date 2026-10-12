@@ -8,7 +8,8 @@ export const metadata: Metadata = {
   title: "Multivrs | Software Ecosystem for Modern Teams",
   description:
     "Multivrs builds a connected software ecosystem: cloud deployment, developer tooling, AI workflows, and premium product experiences.",
-  alternates: { canonical: "/" },
+  // "/" redirects signed-out visitors here, so this is the page's real address.
+  alternates: { canonical: "/home" },
 };
 
 export default function Home() {

@@ -13,7 +13,8 @@ const inter = Inter({
 
 const SITE_DESCRIPTION =
   "MULTIVRS is a modern software ecosystem: cloud deployment, developer tooling, AI workflows, and premium product experiences.";
-const SOCIAL_IMAGE_PATH = "/og.jpg";
+// Bump ?v= when the image changes: link previews cache images by URL.
+const SOCIAL_IMAGE_PATH = "/og.jpg?v=2";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -22,9 +23,9 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
-  alternates: {
-    canonical: SITE_URL,
-  },
+  // No site-wide canonical or og:url: pages set their own canonical, and
+  // crawlers use the address they fetched. A shared one pointed every page
+  // at "/", which redirects to /home, so previews went round in a circle.
   keywords: [
     "multivrs",
     "deployment platform",
@@ -38,7 +39,6 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: SITE_URL,
     siteName: SITE_NAME,
     title: `${SITE_NAME} — Build Beyond Limits`,
     description: SITE_DESCRIPTION,

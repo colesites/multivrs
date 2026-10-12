@@ -16,7 +16,8 @@ export const siteTitle = "VRS Pay — Payment integration across every border";
  * preview images — and keep text away from the edges, since X crops to ~2:1.
  */
 export const ogImage = {
-  url: `${siteUrl}/og-image.jpg`,
+  // Bump ?v= when the image changes: link previews cache images by URL.
+  url: `${siteUrl}/og-image.jpg?v=2`,
   width: 1200,
   height: 630,
   alt: "VRS Pay — Payment integration across every border",
