@@ -4,6 +4,7 @@ import { Copy, KeyRound, PlugZap } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
 import { requestOk } from "@/lib/api/request.client";
 import { oidcTokenResponseSchema } from "@/lib/schemas/oidc.schemas";
 
@@ -45,18 +46,13 @@ export function IntegrationsPage({
     await navigator.clipboard.writeText(token);
   }
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-7 px-5 py-8">
-      <header>
-        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
-          Cloud identity
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-          Integrations
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Short-lived OIDC identity for {projectName} and its deployments.
-        </p>
-      </header>
+    <div className="w-full space-y-6 px-5 py-6">
+      <DashboardPageHeader
+        title="Integrations"
+        description={
+          <>Short-lived OIDC identity for {projectName} and its deployments.</>
+        }
+      />
       <section className="overflow-hidden rounded-2xl border border-[var(--hairline)] bg-background/70">
         <div className="flex items-start gap-4 border-b border-[var(--hairline)] p-5">
           <div className="grid size-10 place-items-center rounded-xl border border-purple-400/20 bg-purple-400/[0.06]">

@@ -4,6 +4,7 @@ import { Circle, RefreshCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
 import { DashboardSearchInput } from "@/features/dashboard/components/DashboardSearchInput";
 import type {
   RuntimeLogItem,
@@ -40,30 +41,23 @@ export function ProjectLogsConsole({
 
   return (
     <div className="w-full space-y-6 px-5 py-6">
-      <header className="flex items-end justify-between gap-4">
-        <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.15em] text-purple-400">
-            Live control plane
-          </p>
-          <h1 className="mt-2 text-xl font-semibold tracking-tight text-foreground">
-            Logs
-          </h1>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {project} · latest 200 build and deployment events
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={isRefreshing}
-          onClick={() => startRefresh(() => router.refresh())}
-        >
-          <RefreshCcw
-            className={isRefreshing ? "size-3.5 animate-spin" : "size-3.5"}
-          />{" "}
-          Refresh
-        </Button>
-      </header>
+      <DashboardPageHeader
+        title="Logs"
+        description={<>{project} · latest 200 build and deployment events</>}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isRefreshing}
+            onClick={() => startRefresh(() => router.refresh())}
+          >
+            <RefreshCcw
+              className={isRefreshing ? "size-3.5 animate-spin" : "size-3.5"}
+            />{" "}
+            Refresh
+          </Button>
+        }
+      />
       <div className="flex flex-wrap items-center gap-2">
         <DashboardSearchInput
           containerClassName="min-w-[220px] flex-1"

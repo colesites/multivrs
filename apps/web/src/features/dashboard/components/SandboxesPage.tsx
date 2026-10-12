@@ -4,6 +4,7 @@ import { Box, Play, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
 import { requestOk } from "@/lib/api/request.client";
 import {
   sandboxCommandResponseSchema,
@@ -74,18 +75,11 @@ export function SandboxesPage({
       .catch(() => setState("error"));
   }
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-7 px-5 py-8">
-      <header>
-        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
-          Isolated compute
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-          Sandboxes
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Ephemeral Cloudflare container for {projectName}.
-        </p>
-      </header>
+    <div className="w-full space-y-6 px-5 py-6">
+      <DashboardPageHeader
+        title="Sandboxes"
+        description={<>Ephemeral Cloudflare container for {projectName}.</>}
+      />
       <section className="overflow-hidden rounded-2xl border border-[var(--hairline)] bg-background/70">
         <div className="flex items-center justify-between gap-5 border-b border-[var(--hairline)] p-5">
           <div className="flex items-center gap-3">

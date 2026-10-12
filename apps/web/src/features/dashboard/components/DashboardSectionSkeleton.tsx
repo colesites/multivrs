@@ -19,6 +19,7 @@ import { ObservabilitySectionSkeleton } from "./skeletons/ObservabilitySectionSk
 import { ProjectPickerSkeleton } from "./skeletons/SectionSkeletonParts";
 import { SettingsSectionSkeleton } from "./skeletons/SettingsSectionSkeleton";
 import { SpeedInsightsSectionSkeleton } from "./skeletons/SpeedInsightsSectionSkeleton";
+import { TemplatesSectionSkeleton } from "./skeletons/TemplatesSectionSkeleton";
 
 export function DashboardSectionSkeleton({
   requestedScope,
@@ -36,6 +37,7 @@ export function DashboardSectionSkeleton({
     return <SettingsSectionSkeleton account={scope === "~"} />;
   if (section === "deployments") return <DeploymentsSectionSkeleton />;
   if (section === "domains") return <DomainsSectionSkeleton />;
+  if (section === "templates") return <TemplatesSectionSkeleton />;
   if (scope === "~" && section) {
     const title = sectionTitle(section);
     return <ProjectSectionPickerSkeleton section={section} title={title} />;

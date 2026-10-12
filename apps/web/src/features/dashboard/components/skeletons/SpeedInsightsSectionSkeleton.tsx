@@ -2,10 +2,9 @@ import { SectionLoadingHeader } from "./SectionSkeletonParts";
 
 export function SpeedInsightsSectionSkeleton() {
   return (
-    <main className="mx-auto max-w-6xl space-y-8 px-5 py-8" aria-busy>
+    <main className="w-full space-y-6 px-5 py-6" aria-busy>
       <SectionLoadingHeader
         description="Core Web Vitals collected from real visits."
-        eyebrow="Real-user monitoring"
         title="Speed Insights"
       />
       <div className="grid border-white/8 border-y md:grid-cols-2 xl:grid-cols-4">

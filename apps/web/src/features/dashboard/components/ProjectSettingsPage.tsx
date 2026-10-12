@@ -3,7 +3,6 @@
 import type { Project } from "@multivrs/client";
 import { projectSchema } from "@multivrs/client";
 import { FRAMEWORK_IDS } from "@multivrs/config";
-import { Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -17,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
 import { readableError, requestOk } from "@/lib/api/request.client";
 
 interface ProjectSettingsPageProps {
@@ -90,23 +90,11 @@ export function ProjectSettingsPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-7 px-5 py-8">
-      <header className="flex items-start justify-between gap-6">
-        <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
-            Project configuration
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Settings
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Configure how {project.name} is identified and built.
-          </p>
-        </div>
-        <div className="flex size-10 items-center justify-center rounded-xl border border-purple-400/20 bg-purple-400/6">
-          <Settings className="size-5 text-purple-300" />
-        </div>
-      </header>
+    <div className="w-full space-y-6 px-5 py-6">
+      <DashboardPageHeader
+        title="Settings"
+        description={<>Configure how {project.name} is identified and built.</>}
+      />
 
       <section className="overflow-hidden rounded-2xl border border-(--hairline) bg-background/70">
         <div className="border-b border-(--hairline) px-5 py-4">

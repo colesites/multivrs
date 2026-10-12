@@ -16,9 +16,9 @@ export function SectionPlaceholder({
   scopeLabel,
 }: SectionPlaceholderProps) {
   return (
-    <>
+    <div className="w-full space-y-6 px-5 py-6">
       <DashboardPageHeader title={title} description={description} />
-      <div className="px-8 py-8">
+      <div>
         <div className="flex min-h-[320px] flex-col items-center justify-center rounded-xl border border-dashed border-[var(--hairline-strong)] bg-white/[0.012] px-6 text-center">
           <span className="font-geist-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground/60">
             Coming soon
@@ -29,6 +29,6 @@ export function SectionPlaceholder({
           </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -2,10 +2,7 @@ import { SectionSkeletonHeader } from "./SectionSkeletonParts";
 
 export function IntegrationsSectionSkeleton() {
   return (
-    <main
-      className="mx-auto max-w-5xl animate-pulse space-y-7 px-5 py-8"
-      aria-busy
-    >
+    <main className="w-full animate-pulse space-y-6 px-5 py-6" aria-busy>
       <SectionSkeletonHeader titleWidth="w-40" />
       <section className="overflow-hidden rounded-2xl border border-white/8 bg-white/2">
         <div className="flex gap-4 border-white/8 border-b p-5">

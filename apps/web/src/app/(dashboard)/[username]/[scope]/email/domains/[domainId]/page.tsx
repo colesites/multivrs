@@ -11,6 +11,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CopyButton } from "@/components/CopyButton";
 import { LocalTime } from "@/components/LocalTime";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
 import { MailDomainDeleteButton } from "@/features/mail/MailDomainDeleteButton";
 import { MailDomainVerifyButton } from "@/features/mail/MailDomainVerifyButton";
 import { getServerSession } from "@/lib/auth/session";
@@ -52,7 +53,7 @@ export default async function MailDomainDnsPage({
       : "Off, add the MX record below";
 
   return (
-    <div className="w-full max-w-6xl space-y-8 px-5 py-8 lg:px-8">
+    <div className="w-full space-y-6 px-5 py-6">
       <Link
         href={`/${username}/${scope}/emails?view=domains`}
         className="flex w-fit items-center gap-2 text-sm text-white/50 transition-colors hover:text-white"
@@ -61,49 +62,48 @@ export default async function MailDomainDnsPage({
         Back to domains
       </Link>
 
-      <header className="flex flex-col gap-5 border-b border-white/[0.08] pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
-            Mail domain
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold text-white">
-            {domain.domain}
-          </h1>
-          <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
-            <DomainStatus
-              verified={isVerified}
-              status={
-                isVerified
-                  ? "verified"
-                  : domain.status === "failed"
-                    ? "failed"
-                    : "pending"
-              }
+      <DashboardPageHeader
+        title={domain.domain}
+        actions={
+          <>
+            <MailDomainDeleteButton
+              backHref={`/${username}/${scope}/emails?view=domains`}
+              domain={domain.domain}
+              domainId={domain.id}
             />
-            <span className="text-white/45">
-              Receiving: <span className="text-white/70">{receiving}</span>
-            </span>
-            <span className="text-white/45">
-              Region:{" "}
-              <span className="text-white/70">{regionName(domain.region)}</span>
-            </span>
-            <span className="text-white/45">
-              DNS:{" "}
-              <span className="text-white/70">
-                {automatic ? "Managed by Multivrs" : "External provider"}
-              </span>
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <MailDomainDeleteButton
-            backHref={`/${username}/${scope}/emails?view=domains`}
-            domain={domain.domain}
-            domainId={domain.id}
+            <MailDomainVerifyButton
+              domainId={domain.id}
+              verified={isVerified}
+            />
+          </>
+        }
+      >
+        <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+          <DomainStatus
+            verified={isVerified}
+            status={
+              isVerified
+                ? "verified"
+                : domain.status === "failed"
+                  ? "failed"
+                  : "pending"
+            }
           />
-          <MailDomainVerifyButton domainId={domain.id} verified={isVerified} />
+          <span className="text-white/45">
+            Receiving: <span className="text-white/70">{receiving}</span>
+          </span>
+          <span className="text-white/45">
+            Region:{" "}
+            <span className="text-white/70">{regionName(domain.region)}</span>
+          </span>
+          <span className="text-white/45">
+            DNS:{" "}
+            <span className="text-white/70">
+              {automatic ? "Managed by Multivrs" : "External provider"}
+            </span>
+          </span>
         </div>
-      </header>
+      </DashboardPageHeader>
 
       <section
         className={`rounded-2xl border px-5 py-5 ${

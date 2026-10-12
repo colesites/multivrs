@@ -3,14 +3,10 @@ import { SKELETON_ROWS } from "./skeleton.constants";
 
 export function AnalyticsSectionSkeleton() {
   return (
-    <main
-      className="mx-auto max-w-[1400px] space-y-8 px-5 py-7 lg:px-8"
-      aria-busy
-    >
+    <main className="w-full space-y-6 px-5 py-6" aria-busy>
       <div className="flex items-end justify-between">
         <SectionLoadingHeader
-          description="Deep insights into your platform's traffic and engagement."
-          eyebrow="Audience intelligence"
+          description="Traffic and engagement for your project."
           title="Analytics"
         />
         <div className="flex gap-5 border-white/8 border-b pb-2">

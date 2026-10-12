@@ -1,29 +1,23 @@
 import { Circle, RefreshCcw, Search } from "lucide-react";
+import { DashboardPageHeader } from "../DashboardPageHeader";
 import { SKELETON_ROWS } from "./skeleton.constants";
 
 export function LogsSectionSkeleton() {
   return (
     <main className="space-y-6 px-5 py-6" aria-busy>
-      <header className="flex items-end justify-between gap-4">
-        <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.15em] text-purple-400">
-            Live control plane
-          </p>
-          <h1 className="mt-2 text-xl font-semibold tracking-tight text-foreground">
-            Logs
-          </h1>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Latest build and deployment events
-          </p>
-        </div>
-        <button
-          className="flex h-8 items-center gap-2 rounded-lg border border-[var(--hairline)] px-3 text-xs text-muted-foreground"
-          disabled
-          type="button"
-        >
-          <RefreshCcw className="size-3.5" /> Refresh
-        </button>
-      </header>
+      <DashboardPageHeader
+        title="Logs"
+        description="Latest 200 build and deployment events"
+        actions={
+          <button
+            className="flex h-8 items-center gap-2 rounded-lg border border-[var(--hairline)] px-3 text-xs text-muted-foreground"
+            disabled
+            type="button"
+          >
+            <RefreshCcw className="size-3.5" /> Refresh
+          </button>
+        }
+      />
       <div className="flex gap-2">
         <div className="flex h-9 flex-1 items-center gap-2 rounded-lg border border-[var(--hairline)] bg-[var(--ink-raised)]/60 px-3 text-xs text-muted-foreground/70">
           <Search className="size-3.5" /> Search logs…

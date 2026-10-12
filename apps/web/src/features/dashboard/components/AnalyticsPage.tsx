@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { AnalyticsProjectPicker } from "@/features/dashboard/components/AnalyticsProjectPicker";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
 import type {
   AnalyticsRange,
   PlatformAnalytics,
@@ -35,40 +36,37 @@ export function AnalyticsPage({
   }
 
   return (
-    <div className="relative z-10 mx-auto max-w-[1400px] space-y-8 px-5 py-7 lg:px-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 pt-4">
-        <div>
-          <p className="font-geist-mono text-[11px] uppercase tracking-[0.16em] text-purple-400">
-            Audience intelligence
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold text-foreground tracking-tight">
-            {project?.name ?? "Analytics"}
-          </h2>
-          <p className="text-[13px] text-muted-foreground mt-1.5 leading-relaxed">
-            Deep insights into your platform&apos;s traffic and engagement.
-          </p>
-        </div>
-
-        {/* Toggle Controls */}
-        <div className="flex items-center gap-4 border-b border-[var(--hairline)]">
-          {(
-            ["24h", "7d", ...(plusEnabled ? ["30d" as const] : [])] as const
-          ).map((range) => (
-            <RangeLink
-              active={analytics?.range === range}
-              key={range}
-              range={range}
-            />
-          ))}
-        </div>
+    <div className="relative z-10 w-full space-y-6 px-5 py-6">
+      <DashboardPageHeader
+        title="Analytics"
+        description={
+          project ? (
+            <>Traffic and engagement for {project.name}.</>
+          ) : (
+            "Traffic and engagement for your project."
+          )
+        }
+        actions={
+          <div className="flex items-center gap-4 border-b border-[var(--hairline)]">
+            {(
+              ["24h", "7d", ...(plusEnabled ? ["30d" as const] : [])] as const
+            ).map((range) => (
+              <RangeLink
+                active={analytics?.range === range}
+                key={range}
+                range={range}
+              />
+            ))}
+          </div>
+        }
+      >
         {!plusEnabled ? (
-          <p className="text-xs text-muted-foreground">
+          <p className="mt-3 text-xs text-muted-foreground">
             Activate Web Analytics Plus in Billing for 30-day reporting and UTM
             attribution.
           </p>
         ) : null}
-      </div>
+      </DashboardPageHeader>
 
       {analytics?.state !== "ready" && (
         <div className="border-y border-amber-400/20 bg-amber-400/[0.04] px-4 py-3 text-xs text-amber-200">
