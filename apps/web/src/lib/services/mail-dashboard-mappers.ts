@@ -1,42 +1,8 @@
-import { sanitizeMailHtml } from "@/lib/mail/sanitize-html";
 import type {
   MailMessageDetail,
   MailResourceItem,
-  MailThreadSummary,
 } from "@/features/mail/mail.types";
-
-interface ThreadRow {
-  id: string;
-  mailboxId: string;
-  subject: string;
-  status: string;
-  lastMessageAt: Date;
-  assignedTo: { name: string } | null;
-  messages: Array<{
-    fromName?: string | null;
-    fromAddress: string;
-    textBody: string | null;
-    isRead: boolean;
-    isStarred: boolean;
-  }>;
-}
-
-export function mapThread(row: ThreadRow): MailThreadSummary {
-  const latest = row.messages[0];
-  return {
-    id: row.id,
-    mailboxId: row.mailboxId,
-    subject: row.subject,
-    status: row.status,
-    assignedTo: row.assignedTo?.name,
-    lastMessageAt: row.lastMessageAt.toISOString(),
-    unread: latest ? !latest.isRead : false,
-    starred: latest?.isStarred ?? false,
-    preview: latest?.textBody?.slice(0, 180) ?? "No message preview",
-    correspondent: latest?.fromAddress ?? "Unknown sender",
-    correspondentName: latest?.fromName ?? undefined,
-  };
-}
+import { sanitizeMailHtml } from "@/lib/mail/sanitize-html";
 
 export function mapMessage(row: {
   id: string;

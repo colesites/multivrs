@@ -1,7 +1,9 @@
 "use client";
 
 import { RefreshCw, Star, Trash2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { MailThreadRowsSkeleton } from "@/features/mail/MailSkeletons";
 import type { MailThreadSummary } from "@/features/mail/mail.types";
 import type { MailView } from "@/features/mail/mail-navigation";
 import { SenderAvatar } from "@/features/mail/SenderAvatar";
@@ -54,6 +56,9 @@ function formatThreadDate(dateString: string): string {
 }
 
 export function MailThreadList({
+  hasMore = false,
+  loadingMore = false,
+  onLoadMore,
   onSelect,
   onEmptyTrash,
   onRefresh,
@@ -63,6 +68,10 @@ export function MailThreadList({
   view = "inbox",
   className,
 }: {
+  /** More threads exist past the loaded pages. */
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  onLoadMore?: () => void;
   onSelect: (id: string) => void;
   onEmptyTrash?: () => void;
   onRefresh: () => void;
@@ -74,6 +83,22 @@ export function MailThreadList({
 }) {
   const folderTitle = VIEW_TITLES[view] ?? "Conversations";
   const unreadCount = threads.filter((t) => t.unread).length;
+  const shown = `${threads.length}${hasMore ? "+" : ""}`;
+  const sentinel = useRef<HTMLDivElement>(null);
+
+  // Load the next page as the end of the list scrolls into view.
+  useEffect(() => {
+    const element = sentinel.current;
+    if (!element || !hasMore || !onLoadMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) onLoadMore();
+      },
+      { rootMargin: "400px 0px" },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [hasMore, onLoadMore]);
 
   return (
     <div
@@ -89,7 +114,7 @@ export function MailThreadList({
             {folderTitle}
           </h2>
           <span className="inline-flex items-center rounded-full bg-black/6 dark:bg-white/10 px-2 py-0.5 font-mono text-[11px] text-muted-foreground font-medium">
-            {unreadCount > 0 ? `${unreadCount} unread · ${threads.length}` : threads.length}
+            {unreadCount > 0 ? `${unreadCount} unread · ${shown}` : shown}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -133,7 +158,9 @@ export function MailThreadList({
                 isSelected
                   ? "bg-accent/12 dark:bg-white/[0.07] before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-r-full before:bg-accent"
                   : "hover:bg-black/4 dark:hover:bg-white/4",
-                thread.unread && !isSelected && "bg-black/[0.02] dark:bg-white/[0.02]",
+                thread.unread &&
+                  !isSelected &&
+                  "bg-black/[0.02] dark:bg-white/[0.02]",
               )}
             >
               <button
@@ -217,6 +244,12 @@ export function MailThreadList({
             </div>
           );
         })}
+
+        {hasMore ? (
+          <div ref={sentinel}>
+            {loadingMore ? <MailThreadRowsSkeleton count={3} /> : null}
+          </div>
+        ) : null}
 
         {!threads.length ? (
           <div className="flex flex-col items-center justify-center p-12 text-center">

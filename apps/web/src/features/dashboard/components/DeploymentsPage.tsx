@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
 import { DashboardSearchInput } from "@/features/dashboard/components/DashboardSearchInput";
 import { DeploymentRow } from "@/features/dashboard/components/DeploymentRow";
 import { DeploymentsTableSkeleton } from "@/features/dashboard/components/skeletons/DataSectionSkeletons";
@@ -37,12 +38,10 @@ export function DeploymentsPage({
   const [status, setStatus] = useState("all");
   return (
     <div className="w-full space-y-6 px-5 py-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Deployments</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Build history and promotion status across this scope.
-        </p>
-      </header>
+      <DashboardPageHeader
+        title="Deployments"
+        description="Build history and promotion status across this scope."
+      />
       <div className="flex flex-wrap gap-2">
         <DashboardSearchInput
           containerClassName="min-w-64 flex-1"

@@ -66,7 +66,7 @@ export const DASHBOARD_NAV_ITEMS: readonly DashboardNavItem[] = [
   { name: "Domains", slug: "domains", icon: Globe },
   { name: "Emails", slug: "emails", icon: AtSign },
   { name: "Templates", slug: "templates", icon: Store },
-  { name: "Settings", slug: "settings", icon: Settings, badge: "Beta" },
+  { name: "Settings", slug: "settings", icon: Settings },
 ] as const;
 
 /**

@@ -1,54 +1,53 @@
-export function MailPageSkeleton() {
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { MailOverviewHero } from "@/features/mail/MailOverviewHero";
+import {
+  MailOverviewDataSkeleton,
+  MailResourceSkeleton,
+  MailThreadListSkeleton,
+} from "@/features/mail/MailSkeletons";
+import { type MailView, parseMailView } from "@/features/mail/mail-view";
+
+const FOLDER_VIEWS = new Set<MailView>([
+  "inbox",
+  "starred",
+  "sent",
+  "drafts",
+  "archive",
+  "spam",
+  "trash",
+]);
+
+/** The loading state for one mail view, shaped like that view. */
+export function MailViewSkeleton({ view }: { view: MailView }) {
+  if (FOLDER_VIEWS.has(view)) return <MailThreadListSkeleton view={view} />;
+  if (view === "overview") {
+    return (
+      <div className="w-full min-w-0 max-w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-5 sm:py-8 lg:px-8">
+        <MailOverviewHero />
+        <MailOverviewDataSkeleton />
+      </div>
+    );
+  }
+  return <MailResourceSkeleton />;
+}
+
+/**
+ * The mail page's loading state. Pass the view when it's known; otherwise it
+ * is read from `?view=` in the URL.
+ */
+export function MailPageSkeleton({ view }: { view?: MailView }) {
+  if (view) return <MailViewSkeleton view={view} />;
   return (
-    <div
-      aria-label="Loading mail"
-      role="status"
-      className="w-full min-w-0 max-w-full animate-pulse space-y-6 sm:space-y-8 px-4 py-6 sm:px-5 sm:py-8 lg:px-8"
-    >
-      <section className="h-53 w-full min-w-0 max-w-full rounded-2xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5" />
-      <section className="grid grid-cols-2 lg:grid-cols-4 min-w-0 max-w-full gap-px overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-black/10 dark:bg-white/10">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-white dark:bg-black p-4 sm:p-5 min-w-0">
-            <div className="size-4 rounded bg-black/5 dark:bg-white/5" />
-            <div className="mt-3 sm:mt-5 h-8 w-24 rounded bg-black/5 dark:bg-white/5" />
-            <div className="mt-2 h-3 w-16 rounded bg-black/5 dark:bg-white/5" />
-          </div>
-        ))}
-      </section>
-      <section className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_280px] lg:grid-cols-[minmax(0,1fr)_320px] gap-4 min-w-0 max-w-full">
-        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black min-w-0 max-w-full overflow-hidden">
-          <div className="border-b border-black/10 dark:border-white/10 p-4">
-            <div className="h-5 w-40 rounded bg-black/5 dark:bg-white/5" />
-            <div className="mt-2 h-3 w-56 rounded bg-black/5 dark:bg-white/5" />
-          </div>
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 border-b border-black/5 dark:border-white/5 px-4 py-3 last:border-0"
-            >
-              <div className="size-8 shrink-0 rounded-full bg-black/5 dark:bg-white/5" />
-              <div className="min-w-0 flex-1 space-y-2">
-                <div className="h-3 w-1/3 rounded bg-black/5 dark:bg-white/5" />
-                <div className="h-2 w-1/2 rounded bg-black/5 dark:bg-white/5" />
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-4 sm:p-5 min-w-0 max-w-full">
-          <div className="h-3 w-24 rounded bg-black/5 dark:bg-white/5" />
-          <div className="mt-6 space-y-5">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-3 gap-3 min-w-0"
-              >
-                <div className="h-3 w-28 rounded bg-black/5 dark:bg-white/5" />
-                <div className="h-3 w-10 rounded bg-black/5 dark:bg-white/5" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
+    <Suspense fallback={<MailViewSkeleton view="overview" />}>
+      <ViewFromUrl />
+    </Suspense>
   );
+}
+
+function ViewFromUrl() {
+  const view = parseMailView(useSearchParams().get("view") ?? undefined);
+  return <MailViewSkeleton view={view} />;
 }

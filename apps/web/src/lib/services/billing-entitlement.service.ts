@@ -3,6 +3,7 @@ import { ConflictError } from "@multivrs/error-utils";
 import type {
   AddOnKey,
   EntitlementContext,
+  PlanKey,
   ResourceKey,
 } from "@/lib/payments/billing.types";
 import { hasAddOn, resourceLimit } from "@/lib/payments/billing-calculation";
@@ -87,16 +88,22 @@ export async function resolveBillingEntitlements(
   };
 }
 
-/** The plan name shown beside an account. Whitelisted accounts have no limits. */
-export async function accountPlanLabel(username: string): Promise<string> {
+/**
+ * The plan an account is on, as shown in the dashboard. A whitelisted account
+ * has no limits and every add-on, the same as Enterprise, so it reads as one.
+ */
+export function displayPlan(context: EntitlementContext): PlanKey {
+  return context.isLimitExempt ? "enterprise" : context.plan;
+}
+
+export async function accountPlan(username: string): Promise<PlanKey> {
   const owner = await prisma.user.findUnique({
     where: { username },
     select: { id: true },
   });
-  if (!owner) return "Hobby";
+  if (!owner) return "hobby";
   const { context } = await resolveBillingEntitlements(owner.id);
-  if (context.isLimitExempt) return "Unlimited";
-  return context.plan.charAt(0).toUpperCase() + context.plan.slice(1);
+  return displayPlan(context);
 }
 
 export async function assertResourceAvailable(input: {

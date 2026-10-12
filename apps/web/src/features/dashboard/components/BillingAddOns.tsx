@@ -41,6 +41,13 @@ export function BillingAddOns({
   scope: BillingScopeSummary;
   onSaved: () => Promise<void>;
 }) {
+  if (!scope.subscriptionId && scope.plan === "enterprise") {
+    return (
+      <p className="border-b border-(--hairline) py-5 text-sm text-muted-foreground">
+        Every add-on is included in your plan.
+      </p>
+    );
+  }
   if (!scope.subscriptionId) {
     return (
       <p className="border-b border-(--hairline) py-5 text-sm text-muted-foreground">

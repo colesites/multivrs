@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { Bell, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { DashboardNotification } from "@/features/dashboard/types/notification.types";
+import type { PlanKey } from "@/lib/payments/billing.types";
 import { AccountMenu } from "./AccountMenu";
 import { NotificationsPanel } from "./NotificationsPanel";
 
@@ -17,6 +18,7 @@ interface SidebarFooterProps {
   email: string;
   image?: string | null;
   notifications: DashboardNotification[];
+  plan?: PlanKey;
 }
 
 export function SidebarFooter({
@@ -24,6 +26,7 @@ export function SidebarFooter({
   email,
   image,
   notifications,
+  plan,
 }: SidebarFooterProps) {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const initial = (name?.[0] ?? "U").toUpperCase();
@@ -64,6 +67,7 @@ export function SidebarFooter({
           <AccountMenu
             name={name}
             email={email}
+            plan={plan}
             onClose={() => setAccountMenuOpen(false)}
           />
         </DropdownMenuContent>

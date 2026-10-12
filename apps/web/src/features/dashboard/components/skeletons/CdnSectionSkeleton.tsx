@@ -1,13 +1,10 @@
-import { Zap } from "lucide-react";
 import { SectionLoadingHeader } from "./SectionSkeletonParts";
 
 export function CdnSectionSkeleton() {
   return (
-    <main className="mx-auto max-w-5xl space-y-7 px-5 py-8" aria-busy>
+    <main className="w-full space-y-6 px-5 py-6" aria-busy>
       <SectionLoadingHeader
         description="Cache policy and edge services for the selected project."
-        eyebrow="Global delivery"
-        icon={Zap}
         title="CDN"
       />
       <section className="animate-pulse rounded-2xl border border-white/8 bg-white/2 p-5">

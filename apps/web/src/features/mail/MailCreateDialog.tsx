@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MailCreateFields } from "@/features/mail/MailCreateFields";
-import type { MailDashboardData } from "@/features/mail/mail.types";
+import type { MailResources } from "@/features/mail/mail.types";
 import { submitMailResource } from "@/features/mail/mail-resource.client";
 import {
   type CreateMailView,
@@ -28,13 +28,13 @@ interface SmtpConnection {
 }
 
 export function MailCreateDialog({
-  data,
+  resources,
   onOpenChange,
   open,
   projectId,
   view,
 }: {
-  data: MailDashboardData;
+  resources: MailResources;
   onOpenChange: (open: boolean) => void;
   open: boolean;
   projectId?: string;
@@ -143,7 +143,7 @@ export function MailCreateDialog({
           </div>
         ) : (
           <form action={submit} className="space-y-4">
-            <MailCreateFields data={data} view={view} />
+            <MailCreateFields resources={resources} view={view} />
             <DialogFooter>
               <Button disabled={saving} type="submit">
                 {saving

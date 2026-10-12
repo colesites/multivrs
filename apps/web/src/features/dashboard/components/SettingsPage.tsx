@@ -1,56 +1,107 @@
-import { Settings } from "lucide-react";
 import { AccountActivity } from "@/features/dashboard/components/AccountActivity";
+import { AccountDeletion } from "@/features/dashboard/components/AccountDeletion";
+import { AccountPasskeys } from "@/features/dashboard/components/AccountPasskeys";
 import { AccountProfileForm } from "@/features/dashboard/components/AccountProfileForm";
 import { AccountSecurity } from "@/features/dashboard/components/AccountSecurity";
+import { AccountSessions } from "@/features/dashboard/components/AccountSessions";
+import { AccountSignInMethods } from "@/features/dashboard/components/AccountSignInMethods";
 import { ApiTokensPage } from "@/features/dashboard/components/ApiTokensPage";
 import { BillingManager } from "@/features/dashboard/components/BillingManager";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
+import {
+  SettingsNav,
+  type SettingsSection,
+} from "@/features/dashboard/components/SettingsNav";
 import { TeamManager } from "@/features/dashboard/components/TeamManager";
+import type {
+  AccountDeletionBlocker,
+  AccountSignIn,
+} from "@/features/dashboard/types/account-security.types";
 import type { BillingOverview } from "@/features/dashboard/types/billing.types";
 import type { AccountProfile } from "@/lib/schemas/account.schemas";
 import type { ApiTokenSummary } from "@/lib/services/api-token.service";
 import type { DashboardAuditEvent } from "@/lib/services/audit-event.service";
 
+const SECTIONS: SettingsSection[] = [
+  { id: "general", label: "General" },
+  { id: "authentication", label: "Authentication" },
+  { id: "sessions", label: "Sessions" },
+  { id: "team", label: "Team" },
+  { id: "billing", label: "Billing" },
+  { id: "tokens", label: "Tokens" },
+  { id: "activity", label: "Activity" },
+  { id: "delete-account", label: "Delete account" },
+];
+
 interface SettingsPageProps {
-  profile: AccountProfile;
-  tokens: ApiTokenSummary[];
-  events: DashboardAuditEvent[];
-  twoFactorEnabled: boolean;
   billing: BillingOverview;
+  deletionBlockers: AccountDeletionBlocker[];
+  events: DashboardAuditEvent[];
+  profile: AccountProfile;
+  signIn: AccountSignIn;
+  tokens: ApiTokenSummary[];
+  twoFactorEnabled: boolean;
 }
 
 export function SettingsPage({
   billing,
+  deletionBlockers,
   events,
   profile,
+  signIn,
   tokens,
   twoFactorEnabled,
 }: SettingsPageProps) {
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-7 px-5 py-8">
-      <header className="flex items-start justify-between gap-6">
-        <div>
-          <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
-            Account
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-            Settings
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Manage your identity and programmatic access.
-          </p>
+    <div className="w-full px-5 py-6">
+      <DashboardPageHeader
+        title="Settings"
+        description="Your profile, sign-in, team, billing, and API access."
+      />
+      <div className="mt-6 lg:grid lg:grid-cols-[11rem_minmax(0,1fr)] lg:gap-10">
+        <SettingsNav sections={SECTIONS} />
+        <div className="min-w-0 max-w-4xl space-y-10">
+          <Section id="general">
+            <AccountProfileForm initialProfile={profile} />
+          </Section>
+          <Section id="authentication">
+            <AccountSignInMethods signIn={signIn} />
+            <AccountPasskeys passkeys={signIn.passkeys} />
+            <AccountSecurity initiallyEnabled={twoFactorEnabled} />
+          </Section>
+          <Section id="sessions">
+            <AccountSessions sessions={signIn.sessions} />
+          </Section>
+          <Section id="team">
+            <TeamManager />
+          </Section>
+          <Section id="billing">
+            <BillingManager initial={billing} />
+          </Section>
+          <Section id="tokens">
+            <ApiTokensPage initialTokens={tokens} embedded />
+          </Section>
+          <Section id="activity">
+            <AccountActivity events={events} />
+          </Section>
+          <Section id="delete-account">
+            <AccountDeletion
+              username={profile.username}
+              email={profile.email}
+              blockers={deletionBlockers}
+            />
+          </Section>
         </div>
-        <div className="flex size-10 items-center justify-center rounded-xl border border-purple-400/20 bg-purple-400/6">
-          <Settings className="size-5 text-purple-300" />
-        </div>
-      </header>
-      <div className="space-y-7">
-        <AccountProfileForm initialProfile={profile} />
-        <AccountSecurity initiallyEnabled={twoFactorEnabled} />
-        <TeamManager />
-        <BillingManager initial={billing} />
-        <ApiTokensPage initialTokens={tokens} embedded />
-        <AccountActivity events={events} />
       </div>
+    </div>
+  );
+}
+
+function Section({ id, children }: { id: string; children: React.ReactNode }) {
+  // scroll-mt clears the fixed topbar when jumping to a section.
+  return (
+    <div id={id} className="scroll-mt-20 space-y-5">
+      {children}
     </div>
   );
 }

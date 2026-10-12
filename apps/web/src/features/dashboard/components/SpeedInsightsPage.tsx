@@ -1,5 +1,6 @@
 import { Activity, CircleGauge, MousePointerClick, Timer } from "lucide-react";
 import Link from "next/link";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
 import type {
   WebVitalMetric,
   WebVitalsData,
@@ -28,17 +29,13 @@ export function SpeedInsightsPage({
   vitals: WebVitalsData;
 }) {
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-8 px-5 py-8">
-      <header>
-        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
-          Real-user monitoring
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-          Speed Insights
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Core Web Vitals collected from real visits to {projectName}.
-        </p>
+    <div className="w-full space-y-6 px-5 py-6">
+      <DashboardPageHeader
+        title="Speed Insights"
+        description={
+          <>Core Web Vitals collected from real visits to {projectName}.</>
+        }
+      >
         <nav className="mt-5 flex w-fit gap-4 border-b border-[var(--hairline)]">
           {(["24h", "7d", "30d"] as const).map((range) => (
             <Link
@@ -55,7 +52,7 @@ export function SpeedInsightsPage({
             </Link>
           ))}
         </nav>
-      </header>
+      </DashboardPageHeader>
       {vitals.state !== "ready" && <InsightState state={vitals.state} />}
       <section className="grid border-y border-[var(--hairline)] md:grid-cols-2 xl:grid-cols-4">
         {(Object.keys(META) as WebVitalMetric["name"][]).map((name) => {

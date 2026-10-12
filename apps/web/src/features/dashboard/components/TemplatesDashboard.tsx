@@ -47,6 +47,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
 import { cn } from "@/lib/utils";
 import type { SellerTemplate } from "@/sanity/lib/template.service";
 
@@ -352,13 +353,16 @@ export function TemplatesDashboard({
 
   return (
     <div className="relative isolate flex min-h-[calc(100vh-3.5rem)] flex-col">
-      <div className="relative z-10 flex w-full flex-1 flex-col gap-5 px-5 py-8 lg:px-8">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-sm font-semibold">Templates</h1>
-          <Button onClick={openComposer} size="lg" type="button">
-            <Plus className="size-4" /> Add New
-          </Button>
-        </div>
+      <div className="relative z-10 flex w-full flex-1 flex-col gap-6 px-5 py-6">
+        <DashboardPageHeader
+          title="Templates"
+          description="Templates you sell in the Multivrs marketplace."
+          actions={
+            <Button onClick={openComposer} type="button">
+              <Plus className="size-4" /> Add New
+            </Button>
+          }
+        />
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-64 flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -699,53 +703,47 @@ function TemplateList({
 }) {
   if (layout === "grid") {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {templates.map((template) => (
           <article
-            className="group overflow-hidden rounded-2xl border border-[var(--hairline-strong)] bg-white/[0.015]"
+            className="group overflow-hidden rounded-xl border border-(--hairline) bg-white/[0.015] transition-colors hover:border-(--hairline-strong)"
             key={template.id}
           >
-            <div className="aspect-[16/9] border-b border-[var(--hairline)] bg-white/[0.02] p-4">
+            <div className="relative aspect-[16/10] border-b border-(--hairline) bg-white/[0.02]">
               {template.imageUrl ? (
-                <div className="relative h-full w-full overflow-hidden rounded-lg border border-[var(--hairline)]">
-                  <Image
-                    alt={template.name}
-                    className="object-cover"
-                    fill
-                    sizes="(max-width: 640px) 100vw, 33vw"
-                    src={template.imageUrl}
-                  />
-                </div>
+                <Image
+                  alt={template.name}
+                  className="object-cover object-top"
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  src={template.imageUrl}
+                />
               ) : (
-                <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-[var(--hairline)] bg-black/10">
-                  <FileCode2 className="size-6 text-muted-foreground transition-transform duration-200 group-hover:scale-110" />
+                <div className="flex h-full items-center justify-center">
+                  <FileCode2 className="size-5 text-muted-foreground" />
                 </div>
               )}
             </div>
-            <div className="p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h2 className="truncate text-sm font-medium">
-                    {template.name}
-                  </h2>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {template.stack}
-                  </p>
-                </div>
-                <span className="shrink-0 text-sm text-muted-foreground">
-                  {formatPrice(template.price)}
-                </span>
+            <div className="flex items-center gap-2 px-3.5 py-3">
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-[13px] font-medium">
+                  {template.name}
+                </h2>
+                <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                  <TemplateStatusDot status={template.status} />
+                  <span className="shrink-0">{template.status}</span>
+                  <span aria-hidden="true">·</span>
+                  <span className="truncate">{template.stack}</span>
+                </p>
               </div>
-              <div className="mt-4 flex items-center justify-between gap-2">
-                <span className="inline-flex rounded-full border border-[var(--hairline)] px-2 py-1 font-geist-mono text-[10px] tracking-[0.08em] text-muted-foreground uppercase">
-                  {template.status}
-                </span>
-                <TemplateActions
-                  onDelete={onDelete}
-                  onEdit={onEdit}
-                  template={template}
-                />
-              </div>
+              <span className="shrink-0 font-geist-mono text-xs text-muted-foreground">
+                {formatPrice(template.price)}
+              </span>
+              <TemplateActions
+                onDelete={onDelete}
+                onEdit={onEdit}
+                template={template}
+              />
             </div>
           </article>
         ))}
@@ -794,6 +792,22 @@ function TemplateList({
         </div>
       ))}
     </div>
+  );
+}
+
+const STATUS_DOT: Record<TemplateStatus, string> = {
+  Draft: "bg-muted-foreground/50",
+  "In review": "bg-amber-400",
+  Published: "bg-emerald-400",
+  Rejected: "bg-red-400",
+};
+
+function TemplateStatusDot({ status }: { status: TemplateStatus }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("size-1.5 shrink-0 rounded-full", STATUS_DOT[status])}
+    />
   );
 }
 

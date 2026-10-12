@@ -35,11 +35,33 @@ export async function updateAccountProfile(
     data: { image: input.image, name: input.name, username: input.username },
     where: { id: userId },
   });
+  return profileChanged(user);
+}
+
+/** Sets or clears the account's avatar URL. */
+export async function setAccountImage(
+  userId: string,
+  image: string | null,
+): Promise<AccountProfile> {
+  const user = await prisma.user.update({
+    data: { image },
+    where: { id: userId },
+  });
+  return profileChanged(user);
+}
+
+async function profileChanged(user: {
+  email: string;
+  id: string;
+  image: string | null;
+  name: string;
+  username: string | null;
+}): Promise<AccountProfile> {
   await recordAuditEvent({
     action: "account.profile.updated",
     entityId: user.id,
     entityType: "user",
-    userId,
+    userId: user.id,
   });
   try {
     await syncUserToConvex({

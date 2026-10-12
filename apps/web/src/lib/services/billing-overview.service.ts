@@ -6,6 +6,7 @@ import type {
 import type { AddOnKey, PlanKey } from "@/lib/payments/billing.types";
 import { ADD_ON_KEYS, PLAN_KEYS } from "@/lib/payments/billing.types";
 import { prisma } from "@/lib/prisma";
+import { isBillingScopeWhitelisted } from "@/lib/services/billing-entitlement-whitelist.service";
 import {
   requireBillingScope,
   subscriptionScopeWhere,
@@ -46,7 +47,7 @@ async function scopeSummary(
     },
     orderBy: { createdAt: "desc" },
   });
-  const [spend, projects] = await Promise.all([
+  const [spend, projects, limitExempt] = await Promise.all([
     subscription
       ? prisma.billingMeterEvent.aggregate({
           where: {
@@ -63,6 +64,10 @@ async function scopeSummary(
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
+    isBillingScopeWhitelisted({
+      organizationId: access.organizationId,
+      ownerId: userId,
+    }),
   ]);
   return {
     addOns: addOns(subscription?.items ?? []),
@@ -78,12 +83,13 @@ async function scopeSummary(
     })),
     name: access.name,
     overagesEnabled: subscription?.overagesEnabled ?? false,
-    plan: plan(subscription?.planKey),
+    // A whitelisted scope has no limits and every add-on, the same as Enterprise.
+    plan: limitExempt ? "enterprise" : plan(subscription?.planKey),
     projects,
     scopeId: access.scopeId,
     spendAlertCents: subscription?.spendAlertCents ?? null,
     spendLimitCents: subscription?.spendLimitCents ?? null,
-    status: subscription?.status ?? "hobby",
+    status: subscription?.status ?? (limitExempt ? "active" : "hobby"),
     subscriptionId: subscription?.id ?? null,
   };
 }

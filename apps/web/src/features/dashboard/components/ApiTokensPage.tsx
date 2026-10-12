@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ApiTokenList } from "@/features/dashboard/components/ApiTokenList";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
 import { createdApiTokenSchema } from "@/lib/schemas/api-token.schemas";
 import type { ApiTokenSummary } from "@/lib/services/api-token.service";
 
@@ -67,20 +68,12 @@ export function ApiTokensPage({
   }
 
   return (
-    <div
-      className={embedded ? "" : "mx-auto w-full max-w-4xl space-y-7 px-5 py-8"}
-    >
+    <div className={embedded ? "" : "w-full space-y-6 px-5 py-6"}>
       {!embedded ? (
-        <header className="flex items-start justify-between gap-6">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Developer tokens
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Manage CLI access to your account.
-            </p>
-          </div>
-        </header>
+        <DashboardPageHeader
+          title="Developer tokens"
+          description="Manage CLI access to your account."
+        />
       ) : null}
 
       <section className="overflow-hidden rounded-2xl border border-(--hairline) bg-background/70">

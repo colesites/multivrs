@@ -20,6 +20,7 @@ import type {
   MailMessageDetail,
 } from "@/features/mail/mail.types";
 import { submitMailCompose } from "@/features/mail/mail-compose.client";
+import { useMailContext } from "@/features/mail/mail-context";
 import { cn } from "@/lib/utils";
 
 export function MailCompose({
@@ -36,6 +37,7 @@ export function MailCompose({
   reply?: MailMessageDetail;
 }) {
   const router = useRouter();
+  const { notifyMailChanged } = useMailContext();
   const side = useResponsiveSheetSide();
   const [sending, setSending] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -52,6 +54,7 @@ export function MailCompose({
       );
       onOpenChange(false);
       router.refresh();
+      notifyMailChanged();
     });
   }
   return (

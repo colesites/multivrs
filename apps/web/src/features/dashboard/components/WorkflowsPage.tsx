@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DashboardPageHeader } from "@/features/dashboard/components/DashboardPageHeader";
 import type {
   DashboardWorkflow,
   DashboardWorkflowStep,
@@ -113,18 +114,11 @@ export function WorkflowsPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-8 px-5 py-8">
-      <header>
-        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
-          Durable execution
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-          Workflows
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Durable steps and UTC schedules for {projectName}.
-        </p>
-      </header>
+    <div className="w-full space-y-6 px-5 py-6">
+      <DashboardPageHeader
+        title="Workflows"
+        description={<>Durable steps and UTC schedules for {projectName}.</>}
+      />
 
       <section className="border-y border-[var(--hairline)] py-6">
         <div className="grid gap-4 md:grid-cols-2">

@@ -1,4 +1,7 @@
-import { SectionSkeletonHeader } from "./SectionSkeletonParts";
+import {
+  SectionLoadingHeader,
+  SectionSkeletonHeader,
+} from "./SectionSkeletonParts";
 import { SKELETON_ROWS } from "./skeleton.constants";
 
 export function DeploymentsSectionSkeleton() {
@@ -48,10 +51,7 @@ export function DomainsSectionSkeleton() {
 
 export function SandboxesSectionSkeleton() {
   return (
-    <main
-      className="mx-auto max-w-6xl animate-pulse space-y-7 px-5 py-8"
-      aria-busy
-    >
+    <main className="w-full animate-pulse space-y-6 px-5 py-6" aria-busy>
       <SectionSkeletonHeader titleWidth="w-36" />
       <div className="grid gap-5 lg:grid-cols-[360px_1fr]">
         <section className="h-80 rounded-2xl border border-white/8 bg-white/2 p-5">
@@ -70,18 +70,11 @@ export function SandboxesSectionSkeleton() {
 
 export function WorkflowsSectionSkeleton() {
   return (
-    <main className="mx-auto w-full max-w-6xl space-y-8 px-5 py-8" aria-busy>
-      <header>
-        <p className="font-geist-mono text-[10px] uppercase tracking-[0.16em] text-purple-400">
-          Durable execution
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-          Workflows
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Durable steps and UTC schedules for this project.
-        </p>
-      </header>
+    <main className="w-full space-y-6 px-5 py-6" aria-busy>
+      <SectionLoadingHeader
+        title="Workflows"
+        description="Durable steps and UTC schedules for this project."
+      />
       <section>
         <h2 className="border-b border-[var(--hairline)] pb-3 font-geist-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           Project workflows

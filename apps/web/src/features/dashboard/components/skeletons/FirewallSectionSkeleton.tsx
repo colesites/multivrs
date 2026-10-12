@@ -1,14 +1,11 @@
-import { ShieldCheck } from "lucide-react";
 import { SectionLoadingHeader } from "./SectionSkeletonParts";
 import { SKELETON_ROWS } from "./skeleton.constants";
 
 export function FirewallSectionSkeleton() {
   return (
-    <main className="mx-auto max-w-6xl space-y-7 px-5 py-8" aria-busy>
+    <main className="w-full space-y-6 px-5 py-6" aria-busy>
       <SectionLoadingHeader
         description="Ordered traffic rules for the selected project."
-        eyebrow="Edge security"
-        icon={ShieldCheck}
         title="Firewall"
       />
       <section className="overflow-hidden rounded-2xl border border-white/8 bg-white/2">

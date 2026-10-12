@@ -16,17 +16,21 @@ import { SidebarObservabilityNav } from "@/features/dashboard/components/Sidebar
 import { SidebarSearch } from "@/features/dashboard/components/SidebarSearch";
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
 import type { DashboardNotification } from "@/features/dashboard/types/notification.types";
+import type {
+  CurrentWorkspace,
+  DashboardWorkspace,
+} from "@/features/dashboard/types/workspace.types";
 
 export function DashboardMobileNavigation({
   notifications,
-  plan,
   user,
-  workspaceName,
+  workspace,
+  workspaces,
 }: {
   notifications: DashboardNotification[];
-  plan?: string;
   user: { email: string; image?: string | null; name: string };
-  workspaceName: string;
+  workspace: CurrentWorkspace;
+  workspaces: DashboardWorkspace[];
 }) {
   const { activeSlug } = useDashboardScope();
   const isEmails = activeSlug === "emails" || activeSlug === "email";
@@ -78,11 +82,7 @@ export function DashboardMobileNavigation({
         }}
       >
         <SheetTitle className="sr-only">Dashboard navigation</SheetTitle>
-        <SidebarHeader
-          displayName={workspaceName}
-          image={user.image}
-          plan={plan}
-        />
+        <SidebarHeader workspace={workspace} workspaces={workspaces} />
         {currentView === "emails" ? (
           <SidebarMailNav
             onLinkClick={() => setOpen(false)}
@@ -113,7 +113,11 @@ export function DashboardMobileNavigation({
             </div>
           </>
         )}
-        <SidebarFooter {...user} notifications={notifications} />
+        <SidebarFooter
+          {...user}
+          notifications={notifications}
+          plan={workspace.plan}
+        />
       </SheetContent>
     </Sheet>
   );

@@ -2,6 +2,10 @@
 
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
 import type { DashboardNotification } from "@/features/dashboard/types/notification.types";
+import type {
+  CurrentWorkspace,
+  DashboardWorkspace,
+} from "@/features/dashboard/types/workspace.types";
 import { SidebarFooter } from "./SidebarFooter";
 import { SidebarHeader } from "./SidebarHeader";
 import { SidebarMailNav } from "./SidebarMailNav";
@@ -11,15 +15,15 @@ import { SidebarSearch } from "./SidebarSearch";
 
 export interface SidebarProps {
   user: { name: string; email: string; image?: string | null };
-  workspaceName?: string;
-  plan?: string;
+  workspace: CurrentWorkspace;
+  workspaces: DashboardWorkspace[];
   notifications: DashboardNotification[];
 }
 
 export function Sidebar({
   user,
-  workspaceName,
-  plan,
+  workspace,
+  workspaces,
   notifications,
 }: SidebarProps) {
   const { activeSlug } = useDashboardScope();
@@ -28,11 +32,7 @@ export function Sidebar({
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[268px] flex-col border-r border-[var(--hairline)] bg-[var(--ink)] lg:flex">
-      <SidebarHeader
-        displayName={workspaceName}
-        image={user.image}
-        plan={plan}
-      />
+      <SidebarHeader workspace={workspace} workspaces={workspaces} />
       {isEmails ? (
         <SidebarMailNav />
       ) : isObservability ? (
@@ -47,7 +47,11 @@ export function Sidebar({
           </div>
         </>
       )}
-      <SidebarFooter {...user} notifications={notifications} />
+      <SidebarFooter
+        {...user}
+        notifications={notifications}
+        plan={workspace.plan}
+      />
     </aside>
   );
 }

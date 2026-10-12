@@ -3,9 +3,11 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Suspense, use } from "react";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
+import type { MailDashboardData } from "@/features/mail/mail.types";
 import {
   useGlobalMailStore,
   useOptionalMailContext,
@@ -112,12 +114,8 @@ export function SidebarMailNav({
               );
             }
             const Icon = item.icon;
-            const count =
-              "count" in item && ctx
-                ? ctx.data.folderCounts[
-                    item.count as keyof typeof ctx.data.folderCounts
-                  ]
-                : undefined;
+            const countKey =
+              "count" in item && ctx ? (item.count as string) : undefined;
             const isActive = view === item.view;
             const href = `/${username}/${scope}/emails?view=${item.view}`;
             return (
@@ -152,10 +150,10 @@ export function SidebarMailNav({
                   <span className="min-w-0 flex-1 truncate tracking-[-0.01em]">
                     {item.label}
                   </span>
-                  {count ? (
-                    <span className="ml-auto font-geist-mono text-[10px] text-muted-foreground/50">
-                      {count}
-                    </span>
+                  {countKey && ctx ? (
+                    <Suspense fallback={null}>
+                      <FolderCount folder={countKey} shell={ctx.shell} />
+                    </Suspense>
                   ) : null}
                 </Link>
               </li>
@@ -165,4 +163,20 @@ export function SidebarMailNav({
       </nav>
     </div>
   );
+}
+
+/** A folder's count, shown once the shared mail data arrives. */
+function FolderCount({
+  folder,
+  shell,
+}: {
+  folder: string;
+  shell: Promise<MailDashboardData>;
+}) {
+  const count = use(shell).folderCounts[folder];
+  return count ? (
+    <span className="ml-auto font-geist-mono text-[10px] text-muted-foreground/50">
+      {count}
+    </span>
+  ) : null;
 }

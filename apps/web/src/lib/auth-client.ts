@@ -13,6 +13,7 @@
  * - signOut() - End session
  */
 
+import { passkeyClient } from "@better-auth/passkey/client";
 import {
   emailOTPClient,
   organizationClient,
@@ -41,6 +42,7 @@ export const authClient = createAuthClient({
     emailOTPClient(),
     twoFactorClient({ twoFactorPage: "/two-factor" }),
     organizationClient({ ac: organizationAccess, roles: organizationRoles }),
+    passkeyClient(),
   ],
 });
 

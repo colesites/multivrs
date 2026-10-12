@@ -6,6 +6,7 @@ import {
   type Dispatch,
   type ReactNode,
   type SetStateAction,
+  use,
   useCallback,
   useContext,
   useEffect,
@@ -16,11 +17,19 @@ import {
 import type {
   MailDashboardData,
   MailMessageDetail,
+  MailResources,
 } from "@/features/mail/mail.types";
 import { type MailView, parseMailView } from "@/features/mail/mail-view";
 
 interface MailContextValue {
-  data: MailDashboardData;
+  /**
+   * Counts, mailboxes, resources and recent threads. A promise, so pages can
+   * show their static parts at once and suspend only where they need it
+   * (read it with `useMailData`).
+   */
+  shell: Promise<MailDashboardData>;
+  /** Resource lists; only resource pages wait on these (`useMailResources`). */
+  resources: Promise<MailResources>;
   projectId?: string;
   view: MailView;
   setView: (view: MailView) => void;
@@ -33,6 +42,9 @@ interface MailContextValue {
   openCompose: () => void;
   query: string;
   setQuery: Dispatch<SetStateAction<string>>;
+  /** Bumps when mail changes here (e.g. one is sent), so open lists refetch. */
+  mailVersion: number;
+  notifyMailChanged: () => void;
 }
 
 const MailContext = createContext<MailContextValue | null>(null);
@@ -59,13 +71,15 @@ function getServerSnapshot() {
 
 export function MailProvider({
   children,
-  data,
+  resources,
+  shell,
   initialCompose = false,
   initialView = "overview",
   projectId,
 }: {
   children: ReactNode;
-  data: MailDashboardData;
+  resources: Promise<MailResources>;
+  shell: Promise<MailDashboardData>;
   initialCompose?: boolean;
   initialView?: MailView;
   projectId?: string;
@@ -83,6 +97,11 @@ export function MailProvider({
     setComposeOpenState(true);
   }, []);
   const [query, setQuery] = useState("");
+  const [mailVersion, setMailVersion] = useState(0);
+  const notifyMailChanged = useCallback(
+    () => setMailVersion((version) => version + 1),
+    [],
+  );
   const setComposeOpen = useCallback((open: boolean) => {
     setComposeOpenState(open);
     if (!open) {
@@ -122,7 +141,8 @@ export function MailProvider({
 
   const value = useMemo(
     () => ({
-      data,
+      shell,
+      resources,
       projectId,
       view,
       setView,
@@ -135,9 +155,12 @@ export function MailProvider({
       openCompose,
       query,
       setQuery,
+      mailVersion,
+      notifyMailChanged,
     }),
     [
-      data,
+      shell,
+      resources,
       projectId,
       view,
       setView,
@@ -147,6 +170,8 @@ export function MailProvider({
       forward,
       openCompose,
       query,
+      mailVersion,
+      notifyMailChanged,
     ],
   );
 
@@ -182,4 +207,14 @@ export function useMailContext() {
  */
 export function useOptionalMailContext() {
   return useContext(MailContext);
+}
+
+/** The shared mail data. Suspends until it arrives, so render it in Suspense. */
+export function useMailData(): MailDashboardData {
+  return use(useMailContext().shell);
+}
+
+/** The account's resource lists. Suspends until they arrive. */
+export function useMailResources(): MailResources {
+  return use(useMailContext().resources);
 }

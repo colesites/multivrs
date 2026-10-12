@@ -20,10 +20,13 @@ import {
 import { buildNavHref } from "@/features/dashboard/constants/navigation";
 import { useDashboardScope } from "@/features/dashboard/lib/useDashboardScope";
 import { authClient } from "@/lib/auth-client";
+import type { PlanKey } from "@/lib/payments/billing.types";
 
 interface AccountMenuProps {
   name: string;
   email: string;
+  /** Plan of the workspace being viewed; only Hobby offers an upgrade. */
+  plan?: PlanKey;
   onClose?: () => void;
 }
 
@@ -34,7 +37,7 @@ const LINKS = [
   { label: "Docs", href: "/docs", icon: BookOpen },
 ] as const;
 
-export function AccountMenu({ name, email, onClose }: AccountMenuProps) {
+export function AccountMenu({ name, email, plan, onClose }: AccountMenuProps) {
   const router = useRouter();
   const { username, scope } = useDashboardScope();
   const settingsHref = buildNavHref(username, scope, "settings");
@@ -87,29 +90,29 @@ export function AccountMenu({ name, email, onClose }: AccountMenuProps) {
         Log Out
       </DropdownMenuItem>
 
-      <div className="px-1.5 pt-1.5">
-        <Button
-          className="w-full h-11 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold transition-all text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-purple-500/20"
-          size="lg"
-          onClick={() => {
-            onClose?.();
-            window.dispatchEvent(
-              new CustomEvent("open-upgrade-sheet", { detail: { step: 2 } }),
-            );
-          }}
-        >
-          Upgrade to Pro
-        </Button>
-      </div>
+      {plan === "hobby" && (
+        <div className="px-1.5 pt-1.5">
+          <Button
+            className="w-full h-11 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold transition-all text-sm flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-purple-500/20"
+            size="lg"
+            onClick={() => {
+              onClose?.();
+              window.dispatchEvent(
+                new CustomEvent("open-upgrade-sheet", { detail: { step: 2 } }),
+              );
+            }}
+          >
+            Upgrade to Pro
+          </Button>
+        </div>
+      )}
 
       <DropdownMenuSeparator />
 
       <div className="flex items-center justify-between px-3 py-1.5">
         <div>
           <p className="text-[12px] text-muted-foreground">Platform Status</p>
-          <p className="text-[13px] text-accent">
-            All systems normal.
-          </p>
+          <p className="text-[13px] text-accent">All systems normal.</p>
         </div>
         <span className="size-2 rounded-full bg-accent" />
       </div>
