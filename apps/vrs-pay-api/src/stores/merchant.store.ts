@@ -13,8 +13,15 @@ export interface ApiKeySummary {
   object: "api_key";
   kind: ApiKeyKind;
   livemode: boolean;
-  /** e.g. `sk_test_4f9K…` — the full key is only shown when created. */
+  /** e.g. `sk_test_4f9K…`. */
   display_prefix: string;
+  name: string | null;
+  /** Publishable keys: the whole key, which is safe to show. Null for secret keys. */
+  token: string | null;
+  /** A test-mode secret key that can be shown again. Live secret keys can't. */
+  revealable: boolean;
+  /** Unix seconds, to the hour; null if it has never been used. */
+  last_used: number | null;
   created: number;
   revoked: boolean;
 }
@@ -25,6 +32,21 @@ export interface NewApiKey {
   kind: ApiKeyKind;
   hash: string;
   displayPrefix: string;
+  name?: string | null;
+  /** Publishable keys only. */
+  plaintext?: string | null;
+  /** Test-mode secret keys only, sealed with VRS_DATA_KEY. */
+  sealedSecret?: string | null;
+}
+
+/** What revealing or rolling a key needs to know about it. */
+export interface StoredApiKey {
+  id: string;
+  kind: ApiKeyKind;
+  mode: ApiKeyMode;
+  name: string | null;
+  sealedSecret: string | null;
+  revoked: boolean;
 }
 
 export interface ProviderAccountRecord {
@@ -57,6 +79,8 @@ export interface MerchantStore {
   rename(merchantId: string, name: string): Promise<void>;
   listKeys(merchantId: string, mode: ApiKeyMode): Promise<ApiKeySummary[]>;
   addKey(merchantId: string, key: NewApiKey): Promise<void>;
+  /** One of the merchant's keys, or null. */
+  getKey(merchantId: string, id: string): Promise<StoredApiKey | null>;
   revokeKey(merchantId: string, id: string): Promise<boolean>;
   getProviderAccount(
     merchantId: string,

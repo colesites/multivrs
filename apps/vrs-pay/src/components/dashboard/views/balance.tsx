@@ -14,9 +14,10 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { Badge } from "../badge";
-import { useApi, useDashboard } from "../context";
+import { useAction, useApi, useDashboard } from "../context";
 import { formatDate, formatDateTime, formatMoney, shortId } from "../format";
-import type { AccountSetup, Balance, List, Payment } from "../types";
+import type { AccountSetup, Balance, List, Payment, Payout } from "../types";
+import { PayoutsList, scheduleLine } from "./payouts-list";
 import {
   Button,
   Card,
@@ -41,6 +42,27 @@ export function BalanceView() {
   const { data: balance, error: balanceError } = useApi<Balance>("/balance");
   const { data: setup } = useApi<AccountSetup>("/setup");
   const { data: paymentsData } = useApi<List<Payment>>("/v1/payments?limit=50");
+  const { data: payoutsData, reload: reloadPayouts } = useApi<List<Payout>>("/v1/payouts?limit=50");
+  const { run, pending: payingOut } = useAction();
+  const [payoutResult, setPayoutResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const schedule = balance?.payouts;
+  const payoutBalance =
+    balance?.data.find((b) => b.currency === schedule?.currency) ?? balance?.data[0];
+
+  async function payOutNow() {
+    const result = await run<Payout>("/payouts", {});
+    if (result.error) return setPayoutResult({ ok: false, message: result.error });
+    const sent = result.data;
+    setPayoutResult({
+      ok: sent?.status !== "failed",
+      message: sent
+        ? sent.status === "failed"
+          ? (sent.failure_message ?? "The payout failed; the money is back in your balance.")
+          : `${formatMoney(sent.amount, sent.currency)} is on its way to your bank.`
+        : "Payout sent.",
+    });
+    reloadPayouts();
+  }
 
   const [activityTab, setActivityTab] = useState<"payouts" | "topups" | "all">("payouts");
   const [searchQuery, setSearchQuery] = useState("");
@@ -286,21 +308,7 @@ export function BalanceView() {
 
               {/* Tab Content: Payouts */}
               {activityTab === "payouts" && (
-                <Card className="flex flex-col items-center justify-center py-14 text-center border-line/70 bg-white">
-                  <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 mb-3">
-                    <Search className="size-5" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-ink">No payouts to display</h3>
-                  <p className="mt-1 max-w-sm text-xs text-mute">
-                    Payouts will appear here once they've been created. Once incoming funds clear, they will be paid out automatically.
-                  </p>
-                  {payout && (
-                    <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5 border border-line text-xs text-ink-soft">
-                      <Building2 className="size-3.5 text-slate-400" />
-                      <span>Next destination: {payout.bank_name} (•••• {payout.last4})</span>
-                    </div>
-                  )}
-                </Card>
+                <PayoutsList payouts={payoutsData?.data ?? []} schedule={schedule} />
               )}
 
               {/* Tab Content: Top-ups */}
@@ -536,32 +544,39 @@ export function BalanceView() {
       )}
 
       {/* Pay Out Dialog */}
-      <Dialog open={showPayoutModal} onOpenChange={setShowPayoutModal}>
+      <Dialog
+        open={showPayoutModal}
+        onOpenChange={(open) => {
+          setShowPayoutModal(open);
+          if (!open) setPayoutResult(null);
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Initiate balance payout</DialogTitle>
+            <DialogTitle>Pay out now</DialogTitle>
             <DialogDescription>
-              Transfer available cleared balance directly to your connected bank account.
+              Send your available balance to your bank now instead of at today's automatic payout.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2 text-sm">
-            {balance && (
+            {payoutBalance && (
               <div className="rounded-xl bg-slate-50 p-4 border border-line">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-mute">Available to pay out now</span>
                   <span className="font-mono font-semibold text-ink text-base">
-                    {formatMoney(balance.data[0]?.available ?? 0, balance.data[0]?.currency ?? "usd")}
+                    {formatMoney(payoutBalance.available, payoutBalance.currency)}
                   </span>
                 </div>
                 <div className="mt-2 flex items-center justify-between border-t border-line/60 pt-2 text-xs">
                   <span className="text-mute">Pending clearance</span>
                   <span className="font-mono text-ink-soft">
-                    {formatMoney(balance.data[0]?.pending ?? 0, balance.data[0]?.currency ?? "usd")}
+                    {formatMoney(payoutBalance.pending, payoutBalance.currency)}
                   </span>
                 </div>
               </div>
             )}
+            {schedule && <p className="text-xs text-mute">{scheduleLine(schedule)}</p>}
 
             {payout ? (
               <div className="rounded-xl bg-white p-3.5 border border-line text-xs space-y-1">
@@ -575,9 +590,15 @@ export function BalanceView() {
               </p>
             )}
 
-            {(balance?.data[0]?.available ?? 0) === 0 && (
-              <p className="text-xs text-mute">
-                You currently have no available balance ready for payout. Pending funds will automatically clear into available balance after your reserve schedule.
+            {payoutResult && (
+              <p
+                className={`rounded-lg border p-3 text-xs ${
+                  payoutResult.ok
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                    : "border-amber-200 bg-amber-50 text-amber-800"
+                }`}
+              >
+                {payoutResult.message}
               </p>
             )}
           </div>
@@ -588,12 +609,10 @@ export function BalanceView() {
             </Button>
             <Button
               size="sm"
-              disabled={(balance?.data[0]?.available ?? 0) === 0 || !payout}
-              onClick={() => {
-                setShowPayoutModal(false);
-              }}
+              disabled={!payout || payingOut || schedule?.ready === false}
+              onClick={payOutNow}
             >
-              Pay out available funds
+              {payingOut ? "Sending…" : "Pay out available funds"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -674,7 +693,11 @@ export function BalanceView() {
 
           <div className="space-y-3 text-xs text-ink-soft py-2">
             <p>
-              Like Stripe, VRS Pay holds sales in a rolling reserve window before they clear into your <strong>Available</strong> balance. This protects both you and customers against chargebacks and refunds.
+              <strong>Daily payouts:</strong> once a day, VRS Pay sends your available balance to your bank when it's at least the minimum. The bank transfer fee comes out of each payout. You can also pay out early with <strong>Pay out</strong>, once a day.
+            </p>
+            {schedule && <p>{scheduleLine(schedule)}</p>}
+            <p>
+              Sales are held for a few days before they clear into your <strong>Available</strong> balance, so refunds and chargebacks can come out of them.
             </p>
 
             <div className="space-y-2 mt-2">

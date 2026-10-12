@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { DocsToc } from "@/components/site/docs-toc";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteNav } from "@/components/site/site-nav";
 import { highlight } from "@/lib/highlight";
@@ -205,18 +206,7 @@ export default function DocsPage() {
             className="lg:sticky lg:top-28 lg:self-start"
           >
             <p className="eyebrow text-mute">On this page</p>
-            <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm lg:flex-col">
-              {SECTIONS.map((s) => (
-                <li key={s.id}>
-                  <a
-                    href={`#${s.id}`}
-                    className="text-ink-soft transition-colors hover:text-ink"
-                  >
-                    {s.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <DocsToc sections={SECTIONS} />
           </nav>
 
           <div className="grid min-w-0 max-w-3xl gap-10">

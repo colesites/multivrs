@@ -2,6 +2,7 @@ import { createApp } from "./app";
 import { DEFAULT_PORT } from "./constants";
 import { createDependencies } from "./deps/dependencies";
 import { startBillingWorker } from "./services/billing-cycle";
+import { startPayoutWorker } from "./services/payout.service";
 import { startDeliveryWorker } from "./services/webhook-delivery.service";
 
 // `bun --hot` re-runs this file on every save without restarting the process.
@@ -22,11 +23,18 @@ function report(event: string) {
   };
 }
 
-const stopDeliveries = startDeliveryWorker(deps.deliveries, report("webhook_delivery_failed"));
+const stopDeliveries = startDeliveryWorker(
+  deps.deliveries,
+  report("webhook_delivery_failed"),
+  undefined,
+  { strictUrls: deps.webhookUrls?.strict },
+);
 const stopBilling = startBillingWorker(deps, report("billing_cycle_failed"));
+const stopPayouts = startPayoutWorker(deps, report("payout_failed"));
 hot.stopVrsPayApi = async () => {
   stopDeliveries();
   stopBilling();
+  stopPayouts();
   await db?.$disconnect();
 };
 

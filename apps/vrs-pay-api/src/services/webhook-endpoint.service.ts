@@ -1,5 +1,6 @@
 import { invalidRequest, newId, randomBase62, resourceMissing } from "@vrs-pay/core";
 import type { AppDeps, MerchantContext } from "../app.types";
+import { isInternalHost } from "../lib/webhook-url";
 import type {
   CreateWebhookEndpointInput,
   UpdateWebhookEndpointInput,
@@ -18,12 +19,24 @@ const SECRET_LENGTH = 32;
 const DELIVERY_PAGE = 50;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** In production, webhooks can't be aimed at localhost or a private network. */
+function assertPublicUrl(deps: AppDeps, url: string | undefined) {
+  if (url && deps.webhookUrls?.strict && isInternalHost(url)) {
+    throw invalidRequest(
+      "url_not_public",
+      "Use a public URL: localhost and private network addresses can't receive live webhooks.",
+      "url",
+    );
+  }
+}
+
 /** Creates an endpoint. Its signing secret is returned here and never again. */
 export async function createWebhookEndpoint(
   deps: AppDeps,
   merchant: MerchantContext,
   input: CreateWebhookEndpointInput,
 ): Promise<WebhookEndpoint> {
+  assertPublicUrl(deps, input.url);
   const secret = `${SECRET_PREFIX}${randomBase62(SECRET_LENGTH)}`;
   const endpoint: WebhookEndpoint = {
     id: newId("webhookEndpoint"),
@@ -60,6 +73,7 @@ export async function updateWebhookEndpoint(
   id: string,
   input: UpdateWebhookEndpointInput,
 ): Promise<WebhookEndpoint> {
+  assertPublicUrl(deps, input.url);
   const updated = await deps.webhookEndpoints.update(merchant.id, merchant.mode, id, {
     url: input.url,
     enabledEvents: input.enabled_events && [...new Set(input.enabled_events)],
@@ -123,7 +137,15 @@ export async function sendTestWebhook(
     data: { object: { object: "webhook_endpoint", id: endpoint.id, url: endpoint.url } },
   });
   try {
-    const response = await postSignedWebhook(endpoint.url, secret, payload, new Date(), doFetch);
+    const guard = deps.webhookUrls?.strict ? { resolve: deps.webhookUrls.resolve } : undefined;
+    const response = await postSignedWebhook(
+      endpoint.url,
+      secret,
+      payload,
+      new Date(),
+      doFetch,
+      guard,
+    );
     await response.body?.cancel();
     return {
       object: "webhook_test",

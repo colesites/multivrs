@@ -4,8 +4,10 @@ import type { ProviderAccountOwner } from "../stores/provider-account.store";
 import { removeAbandonedLinkCustomer } from "./abandoned-link.service";
 import { type EventOutcome, ownedSession, recordCheckoutPayment } from "./capture.service";
 import { fillMissingEmail } from "./customer.service";
+import { syncDispute } from "./dispute-sync.service";
 import { buildEvent } from "./events";
 import { syncIdentitySession } from "./identity.service";
+import { syncPayout } from "./payout.service";
 import { syncRefund } from "./refund-sync.service";
 import { activateSubscription } from "./subscription-activation.service";
 
@@ -85,6 +87,10 @@ async function handle(
     }
     case "refund.updated":
       return syncRefund(deps, owner, provider, event.data);
+    case "dispute.updated":
+      return syncDispute(deps, owner, provider, event.data);
+    case "payout.updated":
+      return owner ? "ignored" : syncPayout(deps, provider, event.data);
     case "checkout.expired": {
       const session = await ownedSession(deps, owner, provider, event.data.sessionReference);
       const expired = session

@@ -22,7 +22,7 @@ export async function createCheckoutSession(
   assertMinimumAmount(amount);
   const route = routeOnPlatform(deps, merchant.mode, input.currency, input.payment_method);
   const id = newId("checkoutSession");
-  const platformFee = feeFor(merchant, amount);
+  const platformFee = feeFor(deps, merchant, amount, route.provider);
   const hostedUrl = `${deps.urls.site}/pay/${id}`;
   const checkout = await providersFor(deps, merchant.mode)[route.provider].createCheckout({
     merchantAccountId: null,

@@ -1,4 +1,5 @@
-import type { AppDeps, MerchantContext } from "../app.types";
+import type { ApiKeyMode } from "@vrs-pay/core";
+import type { AppDeps } from "../app.types";
 import type { OnboardingRecord } from "./onboarding.types";
 
 /** Default reserve hold days if no onboarding profile is present. */
@@ -50,7 +51,8 @@ export function holdPolicyForMerchant(onboarding: OnboardingRecord | null): Hold
       hold_days: 7,
       speed_label: "7-14 business days",
       category: "cross_border",
-      description: "7–14 business day international payout schedule for cross-border currency settlement.",
+      description:
+        "7–14 business day international payout schedule for cross-border currency settlement.",
     };
   }
 
@@ -89,7 +91,11 @@ export interface CurrencyBalance {
 }
 
 /** What VRS Pay owes the merchant, per currency, from their ledger account. */
-export async function merchantBalance(deps: AppDeps, merchant: MerchantContext) {
+export async function merchantBalance(
+  deps: AppDeps,
+  merchant: { id: string; mode: ApiKeyMode },
+  now = Math.floor(Date.now() / 1000),
+) {
   const onboarding = await deps.onboarding.get(merchant.id);
   const policy = holdPolicyForMerchant(onboarding);
 
@@ -98,7 +104,6 @@ export async function merchantBalance(deps: AppDeps, merchant: MerchantContext) 
     merchant.mode,
   );
 
-  const now = Math.floor(Date.now() / 1000);
   const holdFrom = now - policy.hold_days * DAY;
 
   const totals = new Map<string, CurrencyBalance>();

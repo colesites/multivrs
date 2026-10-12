@@ -26,7 +26,7 @@ export async function chargeUpgrade(
   const s = sub.subscription;
   const quantity = next.quantity;
   const amount = money(due, CurrencyCodeSchema.parse(currency));
-  const fee = feeFor(merchant, amount);
+  const fee = feeFor(deps, merchant, amount, sub.provider);
   const method = s.payment_method ? await deps.billing.getPaymentMethod(s.payment_method) : null;
   const providerCustomer = await deps.billing.getProviderCustomer(s.customer, sub.provider);
   if (!method || !providerCustomer) throw cardError("card_declined", "No saved payment method.");

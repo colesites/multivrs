@@ -12,6 +12,7 @@ import { formatDateTime, formatMoney, shortId } from "../format";
 import type { List, Payment } from "../types";
 import { ErrorNote, Loading, PageHeader } from "../ui";
 import { RefundControl } from "./refund-control";
+import { Disputes } from "./disputes";
 import { PaymentDetailDialog } from "./payment-detail-dialog";
 import { ExportDialog } from "./export-dialog";
 import { PaymentsAnalyticsView } from "./payments-analytics";
@@ -189,6 +190,7 @@ export function PaymentsView() {
         </div>
       </div>
 
+      <Disputes />
       {error && <ErrorNote message={error} />}
       {!data && !error && <Loading />}
 

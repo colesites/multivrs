@@ -1,6 +1,8 @@
-import type { ApiKeyMode, ProviderId, ProviderRegistry } from "@vrs-pay/core";
+import type { ApiKeyMode, CurrencyCode, ProviderId, ProviderRegistry } from "@vrs-pay/core";
 import type { IdentityVerifier } from "./identity/identity.types";
 import type { Sealer } from "./lib/sealer";
+import type { Resolver } from "./lib/webhook-url";
+import type { PayoutRail } from "./providers/paystack/paystack-payouts";
 import type { StoredCustomer } from "./services/customer.types";
 import type { Stores } from "./stores/stores.types";
 
@@ -29,6 +31,13 @@ export interface ModeProviders {
   platformProviders: readonly ProviderId[];
   /** Tax is calculated and added on top of prices (Stripe Tax is switched on for this mode). */
   tax?: boolean;
+  /**
+   * Currencies a provider's platform account can take, where that's narrower
+   * than the provider supports (a Paystack account takes its own country's).
+   */
+  currencies?: Partial<Record<ProviderId, readonly CurrencyCode[]>>;
+  /** How merchants get paid out, by provider (Paystack Transfers for NGN). */
+  payoutRails?: Partial<Record<ProviderId, PayoutRail>>;
 }
 
 /** Everything the app needs, injected so tests can swap any piece. */
@@ -43,6 +52,16 @@ export interface AppDeps extends Stores {
   sealer?: Sealer;
   /** Public origins: this API (payment link URLs) and the VRS Pay site (thank-you page). */
   urls: { api: string; site: string };
+  /**
+   * Production refuses webhook URLs on localhost or private networks, both
+   * when saved and right before each send. Tests swap the DNS resolver.
+   */
+  webhookUrls?: { strict: boolean; resolve?: Resolver };
+  /**
+   * Currencies the platform Stripe account holds (it has a bank account in
+   * each), so Stripe pays them out without converting. GBP when unset.
+   */
+  settlementCurrencies?: readonly CurrencyCode[];
 }
 
 export interface DashboardUser {

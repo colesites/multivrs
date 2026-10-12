@@ -74,6 +74,7 @@ model Payment {
   merchant        Merchant         @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   checkoutSession CheckoutSession? @relation(fields: [checkoutSessionId], references: [id])
   refunds         Refund[]
+  disputes        Dispute[]
 
   @@unique([provider, providerReference])
   @@index([merchantId, mode, createdAt(sort: Desc)])
@@ -109,4 +110,79 @@ model Refund {
   @@unique([provider, providerReference])
   @@index([paymentId])
   @@map("refunds")
+}
+
+enum DisputeStatus {
+  open
+  won
+  lost
+}
+
+/// A chargeback: the buyer asked their bank to reverse a payment.
+model Dispute {
+  id                String        @id
+  merchantId        String        @map("merchant_id")
+  mode              Mode
+  paymentId         String        @map("payment_id")
+  provider          Provider
+  /// e.g. Stripe's dispute id (dp_…).
+  providerReference String        @map("provider_reference")
+  status            DisputeStatus @default(open)
+  amount            BigInt
+  /// Taken out of the merchant's balance: the amount while held or lost, 0 once won.
+  amountWithdrawn   BigInt        @default(0) @map("amount_withdrawn")
+  /// The provider's dispute fee, charged to the merchant.
+  fee               BigInt        @default(0)
+  currency          String        @db.Char(3)
+  reason            String?
+  evidenceDueBy     DateTime?     @map("evidence_due_by")
+  /// Bumped on every change, so concurrent webhooks can't double-post.
+  version           Int           @default(0)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  payment  Payment  @relation(fields: [paymentId], references: [id])
+
+  @@unique([provider, providerReference])
+  @@index([merchantId, mode, createdAt(sort: Desc)])
+  @@map("disputes")
+}
+
+enum PayoutStatus {
+  pending
+  paid
+  failed
+}
+
+/// Money sent from a platform balance to a merchant's bank account.
+model Payout {
+  id                String       @id
+  merchantId        String       @map("merchant_id")
+  mode              Mode
+  /// UTC day it was made for (YYYY-MM-DD): one per merchant, currency and day.
+  payoutDay         String       @map("payout_day") @db.Char(10)
+  /// Who sends it, e.g. paystack for Nigerian banks.
+  rail              Provider
+  /// The reference the transfer was sent with.
+  providerReference String       @map("provider_reference")
+  status            PayoutStatus @default(pending)
+  /// What reaches the bank account.
+  amount            BigInt
+  /// The provider's transfer fee, charged to the merchant.
+  fee               BigInt       @default(0)
+  currency          String       @db.Char(3)
+  bankName          String?      @map("bank_name")
+  last4             String?
+  failureMessage    String?      @map("failure_message")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, mode, currency, payoutDay])
+  @@unique([rail, providerReference])
+  @@index([merchantId, mode, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@map("payouts")
 }

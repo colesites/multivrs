@@ -23,6 +23,12 @@ export function createMemoryCheckoutSessionStore(state: MemoryState): CheckoutSe
       }
       return null;
     },
+    async setHostedCheckout(id, url, customerEmail) {
+      const record = state.sessions.get(id);
+      if (record?.session.status !== "open") return false;
+      record.session = { ...record.session, url, customer_email: customerEmail };
+      return true;
+    },
     async expire(id, effects) {
       if (state.sessions.get(id)?.session.status !== "open") return null;
       const updated = setSessionStatus(state, id, "expired");
@@ -32,9 +38,7 @@ export function createMemoryCheckoutSessionStore(state: MemoryState): CheckoutSe
     async metrics(merchantId, mode, since) {
       const records = [...state.sessions.values()].filter(
         (r) =>
-          r.merchantId === merchantId &&
-          r.mode === mode &&
-          (!since || r.session.created >= since),
+          r.merchantId === merchantId && r.mode === mode && (!since || r.session.created >= since),
       );
       const total = records.length;
       const completed = records.filter((r) => r.session.status === "complete").length;

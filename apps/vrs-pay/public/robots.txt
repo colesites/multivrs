@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /pay/
+Disallow: /paid
+
+Sitemap: https://vrs-pay.multivrs.space/sitemap.xml

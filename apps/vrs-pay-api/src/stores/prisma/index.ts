@@ -9,6 +9,7 @@ import { createPrismaBillingStore } from "./billing";
 import { createPrismaCatalogStore } from "./catalog";
 import { createPrismaCheckoutSessionStore } from "./checkout-sessions";
 import { createPrismaCustomerStore } from "./customers";
+import { createPrismaDisputeStore } from "./disputes";
 import { createPrismaEventStore } from "./events";
 import { createPrismaIdempotencyStore } from "./idempotency";
 import { createPrismaLedgerStore } from "./ledger";
@@ -16,6 +17,7 @@ import { createPrismaMerchantStore } from "./merchants";
 import { createPrismaOnboardingStore } from "./onboarding";
 import { createPrismaPaymentLinkStore } from "./payment-links";
 import { createPrismaPaymentStore } from "./payments";
+import { createPrismaPayoutStore } from "./payouts";
 import { createPrismaRefundStore } from "./refunds";
 import { createPrismaUsageStore } from "./usage";
 import { createPrismaDeliveryStore, createPrismaWebhookEndpointStore } from "./webhooks";
@@ -28,6 +30,8 @@ export function createPrismaStores(db: Db): Stores {
     checkoutSessions: createPrismaCheckoutSessionStore(db),
     payments: createPrismaPaymentStore(db),
     refunds: createPrismaRefundStore(db),
+    disputes: createPrismaDisputeStore(db),
+    payouts: createPrismaPayoutStore(db),
     providerAccounts: createPrismaProviderAccountStore(db),
     providerEvents: createPrismaProviderEventStore(db),
     webhookEndpoints: createPrismaWebhookEndpointStore(db),

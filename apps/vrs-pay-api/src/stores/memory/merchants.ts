@@ -40,7 +40,7 @@ export function createMemoryMerchantStore(
     async listKeys(merchantId, mode) {
       return state.keys
         .filter((k) => k.merchantId === merchantId && (k.livemode ? "live" : "test") === mode)
-        .map(({ merchantId: _, ...k }) => k);
+        .map(({ merchantId: _, hash: _h, sealedSecret: _s, ...k }) => k);
     },
     async addKey(merchantId, key) {
       const profile = state.merchants.get(merchantId);
@@ -52,14 +52,34 @@ export function createMemoryMerchantStore(
         kind: key.kind,
         livemode: key.mode === "live",
         display_prefix: key.displayPrefix,
+        name: key.name ?? null,
+        token: key.kind === "publishable" ? (key.plaintext ?? null) : null,
+        revealable: Boolean(key.sealedSecret),
+        last_used: null,
         created: Math.floor(Date.now() / 1000),
         revoked: false,
+        hash: key.hash,
+        sealedSecret: key.sealedSecret ?? null,
       });
+    },
+    async getKey(merchantId, id) {
+      const k = state.keys.find((key) => key.id === id && key.merchantId === merchantId);
+      return k
+        ? {
+            id: k.id,
+            kind: k.kind,
+            mode: k.livemode ? "live" : "test",
+            name: k.name,
+            sealedSecret: k.sealedSecret,
+            revoked: k.revoked,
+          }
+        : null;
     },
     async revokeKey(merchantId, id) {
       const key = state.keys.find((k) => k.id === id && k.merchantId === merchantId && !k.revoked);
       if (!key) return false;
-      key.revoked = true;
+      Object.assign(key, { revoked: true, revealable: false, sealedSecret: null });
+      await apiKeys.remove(key.hash);
       return true;
     },
     async getProviderAccount(merchantId, mode, provider) {

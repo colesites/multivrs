@@ -17,25 +17,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "./api";
+import { Initials, UserAvatar } from "./avatar";
 import { useApi, useDashboard } from "./context";
 import { NewOrganizationDialog } from "./new-organization";
 import type { List, Organization } from "./types";
 import { Button } from "./ui";
-
-/** "Ada Studio" → "AS". */
-export function Initials({ name }: { name: string }) {
-  const letters = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join("");
-  return (
-    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-50 text-xs font-medium text-brand-700 ring-1 ring-brand-100">
-      {letters || "?"}
-    </span>
-  );
-}
 
 /** Loaded when the menu opens. */
 function Organizations() {
@@ -95,7 +81,7 @@ export function OrgSwitcher({ opensUp = true }: { opensUp?: boolean }) {
             variant="ghost"
             className="h-auto w-full justify-start gap-2.5 p-2 text-left"
           >
-            <Initials name={session.merchant.name} />
+            <UserAvatar name={session.user.name} image={session.user.image} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium text-ink">
                 {session.merchant.name}

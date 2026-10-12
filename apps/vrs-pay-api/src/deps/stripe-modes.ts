@@ -1,5 +1,13 @@
-import { type ApiKeyMode, createProviderRegistry } from "@vrs-pay/core";
+import {
+  type ApiKeyMode,
+  type CurrencyCode,
+  CurrencyCodeSchema,
+  createProviderRegistry,
+} from "@vrs-pay/core";
 import type { ModeProviders } from "../app.types";
+import { createPaystackProvider } from "../providers/paystack/paystack.provider";
+import { createPaystackClient } from "../providers/paystack/paystack-api";
+import { createPaystackPayouts } from "../providers/paystack/paystack-payouts";
 import { createStripeProvider } from "../providers/stripe/stripe.provider";
 import { createStripeClient, isLiveStripeKey } from "../providers/stripe/stripe-client";
 
@@ -68,4 +76,76 @@ export function withStripeTax(
     test: { ...modes.test, tax: on("test") },
     live: { ...modes.live, tax: on("live") },
   };
+}
+
+/** The Paystack secret key for `mode`: PAYSTACK_TEST/LIVE_SECRET_KEY, or PAYSTACK_SECRET_KEY by its prefix. */
+function paystackKey(env: Env, mode: ApiKeyMode): string | undefined {
+  const explicit = env[`PAYSTACK_${mode.toUpperCase()}_SECRET_KEY`];
+  if (explicit) return explicit;
+  const shared = env.PAYSTACK_SECRET_KEY;
+  return shared?.startsWith(`sk_${mode}_`) ? shared : undefined;
+}
+
+/**
+ * PAYSTACK_CURRENCIES: what the Paystack account takes, comma-separated. A
+ * Paystack account takes its own country's currency (NGN for a Nigerian one,
+ * plus USD once Paystack approves it), so NGN when unset.
+ */
+function paystackCurrencies(setting: string | undefined): CurrencyCode[] {
+  const listed = (setting ?? "")
+    .split(",")
+    .map((c) => c.trim().toUpperCase())
+    .filter(Boolean);
+  return (listed.length > 0 ? listed : ["NGN"]).map((code) => {
+    const parsed = CurrencyCodeSchema.safeParse(code);
+    if (!parsed.success)
+      throw new Error(`PAYSTACK_CURRENCIES: ${code} isn't a currency VRS Pay supports.`);
+    return parsed.data;
+  });
+}
+
+/**
+ * Adds Paystack to each mode that has a Paystack secret key, for the
+ * currencies in PAYSTACK_CURRENCIES (see routePayment's African preference).
+ */
+export function withPaystack(
+  modes: Record<ApiKeyMode, ModeProviders>,
+  env: Env,
+): Record<ApiKeyMode, ModeProviders> {
+  const next = { ...modes };
+  const currencies = paystackCurrencies(env.PAYSTACK_CURRENCIES);
+  for (const mode of ["test", "live"] as const) {
+    const key = paystackKey(env, mode);
+    if (!key) continue;
+    const api = createPaystackClient(key);
+    const paystack = createPaystackProvider({ api, secretKey: key });
+    next[mode] = {
+      ...modes[mode],
+      providers: { ...modes[mode].providers, paystack },
+      platformProviders: [...new Set([...modes[mode].platformProviders, "paystack" as const])],
+      currencies: { ...modes[mode].currencies, paystack: currencies },
+      payoutRails: { ...modes[mode].payoutRails, paystack: createPaystackPayouts(api) },
+    };
+  }
+  return next;
+}
+
+/**
+ * STRIPE_SETTLEMENT_CURRENCIES: the currencies the platform Stripe account
+ * holds, comma-separated (e.g. "GBP,USD,EUR"). GBP when unset. Stripe
+ * payments in other currencies are converted, and carry the conversion fee.
+ */
+export function settlementCurrenciesFrom(setting: string | undefined): CurrencyCode[] {
+  const listed = (setting ?? "")
+    .split(",")
+    .map((c) => c.trim().toUpperCase())
+    .filter(Boolean);
+  if (listed.length === 0) return ["GBP"];
+  return listed.map((code) => {
+    const parsed = CurrencyCodeSchema.safeParse(code);
+    if (!parsed.success) {
+      throw new Error(`STRIPE_SETTLEMENT_CURRENCIES: ${code} isn't a currency VRS Pay supports.`);
+    }
+    return parsed.data;
+  });
 }

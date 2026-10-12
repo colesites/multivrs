@@ -66,7 +66,7 @@ async function parse<T>(schema: z.ZodType<T>, work: Promise<unknown>): Promise<T
 
 /**
  * A document and selfie check on Didit's page: the merchant scans their ID
- * (a NIN slip or card, passport, driver's licence, voter's card…) and takes
+ * (a national ID card, passport, driver's licence…) and takes
  * a live selfie, Didit matches the two, and we match the name and birth
  * date on the ID to what the merchant typed.
  */

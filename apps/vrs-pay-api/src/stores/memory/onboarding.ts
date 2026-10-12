@@ -11,5 +11,8 @@ export function createMemoryOnboardingStore(
     async save(record) {
       records.set(record.merchantId, record);
     },
+    async withPayoutAccount() {
+      return [...records.values()].filter((r) => r.payoutDetails).map((r) => r.merchantId);
+    },
   };
 }

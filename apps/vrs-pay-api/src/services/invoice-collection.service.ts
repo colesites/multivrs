@@ -30,7 +30,12 @@ export async function collectInvoice(
   if (!sub || invoice.status !== "open") return "skipped";
   const merchant = await deps.providerAccounts.merchantProfile(merchantId, mode);
   const fee = merchant
-    ? feeFor(merchant, money(invoice.total, CurrencyCodeSchema.parse(invoice.currency)))
+    ? feeFor(
+        deps,
+        merchant,
+        money(invoice.total, CurrencyCodeSchema.parse(invoice.currency)),
+        sub.provider,
+      )
     : null;
   const method = sub.subscription.payment_method
     ? await deps.billing.getPaymentMethod(sub.subscription.payment_method)

@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import { useAction, useDashboard } from "../context";
 import { formatMoney } from "../format";
 import { Button, Card, ErrorNote, Input, PageHeader } from "../ui";
+import { Profile, SignInMethods } from "./settings-account";
 
 function BusinessName() {
   const { session, refreshSession } = useDashboard();
@@ -57,16 +58,24 @@ function BusinessName() {
 
 const SHOWN = ["GBP", "USD", "EUR", "NGN", "GHS", "KES", "ZAR"];
 
-/** What VRS Pay charges per payment: one rate plus a small fixed part per currency. */
+const percent = (bps: number) => `${(bps / 100).toFixed(1)}%`;
+
+/**
+ * What VRS Pay charges per payment: one rate plus a small fixed part per
+ * currency, and a conversion fee in currencies that have to be converted.
+ */
 function Fees() {
   const { session } = useDashboard();
-  const rate = `${(session.merchant.platform_fee_bps / 100).toFixed(1)}%`;
+  const { platform_fee_bps, fixed_fees } = session.merchant;
+  const conversion = session.merchant.conversion_fee_bps ?? 0;
+  const converted = new Set(session.merchant.converted_currencies ?? []);
+  const shownConverted = SHOWN.filter((c) => converted.has(c));
   return (
     <Card>
       <p className="text-sm font-medium text-ink">Pricing</p>
       <p className="mt-1 text-sm text-ink-soft">
-        {rate} + a small fixed fee per successful payment. It covers card
-        processing, currency conversion and payouts — no monthly fees.
+        {percent(platform_fee_bps)} + a small fixed fee per successful payment.
+        It covers card processing and payouts — no monthly fees.
       </p>
       <ul className="mt-3 flex flex-wrap gap-2">
         {SHOWN.map((currency) => (
@@ -74,11 +83,20 @@ function Fees() {
             key={currency}
             className="rounded-full bg-wash px-3 py-1 font-mono text-xs text-ink"
           >
-            {rate} +{" "}
-            {formatMoney(session.merchant.fixed_fees[currency] ?? 0, currency)}
+            {currency}{" "}
+            {percent(
+              platform_fee_bps + (converted.has(currency) ? conversion : 0),
+            )}{" "}
+            + {formatMoney(fixed_fees[currency] ?? 0, currency)}
           </li>
         ))}
       </ul>
+      {conversion > 0 && shownConverted.length > 0 && (
+        <p className="mt-3 text-xs text-mute">
+          Includes {percent(conversion)} for currency conversion on{" "}
+          {shownConverted.join(", ")} payments.
+        </p>
+      )}
     </Card>
   );
 }
@@ -89,10 +107,12 @@ export function SettingsView() {
       <PageHeader
         serif="Settings"
         title=""
-        description="Your business name and pricing."
+        description="Your profile, how you sign in, your business and pricing."
       />
-      <Fees />
+      <Profile />
+      <SignInMethods />
       <BusinessName />
+      <Fees />
     </div>
   );
 }

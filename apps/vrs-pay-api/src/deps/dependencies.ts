@@ -6,7 +6,7 @@ import { identityFromEnv } from "../identity/identity-router";
 import { createSealer } from "../lib/sealer";
 import { createPrismaStores } from "../stores/prisma";
 import { createMemoryDependencies } from "./memory-dependencies";
-import { stripeModes, withStripeTax } from "./stripe-modes";
+import { settlementCurrenciesFrom, stripeModes, withPaystack, withStripeTax } from "./stripe-modes";
 
 type Env = Record<string, string | undefined>;
 
@@ -17,7 +17,7 @@ type Env = Record<string, string | undefined>;
  * checks come from identityFromEnv.
  */
 export async function createDependencies(env: Env): Promise<{ deps: AppDeps; db: Db | null }> {
-  const modes = withStripeTax(stripeModes(env), env.STRIPE_TAX);
+  const modes = withPaystack(withStripeTax(stripeModes(env), env.STRIPE_TAX), env);
   const urls = {
     api: (env.BETTER_AUTH_URL ?? `http://localhost:${env.PORT ?? 4300}`).replace(/\/+$/, ""),
     site: (env.VRS_DASHBOARD_URL ?? "https://vrs-pay.multivrs.space").replace(/\/+$/, ""),
@@ -25,12 +25,27 @@ export async function createDependencies(env: Env): Promise<{ deps: AppDeps; db:
   const url = databaseUrl(env);
   const returnUrl = `${urls.site}/dashboard?view=setup`;
   const identity = identityFromEnv(env, { database: Boolean(url), returnUrl });
+  const webhookUrls = { strict: env.NODE_ENV === "production" };
+  const settlementCurrencies = settlementCurrenciesFrom(env.STRIPE_SETTLEMENT_CURRENCIES);
   if (!url) {
-    return { deps: { ...(await createMemoryDependencies(env)), modes, urls, identity }, db: null };
+    return {
+      deps: {
+        ...(await createMemoryDependencies(env)),
+        modes,
+        urls,
+        identity,
+        webhookUrls,
+        settlementCurrencies,
+      },
+      db: null,
+    };
   }
   const db = createDb(url);
   const stores = createPrismaStores(db);
   const auth = createBetterAuth(db, env, stores.merchants, createEmailSender(env)) ?? undefined;
   const sealer = env.VRS_DATA_KEY ? await createSealer(env.VRS_DATA_KEY) : undefined;
-  return { deps: { ...stores, modes, auth, urls, sealer, identity }, db };
+  return {
+    deps: { ...stores, modes, auth, urls, sealer, identity, webhookUrls, settlementCurrencies },
+    db,
+  };
 }

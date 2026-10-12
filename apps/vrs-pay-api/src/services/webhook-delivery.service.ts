@@ -1,4 +1,5 @@
 import { SIGNATURE_HEADER, signWebhookPayload } from "@vrs-pay/core";
+import { assertPublicDestination, type Resolver } from "../lib/webhook-url";
 import type { DeliveryStore } from "../stores/webhook.store";
 import type { DueDelivery } from "./webhook-endpoint.types";
 
@@ -10,6 +11,14 @@ const BATCH_SIZE = 25;
 export interface DeliveryOptions {
   fetch?: typeof fetch;
   now?: () => Date;
+  /** Refuse destinations that resolve to private addresses (production). */
+  strictUrls?: boolean;
+  resolve?: Resolver;
+}
+
+/** Checks a destination before sending; absent outside production. */
+export interface DestinationGuard {
+  resolve?: Resolver;
 }
 
 /** POSTs `payload` to `url`, signed with `secret` — how every webhook goes out. */
@@ -19,7 +28,9 @@ export async function postSignedWebhook(
   payload: string,
   now: Date,
   doFetch: typeof fetch = fetch,
+  guard?: DestinationGuard,
 ) {
+  if (guard) await assertPublicDestination(url, guard.resolve);
   const signature = await signWebhookPayload(payload, secret, Math.floor(now.getTime() / 1000));
   return doFetch(url, {
     method: "POST",
@@ -30,8 +41,8 @@ export async function postSignedWebhook(
   });
 }
 
-function send(delivery: DueDelivery, now: Date, doFetch: typeof fetch) {
-  return postSignedWebhook(delivery.url, delivery.secret, delivery.payload, now, doFetch);
+function send(delivery: DueDelivery, now: Date, doFetch: typeof fetch, guard?: DestinationGuard) {
+  return postSignedWebhook(delivery.url, delivery.secret, delivery.payload, now, doFetch, guard);
 }
 
 /**
@@ -40,8 +51,9 @@ function send(delivery: DueDelivery, now: Date, doFetch: typeof fetch) {
  */
 export async function deliverDueWebhooks(
   deliveries: DeliveryStore,
-  { fetch: doFetch = fetch, now = () => new Date() }: DeliveryOptions = {},
+  { fetch: doFetch = fetch, now = () => new Date(), strictUrls, resolve }: DeliveryOptions = {},
 ): Promise<number> {
+  const guard = strictUrls ? { resolve } : undefined;
   const due = await deliveries.claimDue(BATCH_SIZE, now());
   await Promise.all(
     due.map(async (delivery) => {
@@ -49,7 +61,7 @@ export async function deliverDueWebhooks(
       let statusCode: number | null = null;
       let error = "";
       try {
-        const response = await send(delivery, sentAt, doFetch);
+        const response = await send(delivery, sentAt, doFetch, guard);
         statusCode = response.status;
         if (response.ok) return deliveries.markSucceeded(delivery.id, statusCode, sentAt);
         error = `HTTP ${response.status}`;
@@ -74,13 +86,14 @@ export function startDeliveryWorker(
   deliveries: DeliveryStore,
   onError: (error: unknown) => void,
   intervalMs = 5_000,
+  options: Pick<DeliveryOptions, "strictUrls" | "resolve"> = {},
 ): () => void {
   let running = false;
   const timer = setInterval(async () => {
     if (running) return;
     running = true;
     try {
-      await deliverDueWebhooks(deliveries);
+      await deliverDueWebhooks(deliveries, options);
     } catch (error) {
       onError(error);
     } finally {

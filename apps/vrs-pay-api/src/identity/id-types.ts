@@ -32,7 +32,15 @@ const BY_COUNTRY: Record<string, IdType[]> = {
       id: "nin",
       label: "NIN (National Identification Number)",
       pattern: /^\d{11}$/,
-      hint: "11 digits, on your NIN slip or NIMC app",
+      hint: "11 digits, on your NIN slip, ID card or NIMC app",
+    },
+    // Photo IDs Didit can scan for Nigeria (it also reads the National ID card).
+    PASSPORT,
+    {
+      id: "driving_licence",
+      label: "Nigerian driver's licence",
+      pattern: /^[A-Z0-9]{8,14}$/,
+      hint: "As printed on your licence, e.g. ABC12345DE67",
     },
   ],
   GH: [

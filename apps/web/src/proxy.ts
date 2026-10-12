@@ -67,6 +67,9 @@ export default async function proxy(req: NextRequest) {
     path.startsWith("/api") ||
     path === "/favicon.ico" ||
     path === "/sw.js" ||
+    // Search engines read these; a login redirect hides the site from them.
+    path === "/robots.txt" ||
+    path === "/sitemap.xml" ||
     path.endsWith(".svg") ||
     path.endsWith(".png") ||
     path.endsWith(".jpg") ||

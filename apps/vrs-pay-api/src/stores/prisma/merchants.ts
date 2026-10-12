@@ -56,6 +56,10 @@ export function createPrismaMerchantStore(db: Db): MerchantStore {
         kind: k.kind,
         livemode: k.mode === "live",
         display_prefix: k.displayPrefix,
+        name: k.name,
+        token: k.kind === "publishable" ? k.plaintext : null,
+        revealable: k.sealedSecret !== null && k.revokedAt === null,
+        last_used: k.lastUsedAt ? toUnix(k.lastUsedAt) : null,
         created: toUnix(k.createdAt),
         revoked: k.revokedAt !== null,
       }));
@@ -69,13 +73,30 @@ export function createPrismaMerchantStore(db: Db): MerchantStore {
           kind: key.kind,
           hash: key.hash,
           displayPrefix: key.displayPrefix,
+          name: key.name ?? null,
+          plaintext: key.plaintext ?? null,
+          sealedSecret: key.sealedSecret ?? null,
         },
       });
     },
+    async getKey(merchantId, id) {
+      const k = await db.apiKey.findFirst({ where: { id, merchantId } });
+      return k
+        ? {
+            id: k.id,
+            kind: k.kind,
+            mode: k.mode,
+            name: k.name,
+            sealedSecret: k.sealedSecret,
+            revoked: k.revokedAt !== null,
+          }
+        : null;
+    },
     async revokeKey(merchantId, id) {
+      // A revoked key's sealed copy is dropped: it can never be shown again.
       const { count } = await db.apiKey.updateMany({
         where: { id, merchantId, revokedAt: null },
-        data: { revokedAt: new Date() },
+        data: { revokedAt: new Date(), sealedSecret: null },
       });
       return count === 1;
     },

@@ -65,6 +65,8 @@ export function createBetterAuth(
         : {}),
     },
     socialProviders: social,
+    // Connecting Google or GitHub later brings its picture (and name) with it.
+    account: { accountLinking: { updateUserInfoOnLink: true } },
     databaseHooks: {
       user: {
         create: {

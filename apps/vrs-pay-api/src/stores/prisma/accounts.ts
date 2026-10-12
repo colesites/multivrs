@@ -5,7 +5,7 @@ import { accountStatusFor } from "../../services/account-status";
 import type { ApiKeyStore } from "../api-key.store";
 import type { ProviderAccountStore, ProviderEventStore } from "../provider-account.store";
 
-/** Resolves a secret key to its merchant, with only that mode's active accounts. */
+/** Resolves an API key to its merchant, with only that mode's active accounts. */
 export function createPrismaApiKeyStore(db: Db): ApiKeyStore {
   return {
     async findByHash(hash) {
@@ -13,7 +13,8 @@ export function createPrismaApiKeyStore(db: Db): ApiKeyStore {
         where: { hash },
         include: { merchant: { include: { providerAccounts: true } } },
       });
-      if (!key || key.revokedAt || key.kind !== "secret") return null;
+      // Secret or publishable: each middleware checks the kind from the key's prefix.
+      if (!key || key.revokedAt) return null;
       const providerAccounts: Partial<Record<ProviderId, string>> = {};
       for (const account of key.merchant.providerAccounts) {
         if (account.mode === key.mode && account.status === "active") {
@@ -30,6 +31,13 @@ export function createPrismaApiKeyStore(db: Db): ApiKeyStore {
         platformFeeBps: key.merchant.platformFeeBps,
       };
       return { hash, merchant };
+    },
+    async markUsed(hash, at) {
+      const hourAgo = new Date(at.getTime() - 3_600_000);
+      await db.apiKey.updateMany({
+        where: { hash, OR: [{ lastUsedAt: null }, { lastUsedAt: { lt: hourAgo } }] },
+        data: { lastUsedAt: at },
+      });
     },
   };
 }

@@ -6,7 +6,7 @@ import type { StoredRefund } from "./refund.types";
 import { newRefund, refundEffects } from "./refund-effects";
 
 /** On the platform account (`owner` null) any record of ours matches; otherwise it must be that merchant's. */
-function belongs(
+export function belongs(
   record: { merchantId: string; mode: string },
   owner: ProviderAccountOwner | null,
 ): boolean {

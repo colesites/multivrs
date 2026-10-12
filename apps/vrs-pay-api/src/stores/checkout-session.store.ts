@@ -10,6 +10,11 @@ export interface CheckoutSessionStore {
   findById(id: string): Promise<StoredCheckoutSession | null>;
   /** Webhook lookup by the provider's checkout id. */
   findByReference(provider: ProviderId, reference: string): Promise<StoredCheckoutSession | null>;
+  /**
+   * Stores where an open session's buyer now pays (a provider page started
+   * once their email was known). Returns false if it isn't open any more.
+   */
+  setHostedCheckout(id: string, url: string, customerEmail: string): Promise<boolean>;
   /** Marks an open session expired; returns it, or null if it wasn't open. */
   expire(
     id: string,

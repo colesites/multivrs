@@ -95,7 +95,7 @@ export interface RegistryVerifier {
 
 /**
  * Instant ID lookups at the issuer (Nigeria's NIN) through Didit's database
- * validation, for merchants with a NIN number but no slip or card. Each
+ * validation, for merchants with a NIN number but no ID card to scan. Each
  * lookup is paid.
  */
 export function createDiditLookup(config: DiditConfig): RegistryVerifier {

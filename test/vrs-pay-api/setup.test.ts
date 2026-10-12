@@ -70,7 +70,7 @@ describe("/dashboard/setup", () => {
     const ng = (await (await dash("/setup/id-types?country=NG")).json()).data.map(
       (t: { id: string }) => t.id,
     );
-    expect(ng).toEqual(["bvn", "nin"]);
+    expect(ng).toEqual(["bvn", "nin", "passport", "driving_licence"]);
     const fr = (await (await dash("/setup/id-types?country=FR")).json()).data.map(
       (t: { id: string }) => t.id,
     );
