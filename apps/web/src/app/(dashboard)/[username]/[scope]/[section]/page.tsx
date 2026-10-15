@@ -8,12 +8,14 @@ import { PlatformSectionStream } from "@/features/dashboard/components/PlatformS
 import { ProjectSettingsPage } from "@/features/dashboard/components/ProjectSettingsPage";
 import { SectionPlaceholder } from "@/features/dashboard/components/SectionPlaceholder";
 import { SettingsPage } from "@/features/dashboard/components/SettingsPage";
+import { TeamSettingsPage } from "@/features/dashboard/components/TeamSettingsPage";
 import { TemplatesDashboard } from "@/features/dashboard/components/TemplatesDashboard";
 import { ALL_PROJECTS_SCOPE } from "@/features/dashboard/constants/navigation";
 import { getSectionMeta } from "@/features/dashboard/constants/sections";
 import { isPlatformProjectSection } from "@/features/dashboard/lib/project-platform-sections";
 import type { AnalyticsRange } from "@/features/dashboard/types/analytics.types";
 import { getServerSession } from "@/lib/auth/session";
+import { ensureAccountTeam } from "@/lib/services/account-team.service";
 import { getAccountProfile } from "@/lib/services/account.service";
 import { accountDeletionBlockers } from "@/lib/services/account-deletion.service";
 import { getAccountSignIn } from "@/lib/services/account-sign-in.service";
@@ -87,27 +89,15 @@ export default async function SectionPage({
   if (section === "settings" && scope === ALL_PROJECTS_SCOPE) {
     const session = await getServerSession();
     if (!session) notFound();
-    const [billing, events, profile, tokens, signIn, deletionBlockers] =
-      await Promise.all([
-        getBillingOverview(session.user.id),
-        listAuditEvents(session.user.id),
-        getAccountProfile(session.user.id),
-        listApiTokens(session.user.id),
-        getAccountSignIn(await headers(), {
-          userId: session.user.id,
-          sessionId: session.session.id,
-        }),
-        accountDeletionBlockers(session.user.id),
-      ]);
+    const [billing, team] = await Promise.all([
+      getBillingOverview(session.user.id),
+      ensureAccountTeam(session.user.id),
+    ]);
     return (
-      <SettingsPage
+      <TeamSettingsPage
+        initialTeam={team}
         billing={billing}
-        deletionBlockers={deletionBlockers}
-        events={events}
-        profile={profile}
-        signIn={signIn}
-        tokens={tokens}
-        twoFactorEnabled={session.user.twoFactorEnabled ?? false}
+        username={username}
       />
     );
   }

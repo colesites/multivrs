@@ -4,6 +4,7 @@ import { CircleDashed, Plus } from "lucide-react";
 import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MailAnalytics, MailSettings } from "@/features/mail/MailAnalytics";
+import { MailBroadcastCompose } from "@/features/mail/MailBroadcastCompose";
 import { MailCreateDialog } from "@/features/mail/MailCreateDialog";
 import { MailResourceRow } from "@/features/mail/MailResourceRow";
 import { MailResourceSkeleton } from "@/features/mail/MailSkeletons";
@@ -86,8 +87,17 @@ function MailResourceTable({
       items={matching(resourceItems(view, data, resources), query)}
       view={view}
     >
-      {isCreateMailView(view) ? (
+      {view === "broadcasts" && creating ? (
+        <MailBroadcastCompose
+          key={`broadcast-${Date.now()}`}
+          open={creating}
+          onOpenChange={setCreating}
+          projectId={projectId}
+          resources={resources}
+        />
+      ) : isCreateMailView(view) && creating ? (
         <MailCreateDialog
+          key={`${view}-${Date.now()}`}
           resources={resources}
           onOpenChange={setCreating}
           open={creating}

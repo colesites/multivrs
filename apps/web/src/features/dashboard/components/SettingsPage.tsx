@@ -26,15 +26,13 @@ const SECTIONS: SettingsSection[] = [
   { id: "general", label: "General" },
   { id: "authentication", label: "Authentication" },
   { id: "sessions", label: "Sessions" },
-  { id: "team", label: "Team" },
-  { id: "billing", label: "Billing" },
   { id: "tokens", label: "Tokens" },
   { id: "activity", label: "Activity" },
   { id: "delete-account", label: "Delete account" },
 ];
 
 interface SettingsPageProps {
-  billing: BillingOverview;
+  billing?: BillingOverview;
   deletionBlockers: AccountDeletionBlocker[];
   events: DashboardAuditEvent[];
   profile: AccountProfile;
@@ -55,8 +53,8 @@ export function SettingsPage({
   return (
     <div className="w-full px-5 py-6">
       <DashboardPageHeader
-        title="Settings"
-        description="Your profile, sign-in, team, billing, and API access."
+        title="Account Settings"
+        description="Your personal profile, sign-in methods, sessions, and security."
       />
       <div className="mt-6 lg:grid lg:grid-cols-[11rem_minmax(0,1fr)] lg:gap-10">
         <SettingsNav sections={SECTIONS} />
@@ -71,12 +69,6 @@ export function SettingsPage({
           </Section>
           <Section id="sessions">
             <AccountSessions sessions={signIn.sessions} />
-          </Section>
-          <Section id="team">
-            <TeamManager />
-          </Section>
-          <Section id="billing">
-            <BillingManager initial={billing} />
           </Section>
           <Section id="tokens">
             <ApiTokensPage initialTokens={tokens} embedded />

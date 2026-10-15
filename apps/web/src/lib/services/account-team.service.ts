@@ -17,9 +17,11 @@ export interface AccountTeam {
   id: string;
   name: string;
   slug: string;
+  logo?: string | null;
+  createdAt?: Date;
 }
 
-const TEAM = { id: true, name: true, slug: true } as const;
+const TEAM = { id: true, name: true, slug: true, logo: true, createdAt: true } as const;
 
 export function findAccountTeam(userId: string): Promise<AccountTeam | null> {
   return prisma.organization.findUnique({
@@ -66,6 +68,31 @@ export async function ensureAccountTeam(userId: string): Promise<AccountTeam> {
     if (team) return team;
     throw error;
   }
+}
+
+/** Update the account team's name, slug, or logo. */
+export async function updateAccountTeam(
+  userId: string,
+  data: { name?: string; slug?: string; logo?: string | null },
+): Promise<AccountTeam> {
+  const team = await ensureAccountTeam(userId);
+  if (data.slug && data.slug !== team.slug) {
+    const existing = await prisma.organization.findUnique({
+      where: { slug: data.slug },
+    });
+    if (existing && existing.id !== team.id) {
+      throw new ConflictError("Team URL slug is already taken.");
+    }
+  }
+  return prisma.organization.update({
+    where: { id: team.id },
+    data: {
+      ...(data.name ? { name: data.name.trim() } : {}),
+      ...(data.slug ? { slug: data.slug.trim().toLowerCase() } : {}),
+      ...(data.logo !== undefined ? { logo: data.logo } : {}),
+    },
+    select: TEAM,
+  });
 }
 
 /**

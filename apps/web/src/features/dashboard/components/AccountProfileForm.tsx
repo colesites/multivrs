@@ -12,6 +12,12 @@ import { authClient } from "@/lib/auth-client";
 import type { AccountProfile } from "@/lib/schemas/account.schemas";
 import { accountProfileResponseSchema } from "@/lib/schemas/account.schemas";
 
+import {
+  SettingsCard,
+  SettingsCardBody,
+  SettingsCardFooter,
+} from "@/features/dashboard/components/settings/SettingsCard";
+
 const AVATAR_SIZE = 256;
 
 export function AccountProfileForm({
@@ -21,17 +27,22 @@ export function AccountProfileForm({
 }) {
   const router = useRouter();
   const [profile, setProfile] = useState(initialProfile);
-  const [busy, setBusy] = useState(false);
+  const [name, setName] = useState(initialProfile.name);
+  const [username, setUsername] = useState(initialProfile.username);
+  const [savingName, setSavingName] = useState(false);
+  const [savingUsername, setSavingUsername] = useState(false);
 
-  function save() {
-    if (busy) return;
-    setBusy(true);
+  function saveField(field: "name" | "username", value: string) {
+    const isName = field === "name";
+    if (isName) setSavingName(true);
+    else setSavingUsername(true);
+
     void requestOk(
       "/api/account/profile",
       {
         body: JSON.stringify({
-          name: profile.name,
-          username: profile.username,
+          name: isName ? value : profile.name,
+          username: isName ? profile.username : value,
         }),
         headers: { "content-type": "application/json" },
         method: "PATCH",
@@ -42,7 +53,9 @@ export function AccountProfileForm({
       .then((body) => accountProfileResponseSchema.parse(body))
       .then((updated) => {
         setProfile(updated);
-        toast.success("Profile saved");
+        setName(updated.name);
+        setUsername(updated.username);
+        toast.success(isName ? "Display name updated" : "Username updated");
         if (updated.username !== initialProfile.username)
           router.replace(`/${updated.username}/~/settings`);
         router.refresh();
@@ -50,71 +63,109 @@ export function AccountProfileForm({
       .catch((error: unknown) =>
         toast.error(readableError(error, "Profile update failed")),
       )
-      .finally(() => setBusy(false));
+      .finally(() => {
+        if (isName) setSavingName(false);
+        else setSavingUsername(false);
+      });
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-(--hairline) bg-background/70">
-      <div className="border-b border-(--hairline) px-5 py-4">
-        <h2 className="text-sm font-semibold">Profile</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Your account identity and dashboard URL.
-        </p>
-      </div>
-      <AvatarField
-        profile={profile}
-        onChange={(updated) => {
-          setProfile({ ...profile, image: updated.image });
-          router.refresh();
-        }}
-      />
-      <div className="grid max-w-2xl gap-5 p-5 sm:grid-cols-2">
-        <label
-          htmlFor="profile-name"
-          className="space-y-2 text-xs text-muted-foreground"
+    <div className="space-y-6">
+      {/* Avatar Card */}
+      <SettingsCard>
+        <SettingsCardBody
+          title="Avatar"
+          description="This is your avatar. Upload a custom avatar from your files."
         >
-          <span>Display name</span>
+          <AvatarField
+            profile={profile}
+            onChange={(updated) => {
+              setProfile({ ...profile, image: updated.image });
+              router.refresh();
+            }}
+          />
+        </SettingsCardBody>
+        <SettingsCardFooter helperText="An avatar is optional but strongly recommended." />
+      </SettingsCard>
+
+      {/* Display Name Card */}
+      <SettingsCard>
+        <SettingsCardBody
+          title="Display Name"
+          description="Please enter your full name, or a display name you are comfortable with."
+        >
           <Input
             id="profile-name"
-            maxLength={80}
-            value={profile.name}
-            onChange={(event) =>
-              setProfile({ ...profile, name: event.target.value })
-            }
+            maxLength={32}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            className="max-w-md font-sans text-sm"
+            placeholder="Your name"
           />
-        </label>
-        <label
-          htmlFor="profile-username"
-          className="space-y-2 text-xs text-muted-foreground"
+        </SettingsCardBody>
+        <SettingsCardFooter
+          helperText="Please use 32 characters at maximum."
+          action={
+            <Button
+              size="sm"
+              disabled={savingName || name === profile.name || !name.trim()}
+              onClick={() => saveField("name", name.trim())}
+            >
+              {savingName ? "Saving…" : "Save"}
+            </Button>
+          }
+        />
+      </SettingsCard>
+
+      {/* Username Card */}
+      <SettingsCard>
+        <SettingsCardBody
+          title="Username"
+          description="This is your URL namespace within Multivrs."
         >
-          <span>Username</span>
-          <Input
-            id="profile-username"
-            maxLength={30}
-            value={profile.username}
-            onChange={(event) =>
-              setProfile({
-                ...profile,
-                username: event.target.value.toLowerCase(),
-              })
-            }
-          />
-        </label>
-        <EmailField email={profile.email} />
-      </div>
-      <div className="flex items-center justify-between gap-4 border-t border-(--hairline) bg-black/2 dark:bg-white/2 px-5 py-3">
-        <p className="text-xs text-muted-foreground">
-          Your username is your dashboard URL: lowercase letters, numbers, and
-          underscores, up to 30 characters.
-        </p>
-        <Button
-          onClick={save}
-          disabled={busy || !profile.name.trim() || !profile.username.trim()}
+          <div className="flex max-w-md items-center rounded-md border border-input bg-transparent shadow-xs focus-within:ring-1 focus-within:ring-ring">
+            <span className="flex select-none items-center pl-3 text-xs text-muted-foreground">
+              multivrs.space/
+            </span>
+            <input
+              id="profile-username"
+              maxLength={48}
+              value={username}
+              onChange={(event) =>
+                setUsername(event.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))
+              }
+              className="flex h-9 w-full bg-transparent px-1 py-1 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="username"
+            />
+          </div>
+        </SettingsCardBody>
+        <SettingsCardFooter
+          helperText="Please use 48 characters at maximum."
+          action={
+            <Button
+              size="sm"
+              disabled={savingUsername || username === profile.username || !username.trim()}
+              onClick={() => saveField("username", username.trim())}
+            >
+              {savingUsername ? "Saving…" : "Save"}
+            </Button>
+          }
+        />
+      </SettingsCard>
+
+      {/* Email Card */}
+      <SettingsCard>
+        <SettingsCardBody
+          title="Email"
+          description="Your primary account email address."
         >
-          {busy ? "Saving…" : "Save profile"}
-        </Button>
-      </div>
-    </section>
+          <div className="max-w-md">
+            <EmailField email={profile.email} />
+          </div>
+        </SettingsCardBody>
+        <SettingsCardFooter helperText="Used for notifications, invoices, and password resets." />
+      </SettingsCard>
+    </div>
   );
 }
 

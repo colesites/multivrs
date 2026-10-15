@@ -56,7 +56,7 @@ export function AccountMenu({ name, email, plan, onClose }: AccountMenuProps) {
           <p className="truncate text-[12px] text-muted-foreground">{email}</p>
         </div>
         <Link
-          href={settingsHref}
+          href="/account/settings"
           className="shrink-0 rounded-md p-1 text-muted-foreground/70 transition-colors hover:text-foreground"
           aria-label="Account settings"
         >
@@ -65,6 +65,13 @@ export function AccountMenu({ name, email, plan, onClose }: AccountMenuProps) {
       </div>
 
       <DropdownMenuSeparator />
+
+      <DropdownMenuItem className="rounded-lg" asChild>
+        <Link href="/account/settings">
+          <Settings className="text-muted-foreground" strokeWidth={1.75} />
+          Account Settings
+        </Link>
+      </DropdownMenuItem>
 
       <DropdownMenuItem className="rounded-lg">
         <SmilePlus className="text-muted-foreground" strokeWidth={1.75} />

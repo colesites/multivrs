@@ -47,6 +47,12 @@ export function MailCreateDialog({
   const [secret, setSecret] = useState<string>();
   const [copied, setCopied] = useState(false);
   const [connection, setConnection] = useState<SmtpConnection>();
+
+  const resetSecret = () => {
+    setSecret(undefined);
+    setCopied(false);
+    setConnection(undefined);
+  };
   function submit(formData: FormData) {
     setSaving(true);
     void submitMailResource(view, formData, projectId, params.username).then(
@@ -90,9 +96,7 @@ export function MailCreateDialog({
     <Dialog
       onOpenChange={(next) => {
         if (!next) {
-          setSecret(undefined);
-          setCopied(false);
-          setConnection(undefined);
+          resetSecret();
         }
         onOpenChange(next);
       }}
@@ -156,7 +160,10 @@ export function MailCreateDialog({
               type="button"
               variant="outline"
               className="w-full"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                resetSecret();
+                onOpenChange(false);
+              }}
             >
               Done
             </Button>
