@@ -23,6 +23,8 @@ export {
 export {
   createCredential,
   createWebhook,
+  deleteCredential,
+  deleteWebhook,
 } from "@/lib/services/mail-credential.service";
 
 type MailboxInput = z.infer<typeof createMailboxSchema>;

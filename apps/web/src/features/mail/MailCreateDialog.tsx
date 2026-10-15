@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, Copy } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ export function MailCreateDialog({
   const params = useParams<{ username?: string; scope?: string }>();
   const [saving, setSaving] = useState(false);
   const [secret, setSecret] = useState<string>();
+  const [copied, setCopied] = useState(false);
   const [connection, setConnection] = useState<SmtpConnection>();
   function submit(formData: FormData) {
     setSaving(true);
@@ -57,6 +59,7 @@ export function MailCreateDialog({
         toast.success(`${createMailLabel(view)} created`);
         if (result.secret) {
           setSecret(result.secret);
+          setCopied(false);
           setConnection(result.connection);
           toast.info("Copy this secret now. It will not be shown again.");
         } else {
@@ -88,6 +91,7 @@ export function MailCreateDialog({
       onOpenChange={(next) => {
         if (!next) {
           setSecret(undefined);
+          setCopied(false);
           setConnection(undefined);
         }
         onOpenChange(next);
@@ -123,22 +127,38 @@ export function MailCreateDialog({
                 <code className="break-all">{connection.username}</code>
               </div>
             ) : null}
-            <code className="block break-all rounded-lg border border-accent/20 bg-accent/5 p-4 text-xs text-accent">
-              {secret}
-            </code>
+            <div className="rounded-lg border border-black/15 dark:border-white/20 bg-neutral-100 dark:bg-neutral-900 p-4">
+              <code className="block break-all font-mono text-xs font-semibold text-black dark:text-white select-all">
+                {secret}
+              </code>
+            </div>
             <Button
-              className="w-full"
+              className="w-full gap-2 bg-purple-600 hover:bg-purple-500 text-white font-medium"
               onClick={async () => {
                 const value = connection
                   ? `SMTP_HOST=${connection.host}\nSMTP_PORT=${connection.port}\nSMTP_USERNAME=${connection.username}\nSMTP_PASSWORD=${secret}\nSMTP_TLS=true`
                   : secret;
                 await navigator.clipboard.writeText(value);
+                setCopied(true);
                 toast.success(
-                  connection ? "SMTP configuration copied" : "Secret copied",
+                  connection ? "SMTP configuration copied" : "Secret copied to clipboard",
                 );
               }}
             >
-              {connection ? "Copy SMTP configuration" : "Copy secret"}
+              {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+              {copied
+                ? "Copied to clipboard!"
+                : connection
+                  ? "Copy SMTP configuration"
+                  : "Copy secret"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => onOpenChange(false)}
+            >
+              Done
             </Button>
           </div>
         ) : (

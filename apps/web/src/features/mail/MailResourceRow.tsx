@@ -3,9 +3,11 @@
 import {
   CheckCircle2,
   CircleDashed,
+  Copy,
   MoreHorizontal,
   Pencil,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -61,7 +63,9 @@ export function MailResourceRow({
       return;
     }
     setConfirming(false);
-    toast.success(`${item.name} deleted`);
+    toast.success(
+      view === "credentials" ? `${item.name} revoked` : `${item.name} deleted`,
+    );
     router.refresh();
   }
 
@@ -104,25 +108,41 @@ export function MailResourceRow({
         className={`grid grid-cols-[1.4fr_.9fr_.45fr_32px] items-center gap-3 border-b border-border px-4 py-3.5 text-xs last:border-0 ${view === "domains" ? "cursor-pointer hover:bg-muted/50" : ""}`}
       >
         <div className="min-w-0">
-          <p className="truncate text-black/75 dark:text-white/75">
+          <p className="truncate font-medium text-black dark:text-white">
             {item.name}
           </p>
           {item.createdAt ? (
-            <p className="mt-1 text-[9px] text-black/50 dark:text-white/50">
+            <p className="mt-1 text-[10px] text-black/60 dark:text-white/60">
               {new Date(item.createdAt).toLocaleDateString("en-US", {
                 timeZone: "UTC",
               })}
             </p>
           ) : null}
         </div>
-        <p className="truncate text-black/35 dark:text-white/35">
-          {item.detail}
-        </p>
-        <span className="flex items-center gap-1.5 text-[10px] text-black/45 dark:text-white/45">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <p className="truncate font-mono text-xs text-black/70 dark:text-white/70">
+            {item.detail}
+          </p>
+          {view === "mailboxes" && (
+            <button
+              type="button"
+              title="Copy Mailbox ID"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(item.id);
+                toast.success("Mailbox ID copied to clipboard");
+              }}
+              className="shrink-0 p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition-colors"
+            >
+              <Copy className="size-3" />
+            </button>
+          )}
+        </div>
+        <span className="flex items-center gap-1.5 text-[10px] text-black/60 dark:text-white/60">
           {healthy ? (
             <CheckCircle2 className="size-3 text-emerald-400" />
           ) : (
-            <CircleDashed className="size-3 text-black/30 dark:text-white/30" />
+            <CircleDashed className="size-3 text-black/40 dark:text-white/40" />
           )}
           {item.status}
         </span>
@@ -133,10 +153,21 @@ export function MailResourceRow({
               type="button"
               onClick={(e) => e.stopPropagation()}
             >
-              <MoreHorizontal className="size-4 text-black/30 dark:text-white/30 hover:text-black/70 dark:hover:text-white/70 transition-colors" />
+              <MoreHorizontal className="size-4 text-black/40 dark:text-white/40 hover:text-black/90 dark:hover:text-white/90 transition-colors" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+            {view === "mailboxes" && (
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(item.id);
+                  toast.success("Mailbox ID copied to clipboard");
+                }}
+              >
+                <Copy className="size-3.5" />
+                Copy Mailbox ID
+              </DropdownMenuItem>
+            )}
             {view === "domains" && item.status !== "verified" && (
               <DropdownMenuItem onClick={verify}>
                 <RefreshCw className="size-3.5" />
@@ -149,14 +180,13 @@ export function MailResourceRow({
                 Edit
               </DropdownMenuItem>
             )}
-            {(view === "mailboxes" || view === "domains") && (
-              <DropdownMenuItem
-                onClick={() => setConfirming(true)}
-                className="text-red-400 focus:text-red-400 focus:bg-red-400/10"
-              >
-                Delete
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem
+              onClick={() => setConfirming(true)}
+              className="text-red-400 focus:text-red-400 focus:bg-red-400/10"
+            >
+              <Trash2 className="size-3.5" />
+              {view === "credentials" ? "Revoke" : "Delete"}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -177,12 +207,14 @@ export function MailResourceRow({
         description={
           view === "domains"
             ? "This removes it from Multivrs and AWS. You can add it again to get new DKIM records, then replace the old ones at your DNS provider."
-            : `This permanently deletes this ${noun}.`
+            : view === "credentials"
+              ? "This will immediately revoke and delete this credential. Any applications using this API key or SMTP password will fail to authenticate."
+              : `This permanently deletes this ${noun}.`
         }
         onConfirm={() => void deleteItem()}
         onOpenChange={setConfirming}
         open={confirming}
-        title={`Delete ${item.name}?`}
+        title={view === "credentials" ? `Revoke ${item.name}?` : `Delete ${item.name}?`}
       />
     </>
   );

@@ -6,6 +6,7 @@ export const mailAddressSchema = z
 
 export const composeMailBaseSchema = z.object({
   mailboxId: z.uuid(),
+  fromName: z.string().trim().max(255).optional(),
   to: z.array(mailAddressSchema).min(1).max(100),
   cc: z.array(mailAddressSchema).max(100).default([]),
   bcc: z.array(mailAddressSchema).max(100).default([]),
@@ -33,6 +34,33 @@ export const composeMailBaseSchema = z.object({
 });
 
 export const composeMailSchema = composeMailBaseSchema
+  .refine((value) => value.text || value.html, {
+    message: "An email body is required",
+  })
+  .refine(
+    (value) => value.to.length + value.cc.length + value.bcc.length <= 50,
+    {
+      message: "An email cannot have more than 50 total recipients",
+      path: ["to"],
+    },
+  )
+  .refine(
+    (value) =>
+      value.attachments.reduce((total, item) => total + item.size, 0) <=
+      10 * 1024 * 1024,
+    {
+      message: "Attachments cannot exceed 10 MB in total",
+      path: ["attachments"],
+    },
+  );
+
+export const apiSendMailSchema = composeMailBaseSchema
+  .omit({ mailboxId: true })
+  .extend({
+    mailboxId: z.uuid().optional(),
+    from: z.string().trim().min(1).max(500).optional(),
+    fromName: z.string().trim().max(255).optional(),
+  })
   .refine((value) => value.text || value.html, {
     message: "An email body is required",
   })
