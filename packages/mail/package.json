@@ -1,0 +1,19 @@
+{
+  "name": "@multivrs/mail",
+  "version": "0.1.0",
+  "description": "Multivrs Mail SDK for Node.js, Bun, Next.js, and edge runtimes.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome check --fix .",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/biome-config": "*",
+    "@repo/typescript-config": "*",
+    "typescript": "5.9.2"
+  }
+}

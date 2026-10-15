@@ -26,6 +26,7 @@ import {
   createMailDomainSchema,
   createMailWebhookSchema,
 } from "../../apps/web/src/lib/schemas/mail-resource.schemas";
+import { MultivrsMail } from "../../packages/mail/src/index";
 
 describe("Multivrs Mail boundaries", () => {
   test("apiSendMailSchema accepts both Resend-style from address and mailboxId", () => {
@@ -270,5 +271,42 @@ describe("Multivrs Mail boundaries", () => {
       "someone@gmail.com",
       "team@acme.com",
     ]);
+  });
+
+  test("MultivrsMail SDK formats requests and parses responses identically to Resend", async () => {
+    let capturedUrl = "";
+    let capturedHeaders: Record<string, string> = {};
+    let capturedBody: any = null;
+
+    const mockFetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      capturedUrl = url.toString();
+      capturedHeaders = (init?.headers as Record<string, string>) || {};
+      capturedBody = JSON.parse(init?.body as string);
+      return new Response(JSON.stringify({ id: "msg_abc123", status: "queued" }), {
+        status: 202,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof globalThis.fetch;
+
+    const mail = new MultivrsMail({
+      apiKey: "mlv_live_test_key_123",
+      baseUrl: "https://api.multivrs.space",
+      fetch: mockFetch,
+    });
+
+    const { data, error } = await mail.emails.send({
+      from: "Kontinue AI <reminders@kontinue.ai>",
+      to: "user@example.com",
+      subject: "Your reminder",
+      html: "<p>Hello</p>",
+    });
+
+    expect(error).toBeNull();
+    expect(data).toEqual({ id: "msg_abc123", status: "queued" });
+    expect(capturedUrl).toBe("https://api.multivrs.space/api/v1/mail/send");
+    expect(capturedHeaders["Authorization"]).toBe("Bearer mlv_live_test_key_123");
+    expect(capturedBody.from).toBe("Kontinue AI <reminders@kontinue.ai>");
+    expect(capturedBody.to).toEqual(["user@example.com"]);
+    expect(capturedBody.subject).toBe("Your reminder");
   });
 });
