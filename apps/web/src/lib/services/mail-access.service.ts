@@ -30,8 +30,8 @@ export interface MailAccount {
 
 /** Where a request says it's working: a project, or an account by username. */
 export interface MailTarget {
-  projectId?: string;
-  account?: string;
+  projectId?: string | null;
+  account?: string | null;
 }
 
 function allowed(role: string | undefined, action: AccountAction): string {

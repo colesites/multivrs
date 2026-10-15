@@ -76,7 +76,7 @@ export async function composeMail(
         direction: "outbound",
         status: scheduledAt ? "scheduled" : "queued",
         folder: scheduledAt ? "scheduled" : "sent",
-        fromName: mailbox.name,
+        fromName: input.fromName || mailbox.name,
         fromAddress: mailbox.address,
         toAddresses: input.to,
         ccAddresses: input.cc,

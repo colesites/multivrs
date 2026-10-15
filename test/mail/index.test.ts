@@ -17,6 +17,7 @@ import {
   sesDomainSnapshot,
 } from "../../apps/web/src/lib/mail/ses-domain-snapshot";
 import {
+  apiSendMailSchema,
   composeMailSchema,
   inboundMailSchema,
 } from "../../apps/web/src/lib/schemas/mail-message.schemas";
@@ -27,6 +28,28 @@ import {
 } from "../../apps/web/src/lib/schemas/mail-resource.schemas";
 
 describe("Multivrs Mail boundaries", () => {
+  test("apiSendMailSchema accepts both Resend-style from address and mailboxId", () => {
+    // 1. Resend-style from address without mailboxId
+    const resendStyle = apiSendMailSchema.parse({
+      from: "Kontinue AI <reminders@kontinue.ai>",
+      to: ["user@example.com"],
+      subject: "Your reminder",
+      html: "<p>Reminder content</p>",
+    });
+    expect(resendStyle.from).toBe("Kontinue AI <reminders@kontinue.ai>");
+    expect(resendStyle.to).toEqual(["user@example.com"]);
+    expect(resendStyle.mailboxId).toBeUndefined();
+
+    // 2. Multivrs mailboxId style
+    const mailboxStyle = apiSendMailSchema.parse({
+      mailboxId: "cbd91bb6-0fb5-48eb-a047-9ec1e0b40483",
+      to: ["user@example.com"],
+      subject: "Hello",
+      text: "Body",
+    });
+    expect(mailboxStyle.mailboxId).toBe("cbd91bb6-0fb5-48eb-a047-9ec1e0b40483");
+  });
+
   test("normalizes compose recipients and requires a body", () => {
     const parsed = composeMailSchema.parse({
       mailboxId: "cbd91bb6-0fb5-48eb-a047-9ec1e0b40483",

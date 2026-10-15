@@ -1,5 +1,6 @@
 "use client";
 
+import { Copy } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -64,6 +65,30 @@ export function MailboxEditDialog({
           <DialogDescription>{mailbox.address}</DialogDescription>
         </DialogHeader>
         <form action={(form) => void save(form)} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="mailbox-id">Mailbox ID (UUID)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                readOnly
+                value={mailbox.id}
+                id="mailbox-id"
+                className="font-mono text-xs text-muted-foreground bg-black/5 dark:bg-white/5 select-all"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="shrink-0 gap-1.5"
+                onClick={() => {
+                  navigator.clipboard.writeText(mailbox.id);
+                  toast.success("Mailbox ID copied to clipboard");
+                }}
+              >
+                <Copy className="size-3.5" />
+                Copy
+              </Button>
+            </div>
+          </div>
           <div className="space-y-1.5">
             <Label htmlFor="mailbox-name">Name</Label>
             <Input

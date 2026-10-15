@@ -94,3 +94,26 @@ export async function createWebhook(
     secret: value,
   };
 }
+
+export async function deleteCredential(actorId: string, credentialId: string) {
+  const credential = await prisma.mailCredential.findUnique({
+    where: { id: credentialId },
+  });
+  if (!credential) return;
+  await mailAccount(actorId, { projectId: credential.projectId }, "delete");
+  return prisma.mailCredential.delete({
+    where: { id: credentialId },
+  });
+}
+
+export async function deleteWebhook(actorId: string, webhookId: string) {
+  const endpoint = await prisma.mailWebhookEndpoint.findUnique({
+    where: { id: webhookId },
+  });
+  if (!endpoint) return;
+  await mailAccount(actorId, { projectId: endpoint.projectId }, "delete");
+  return prisma.mailWebhookEndpoint.delete({
+    where: { id: webhookId },
+  });
+}
+
